@@ -1,0 +1,186 @@
+{% extends "base.html" %}
+
+{% block title %}Lista de Clientes{% endblock %}
+
+{% block content %}
+<div class="page-header d-flex justify-content-between align-items-center">
+    <div>
+        <h1><i class="bi bi-people me-3"></i>Lista de Clientes</h1>
+        <p class="text-muted mb-0">Gerencie todos os seus clientes cadastrados</p>
+    </div>
+    <div class="d-flex gap-2">
+        {% if session.user_perfil and session.user_perfil.lower() == 'administrador' %}
+        <a href="{{ url_for('import_page') }}" class="btn btn-outline-primary">
+            <i class="bi bi-upload me-2"></i>Importar
+        </a>
+        {% endif %}
+        <a href="{{ url_for('new_client') }}" class="btn btn-primary">
+            <i class="bi bi-plus-lg me-2"></i>Novo Cliente
+        </a>
+    </div>
+</div>
+
+{% if clients %}
+<div class="card">
+    <div class="card-body p-0">
+        <div class="table-responsive">
+            <table class="table table-hover mb-0">
+                <thead>
+                    <tr>
+                        <th><i class="bi bi-hash me-1"></i>ID</th>
+                        <th><i class="bi bi-building me-1"></i>Empresa</th>
+                        <th><i class="bi bi-file-text me-1"></i>CNPJ</th>
+                        <th><i class="bi bi-geo-alt me-1"></i>Cidade</th>
+                        <th><i class="bi bi-tags me-1"></i>Serviços</th>
+                        <th><i class="bi bi-calculator me-1"></i>Tributação</th>
+                        <th><i class="bi bi-circle me-1"></i>Status</th>
+                        <th><i class="bi bi-gear me-1"></i>Ações</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for client in clients %}
+                    <tr>
+                        <td>
+                            <span class="badge bg-light text-dark">#{{ client.id }}</span>
+                        </td>
+                        <td>
+                            <div>
+                                <strong class="text-primary">{{ client.nomeEmpresa }}</strong>
+                                {% if client.nomeFantasiaReceita and client.nomeFantasiaReceita != client.nomeEmpresa %}
+                                    <br><small class="text-muted">{{ client.nomeFantasiaReceita }}</small>
+                                {% endif %}
+                            </div>
+                        </td>
+                        <td>
+                            <code class="text-muted">{{ client.cnpj or '-' }}</code>
+                        </td>
+                        <td>{{ client.cidade or '-' }}</td>
+                        <td>
+                            <div class="d-flex flex-wrap gap-1">
+                                {% if client.ct %}
+                                    <span class="badge bg-success">
+                                        <i class="bi bi-calculator-fill me-1"></i>CT
+                                    </span>
+                                {% endif %}
+                                {% if client.fs %}
+                                    <span class="badge bg-info">
+                                        <i class="bi bi-file-earmark-text-fill me-1"></i>FS
+                                    </span>
+                                {% endif %}
+                                {% if client.dp %}
+                                    <span class="badge bg-warning">
+                                        <i class="bi bi-people-fill me-1"></i>DP
+                                    </span>
+                                {% endif %}
+                                {% if not client.ct and not client.fs and not client.dp %}
+                                    <span class="badge bg-secondary">Nenhum</span>
+                                {% endif %}
+                            </div>
+                        </td>
+                        <td>
+                            <span class="badge bg-{{ 'primary' if client.tributacao == 'SIMPLES' else 'secondary' }}">
+                                {{ client.tributacao or 'SIMPLES' }}
+                            </span>
+                        </td>
+                        <td>
+                            {% if client.ativo %}
+                                <span class="badge bg-success">
+                                    <i class="bi bi-check-circle-fill me-1"></i>Ativo
+                                </span>
+                            {% else %}
+                                <span class="badge bg-danger">
+                                    <i class="bi bi-x-circle-fill me-1"></i>Inativo
+                                </span>
+                            {% endif %}
+                        </td>
+                        <td>
+                            <div class="btn-group" role="group">
+                                <a href="{{ url_for('view_client', client_id=client.id) }}" 
+                                   class="btn btn-sm btn-outline-primary" 
+                                   title="Visualizar">
+                                    <i class="bi bi-eye"></i>
+                                </a>
+                                <a href="{{ url_for('edit_client', client_id=client.id) }}" 
+                                   class="btn btn-sm btn-outline-warning" 
+                                   title="Editar">
+                                    <i class="bi bi-pencil"></i>
+                                </a>
+                                <button type="button" 
+                                        class="btn btn-sm btn-outline-danger" 
+                                        onclick="confirmarDelete('{{ client.id }}', '{{ client.nomeEmpresa }}')" 
+                                        title="Deletar">
+                                    <i class="bi bi-trash"></i>
+                                </button>
+                            </div>
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+    <div class="card-footer bg-light">
+        <small class="text-muted">
+            <i class="bi bi-info-circle me-1"></i>
+            Total de {{ clients|length }} cliente(s) cadastrado(s)
+        </small>
+    </div>
+</div>
+
+<!-- Modal de confirmação para delete -->
+<div class="modal fade" id="deleteModal" tabindex="-1">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content border-0 shadow-lg">
+            <div class="modal-header border-0 pb-0">
+                <h5 class="modal-title">
+                    <i class="bi bi-exclamation-triangle-fill text-danger me-2"></i>
+                    Confirmar Exclusão
+                </h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body pt-2">
+                <p class="mb-2">Tem certeza que deseja excluir o cliente:</p>
+                <p class="text-primary fw-bold fs-5 mb-3" id="clienteName"></p>
+                <div class="alert alert-danger border-0 bg-danger bg-opacity-10">
+                    <i class="bi bi-shield-exclamation me-2"></i>
+                    <strong>Atenção:</strong> Esta ação não pode ser desfeita!
+                </div>
+            </div>
+            <div class="modal-footer border-0 pt-0">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">
+                    <i class="bi bi-x-lg me-1"></i>Cancelar
+                </button>
+                <form id="deleteForm" method="POST" style="display: inline;">
+                    <button type="submit" class="btn btn-danger">
+                        <i class="bi bi-trash me-1"></i>Confirmar Exclusão
+                    </button>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+function confirmarDelete(clientId, clientName) {
+    document.getElementById('clienteName').textContent = clientName;
+    document.getElementById('deleteForm').action = `/client/${clientId}/delete`;
+    var modal = new bootstrap.Modal(document.getElementById('deleteModal'));
+    modal.show();
+}
+</script>
+
+{% else %}
+<div class="card text-center py-5">
+    <div class="card-body">
+        <div class="mb-4">
+            <i class="bi bi-people display-1 text-muted"></i>
+        </div>
+        <h3 class="text-muted mb-3">Nenhum cliente cadastrado</h3>
+        <p class="lead text-muted mb-4">Comece cadastrando seu primeiro cliente</p>
+        <a href="{{ url_for('new_client') }}" class="btn btn-primary btn-lg">
+            <i class="bi bi-plus-lg me-2"></i>Cadastrar Primeiro Cliente
+        </a>
+    </div>
+</div>
+{% endif %}
+{% endblock %}

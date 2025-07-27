@@ -1,0 +1,336 @@
+{% extends "base.html" %}
+
+{% block title %}Atas de Reunião - SIGEC{% endblock %}
+
+{% block content %}
+<!-- Header da página -->
+<div class="page-header">
+    <div class="row align-items-center">
+        <div class="col-md-8">
+            <h1>
+                <i class="bi bi-file-earmark-text text-primary"></i>
+                Atas de Reunião
+            </h1>
+            <p class="mb-0">Histórico completo de todas as reuniões registradas no sistema</p>
+        </div>
+        <div class="col-md-4 text-end">
+            <a href="/" class="btn btn-secondary">
+                <i class="bi bi-arrow-left"></i>
+                Voltar ao Dashboard
+            </a>
+        </div>
+    </div>
+    
+    <!-- Cards de estatísticas -->
+    <div class="row mt-4">
+        <div class="col-md-3">
+            <div class="card border-0" style="background: linear-gradient(135deg, #dbeafe 0%, #bfdbfe 100%);">
+                <div class="card-body text-center">
+                    <i class="bi bi-file-earmark-text display-6 mb-2" style="color: var(--control-primary);"></i>
+                    <h3 class="mb-1" style="color: var(--control-primary);">{{ meetings|length }}</h3>
+                    <small class="text-muted">Total de Atas</small>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="card border-0" style="background: linear-gradient(135deg, #d1fae5 0%, #a7f3d0 100%);">
+                <div class="card-body text-center">
+                    <i class="bi bi-calendar-event display-6 text-success mb-2"></i>
+                    <h3 class="text-success mb-1">{{ meetings|selectattr('date')|list|length }}</h3>
+                    <small class="text-muted">Reuniões com Data</small>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="card border-0" style="background: linear-gradient(135deg, #fed7aa 0%, #fdba74 100%);">
+                <div class="card-body text-center">
+                    <i class="bi bi-people display-6 mb-2" style="color: var(--control-secondary);"></i>
+                    <h3 class="mb-1" style="color: var(--control-secondary);">{{ meetings|map(attribute='client_id')|unique|list|length }}</h3>
+                    <small class="text-muted">Clientes Atendidos</small>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="card border-0" style="background: linear-gradient(135deg, #fce7f3 0%, #f9a8d4 100%);">
+                <div class="card-body text-center">
+                    <i class="bi bi-clock-history display-6 text-info mb-2"></i>
+                    <h3 class="text-info mb-1">
+                        {% if meetings %}
+                            {{ ((meetings|length) / 30) | round(1) }}
+                        {% else %}
+                            0
+                        {% endif %}
+                    </h3>
+                    <small class="text-muted">Atas/Mês (média)</small>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Filtros -->
+<div class="card mb-4">
+    <div class="card-body">
+        <div class="row">
+            <div class="col-md-4">
+                <div class="input-group">
+                    <span class="input-group-text">
+                        <i class="bi bi-search"></i>
+                    </span>
+                    <input type="text" class="form-control" id="searchInput" placeholder="Buscar por cliente, participantes ou tópicos...">
+                </div>
+            </div>
+            <div class="col-md-3">
+                <select class="form-select" id="clientFilter">
+                    <option value="">Todos os Clientes</option>
+                    {% for meeting in meetings %}
+                        {% if meeting.client_name not in (meetings|map(attribute='client_name')|unique|list) %}
+                        {% endif %}
+                    {% endfor %}
+                    {% set unique_clients = meetings|map(attribute='client_name')|unique|list %}
+                    {% for client_name in unique_clients %}
+                        <option value="{{ client_name }}">{{ client_name }}</option>
+                    {% endfor %}
+                </select>
+            </div>
+            <div class="col-md-3">
+                <input type="month" class="form-control" id="monthFilter" placeholder="Filtrar por mês">
+            </div>
+            <div class="col-md-2">
+                <button class="btn btn-outline-secondary w-100" onclick="clearFilters()" title="Limpar filtros">
+                    <i class="bi bi-arrow-clockwise"></i> Limpar
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Lista de Atas -->
+{% if meetings %}
+<div class="card">
+    <div class="card-body p-0">
+        <div class="table-responsive">
+            <table class="table table-hover mb-0" id="meetingsTable">
+                <thead>
+                    <tr>
+                        <th style="min-width: 120px;"><i class="bi bi-hash me-1"></i>ID da Ata</th>
+                        <th style="min-width: 200px;"><i class="bi bi-building me-1"></i>Cliente</th>
+                        <th style="min-width: 120px;"><i class="bi bi-calendar me-1"></i>Data</th>
+                        <th style="min-width: 100px;"><i class="bi bi-clock me-1"></i>Horário</th>
+                        <th style="min-width: 200px;"><i class="bi bi-people me-1"></i>Participantes</th>
+                        <th style="min-width: 300px;"><i class="bi bi-chat-dots me-1"></i>Tópicos</th>
+                        <th style="min-width: 150px;"><i class="bi bi-calendar-plus me-1"></i>Criada em</th>
+                        <th style="min-width: 100px;"><i class="bi bi-gear me-1"></i>Ações</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for meeting in meetings %}
+                    <tr>
+                        <td>
+                            <span class="badge bg-light text-dark">{{ meeting.id }}</span>
+                        </td>
+                        <td>
+                            <strong class="text-primary">{{ meeting.client_name }}</strong>
+                            <br><small class="text-muted">ID: {{ meeting.client_id }}</small>
+                        </td>
+                        <td>
+                            {% if meeting.date %}
+                                {{ meeting.date }}
+                            {% else %}
+                                <span class="text-muted">-</span>
+                            {% endif %}
+                        </td>
+                        <td>
+                            {% if meeting.time %}
+                                {{ meeting.time }}
+                            {% else %}
+                                <span class="text-muted">-</span>
+                            {% endif %}
+                        </td>
+                        <td>
+                            <div class="text-truncate" style="max-width: 200px;" title="{{ meeting.participants }}">
+                                {{ meeting.participants[:50] }}{% if meeting.participants|length > 50 %}...{% endif %}
+                            </div>
+                        </td>
+                        <td>
+                            <div class="text-truncate" style="max-width: 300px;" title="{{ meeting.topics }}">
+                                {{ meeting.topics[:80] }}{% if meeting.topics|length > 80 %}...{% endif %}
+                            </div>
+                        </td>
+                        <td>
+                            <small class="text-muted">{{ meeting.created_at }}</small>
+                        </td>
+                        <td>
+                            <div class="d-flex gap-1">
+                                <button type="button" 
+                                        class="btn btn-outline-primary btn-sm" 
+                                        onclick="viewMeeting('{{ meeting.id }}')"
+                                        title="Ver detalhes">
+                                    <i class="bi bi-eye"></i>
+                                </button>
+                                <a href="{{ url_for('view_client', client_id=meeting.client_id) }}" 
+                                   class="btn btn-outline-secondary btn-sm" 
+                                   title="Ver cliente">
+                                    <i class="bi bi-person"></i>
+                                </a>
+                            </div>
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+{% else %}
+<!-- Estado vazio -->
+<div class="card">
+    <div class="card-body text-center py-5">
+        <i class="bi bi-file-earmark-text display-1 text-muted mb-3"></i>
+        <h4 class="text-muted mb-3">Nenhuma ata de reunião encontrada</h4>
+        <p class="text-muted mb-4">
+            Ainda não há atas de reunião registradas no sistema.<br>
+            Comece registrando uma ata para um cliente.
+        </p>
+        <a href="/" class="btn btn-primary">
+            <i class="bi bi-plus-circle me-1"></i>
+            Ir para Dashboard
+        </a>
+    </div>
+</div>
+{% endif %}
+
+<!-- Modal para visualizar ata completa -->
+<div class="modal fade" id="meetingModal" tabindex="-1">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">
+                    <i class="bi bi-file-earmark-text me-2"></i>
+                    Detalhes da Ata de Reunião
+                </h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body" id="meetingDetails">
+                <!-- Conteúdo será carregado via JavaScript -->
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Fechar</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+// Filtros e busca
+document.addEventListener('DOMContentLoaded', function() {
+    const searchInput = document.getElementById('searchInput');
+    const clientFilter = document.getElementById('clientFilter');
+    const monthFilter = document.getElementById('monthFilter');
+    const table = document.getElementById('meetingsTable');
+    const rows = table ? table.querySelectorAll('tbody tr') : [];
+
+    function filterTable() {
+        const searchTerm = searchInput.value.toLowerCase();
+        const clientValue = clientFilter.value;
+        const monthValue = monthFilter.value;
+
+        rows.forEach(row => {
+            const cliente = row.cells[1].textContent.toLowerCase();
+            const participantes = row.cells[4].textContent.toLowerCase();
+            const topicos = row.cells[5].textContent.toLowerCase();
+            const data = row.cells[2].textContent;
+
+            const matchesSearch = cliente.includes(searchTerm) || 
+                                participantes.includes(searchTerm) || 
+                                topicos.includes(searchTerm);
+            
+            const matchesClient = !clientValue || cliente.includes(clientValue.toLowerCase());
+            
+            const matchesMonth = !monthValue || data.includes(monthValue);
+
+            if (matchesSearch && matchesClient && matchesMonth) {
+                row.style.display = '';
+            } else {
+                row.style.display = 'none';
+            }
+        });
+    }
+
+    if (searchInput) searchInput.addEventListener('input', filterTable);
+    if (clientFilter) clientFilter.addEventListener('change', filterTable);
+    if (monthFilter) monthFilter.addEventListener('change', filterTable);
+});
+
+// Função para limpar filtros
+function clearFilters() {
+    document.getElementById('searchInput').value = '';
+    document.getElementById('clientFilter').value = '';
+    document.getElementById('monthFilter').value = '';
+    
+    // Mostrar todas as linhas
+    const rows = document.querySelectorAll('#meetingsTable tbody tr');
+    rows.forEach(row => row.style.display = '');
+}
+
+// Função para visualizar ata completa
+function viewMeeting(meetingId) {
+    // Busca os dados da ata na tabela
+    const rows = document.querySelectorAll('#meetingsTable tbody tr');
+    let meetingData = null;
+    
+    rows.forEach(row => {
+        if (row.cells[0].textContent.includes(meetingId)) {
+            meetingData = {
+                id: meetingId,
+                client: row.cells[1].textContent,
+                date: row.cells[2].textContent,
+                time: row.cells[3].textContent,
+                participants: row.cells[4].getAttribute('title') || row.cells[4].textContent,
+                topics: row.cells[5].getAttribute('title') || row.cells[5].textContent
+            };
+        }
+    });
+    
+    if (meetingData) {
+        const modalBody = document.getElementById('meetingDetails');
+        modalBody.innerHTML = `
+            <div class="row">
+                <div class="col-md-6 mb-3">
+                    <strong>ID da Ata:</strong><br>
+                    <span class="badge bg-primary">${meetingData.id}</span>
+                </div>
+                <div class="col-md-6 mb-3">
+                    <strong>Cliente:</strong><br>
+                    ${meetingData.client}
+                </div>
+                <div class="col-md-6 mb-3">
+                    <strong>Data:</strong><br>
+                    ${meetingData.date}
+                </div>
+                <div class="col-md-6 mb-3">
+                    <strong>Horário:</strong><br>
+                    ${meetingData.time}
+                </div>
+                <div class="col-12 mb-3">
+                    <strong>Participantes:</strong><br>
+                    <div class="border rounded p-2 bg-light">
+                        ${meetingData.participants}
+                    </div>
+                </div>
+                <div class="col-12 mb-3">
+                    <strong>Tópicos Discutidos:</strong><br>
+                    <div class="border rounded p-2 bg-light" style="white-space: pre-wrap;">
+                        ${meetingData.topics}
+                    </div>
+                </div>
+            </div>
+        `;
+        
+        const modal = new bootstrap.Modal(document.getElementById('meetingModal'));
+        modal.show();
+    }
+}
+</script>
+
+{% endblock %}

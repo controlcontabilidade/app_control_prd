@@ -1,0 +1,361 @@
+{% extends "base.html" %}
+
+{% block title %}Gerenciar Usuários - SIGEC{% endblock %}
+
+{% block content %}
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <div>
+        <h2><i class="bi bi-people text-primary me-2"></i>Gerenciar Usuários</h2>
+        <p class="text-muted mb-0">Controle de acesso ao sistema SIGEC</p>
+    </div>
+    <button type="button" class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#newUserModal">
+        <i class="bi bi-person-plus me-2"></i>Novo Usuário
+    </button>
+</div>
+
+{% with messages = get_flashed_messages(with_categories=true) %}
+    {% if messages %}
+        {% for category, message in messages %}
+            <div class="alert alert-{{ 'danger' if category == 'error' else category }} alert-dismissible fade show" role="alert">
+                <i class="bi bi-{{ 'exclamation-triangle' if category == 'error' else 'check-circle' }} me-2"></i>
+                {{ message }}
+                <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+            </div>
+        {% endfor %}
+    {% endif %}
+{% endwith %}
+
+<div class="card shadow-sm">
+    <div class="card-header bg-light">
+        <div class="row g-3 align-items-center">
+            <div class="col-md-6">
+                <div class="input-group">
+                    <span class="input-group-text"><i class="bi bi-search"></i></span>
+                    <input type="text" class="form-control" id="searchInput" placeholder="Pesquisar usuários...">
+                </div>
+            </div>
+            <div class="col-md-3">
+                <select class="form-select" id="perfilFilter">
+                    <option value="">Todos os Perfis</option>
+                    <option value="administrador">Administrador</option>
+                    <option value="usuario">Usuário</option>
+                </select>
+            </div>
+            <div class="col-md-3">
+                <select class="form-select" id="statusFilter">
+                    <option value="">Todos os Status</option>
+                    <option value="sim">Ativo</option>
+                    <option value="nao">Inativo</option>
+                </select>
+            </div>
+        </div>
+    </div>
+    
+    <div class="card-body p-0">
+        <div class="table-responsive">
+            <table class="table table-hover mb-0" id="usersTable">
+                <thead class="table-light">
+                    <tr>
+                        <th>Nome</th>
+                        <th>Email</th>
+                        <th>Usuário</th>
+                        <th>Perfil</th>
+                        <th>Status</th>
+                        <th>Último Login</th>
+                        <th class="text-center">Ações</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for user in users %}
+                    <tr>
+                        <td>
+                            <div class="d-flex align-items-center">
+                                <div class="avatar-circle me-2" style="width: 32px; height: 32px; background: linear-gradient(135deg, #1e3c72, #2a5298); border-radius: 50%; display: flex; align-items: center; justify-content: center; color: white; font-weight: bold; font-size: 0.8rem;">
+                                    {{ user.nome[0].upper() if user.nome else 'U' }}
+                                </div>
+                                <strong>{{ user.nome }}</strong>
+                            </div>
+                        </td>
+                        <td>{{ user.email }}</td>
+                        <td>
+                            <code>{{ user.usuario }}</code>
+                        </td>
+                        <td>
+                            {% if user.perfil.lower() == 'administrador' %}
+                                <span class="badge bg-danger rounded-pill">
+                                    <i class="bi bi-shield-check me-1"></i>Administrador
+                                </span>
+                            {% else %}
+                                <span class="badge bg-primary rounded-pill">
+                                    <i class="bi bi-person me-1"></i>Usuário
+                                </span>
+                            {% endif %}
+                        </td>
+                        <td>
+                            {% if user.ativo.lower() == 'sim' %}
+                                <span class="badge bg-success rounded-pill">
+                                    <i class="bi bi-check-circle me-1"></i>Ativo
+                                </span>
+                            {% else %}
+                                <span class="badge bg-secondary rounded-pill">
+                                    <i class="bi bi-x-circle me-1"></i>Inativo
+                                </span>
+                            {% endif %}
+                        </td>
+                        <td>
+                            {% if user.ultimo_login %}
+                                <small class="text-muted">{{ user.ultimo_login }}</small>
+                            {% else %}
+                                <small class="text-muted">Nunca logou</small>
+                            {% endif %}
+                        </td>
+                        <td class="text-center">
+                            <div class="btn-group btn-group-sm">
+                                <button type="button" class="btn btn-outline-primary" 
+                                        onclick="editUser('{{ user.id }}', '{{ user.nome }}', '{{ user.email }}', '{{ user.usuario }}', '{{ user.perfil }}', '{{ user.ativo }}')"
+                                        title="Editar">
+                                    <i class="bi bi-pencil"></i>
+                                </button>
+                                {% if user.usuario.lower() != 'admin' and user.id != '1' %}
+                                <button type="button" class="btn btn-outline-danger" 
+                                        onclick="deleteUser('{{ user.id }}', '{{ user.nome }}')"
+                                        title="Excluir">
+                                    <i class="bi bi-trash"></i>
+                                </button>
+                                {% endif %}
+                            </div>
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+
+<!-- Modal Novo Usuário -->
+<div class="modal fade" id="newUserModal" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">
+                    <i class="bi bi-person-plus me-2"></i>Novo Usuário
+                </h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <form method="POST" action="{{ url_for('create_user') }}">
+                <div class="modal-body">
+                    <div class="row g-3">
+                        <div class="col-12">
+                            <label for="nome" class="form-label">Nome Completo</label>
+                            <input type="text" class="form-control" id="nome" name="nome" required>
+                        </div>
+                        <div class="col-12">
+                            <label for="email" class="form-label">Email</label>
+                            <input type="email" class="form-control" id="email" name="email" required>
+                        </div>
+                        <div class="col-md-6">
+                            <label for="usuario" class="form-label">Usuário</label>
+                            <input type="text" class="form-control" id="usuario" name="usuario" required>
+                        </div>
+                        <div class="col-md-6">
+                            <label for="perfil" class="form-label">Perfil</label>
+                            <select class="form-select" id="perfil" name="perfil" required>
+                                <option value="Usuario">Usuário</option>
+                                <option value="Administrador">Administrador</option>
+                            </select>
+                        </div>
+                        <div class="col-12">
+                            <label for="senha" class="form-label">Senha</label>
+                            <input type="password" class="form-control" id="senha" name="senha" required minlength="6">
+                            <div class="form-text">Mínimo 6 caracteres</div>
+                        </div>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
+                    <button type="submit" class="btn btn-primary">
+                        <i class="bi bi-save me-2"></i>Criar Usuário
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<!-- Modal Editar Usuário -->
+<div class="modal fade" id="editUserModal" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">
+                    <i class="bi bi-pencil me-2"></i>Editar Usuário
+                </h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <form method="POST" action="{{ url_for('edit_user') }}" id="editUserForm">
+                <input type="hidden" id="edit_user_id" name="user_id">
+                <div class="modal-body">
+                    <div class="row g-3">
+                        <div class="col-12">
+                            <label for="edit_nome" class="form-label">Nome Completo</label>
+                            <input type="text" class="form-control" id="edit_nome" name="nome" required>
+                        </div>
+                        <div class="col-12">
+                            <label for="edit_email" class="form-label">Email</label>
+                            <input type="email" class="form-control" id="edit_email" name="email" required>
+                        </div>
+                        <div class="col-md-6">
+                            <label for="edit_usuario" class="form-label">Usuário</label>
+                            <input type="text" class="form-control" id="edit_usuario" name="usuario" required>
+                        </div>
+                        <div class="col-md-6">
+                            <label for="edit_perfil" class="form-label">Perfil</label>
+                            <select class="form-select" id="edit_perfil" name="perfil" required>
+                                <option value="Usuario">Usuário</option>
+                                <option value="Administrador">Administrador</option>
+                            </select>
+                        </div>
+                        <div class="col-md-6">
+                            <label for="edit_ativo" class="form-label">Status</label>
+                            <select class="form-select" id="edit_ativo" name="ativo" required>
+                                <option value="Sim">Ativo</option>
+                                <option value="Nao">Inativo</option>
+                            </select>
+                        </div>
+                        <div class="col-md-6">
+                            <label for="edit_nova_senha" class="form-label">Nova Senha</label>
+                            <input type="password" class="form-control" id="edit_nova_senha" name="nova_senha" minlength="6">
+                            <div class="form-text">Deixe em branco para manter a senha atual</div>
+                        </div>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
+                    <button type="submit" class="btn btn-primary">
+                        <i class="bi bi-save me-2"></i>Salvar Alterações
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<!-- Modal Confirmar Exclusão -->
+<div class="modal fade" id="deleteUserModal" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title text-danger">
+                    <i class="bi bi-exclamation-triangle me-2"></i>Confirmar Exclusão
+                </h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <p>Tem certeza que deseja excluir o usuário <strong id="delete_user_name"></strong>?</p>
+                <div class="alert alert-warning">
+                    <i class="bi bi-exclamation-triangle me-2"></i>
+                    Esta ação não pode ser desfeita!
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
+                <form method="POST" action="{{ url_for('delete_user') }}" style="display: inline;">
+                    <input type="hidden" id="delete_user_id" name="user_id">
+                    <button type="submit" class="btn btn-danger">
+                        <i class="bi bi-trash me-2"></i>Excluir Usuário
+                    </button>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const searchInput = document.getElementById('searchInput');
+    const perfilFilter = document.getElementById('perfilFilter');
+    const statusFilter = document.getElementById('statusFilter');
+    const table = document.getElementById('usersTable');
+    const rows = table.getElementsByTagName('tbody')[0].getElementsByTagName('tr');
+
+    function filterTable() {
+        const searchTerm = searchInput.value.toLowerCase();
+        const perfilValue = perfilFilter.value.toLowerCase();
+        const statusValue = statusFilter.value.toLowerCase();
+
+        Array.from(rows).forEach(row => {
+            const nome = row.cells[0].textContent.toLowerCase();
+            const email = row.cells[1].textContent.toLowerCase();
+            const usuario = row.cells[2].textContent.toLowerCase();
+            const perfil = row.cells[3].textContent.toLowerCase();
+            const status = row.cells[4].textContent.toLowerCase();
+
+            const matchesSearch = nome.includes(searchTerm) || 
+                                email.includes(searchTerm) || 
+                                usuario.includes(searchTerm);
+            
+            const matchesPerfil = !perfilValue || perfil.includes(perfilValue);
+            const matchesStatus = !statusValue || 
+                                (statusValue === 'sim' && status.includes('ativo')) ||
+                                (statusValue === 'nao' && status.includes('inativo'));
+
+            if (matchesSearch && matchesPerfil && matchesStatus) {
+                row.style.display = '';
+            } else {
+                row.style.display = 'none';
+            }
+        });
+    }
+
+    searchInput.addEventListener('input', filterTable);
+    perfilFilter.addEventListener('change', filterTable);
+    statusFilter.addEventListener('change', filterTable);
+});
+
+function editUser(id, nome, email, usuario, perfil, ativo) {
+    // Preenche o formulário de edição com os dados atuais
+    document.getElementById('edit_user_id').value = id;
+    document.getElementById('edit_nome').value = nome;
+    document.getElementById('edit_email').value = email;
+    document.getElementById('edit_usuario').value = usuario;
+    document.getElementById('edit_perfil').value = perfil;
+    
+    // Corrige o valor do status para corresponder com as opções do select
+    const statusValue = ativo.toLowerCase() === 'sim' ? 'Sim' : 'Nao';
+    document.getElementById('edit_ativo').value = statusValue;
+    
+    // Limpa o campo de nova senha
+    document.getElementById('edit_nova_senha').value = '';
+    
+    // Abre o modal de edição
+    var editModal = new bootstrap.Modal(document.getElementById('editUserModal'));
+    editModal.show();
+}
+
+function deleteUser(id, nome) {
+    // Não permite excluir o usuário admin
+    if (nome.toLowerCase() === 'administrador' || id === '1') {
+        alert('Não é possível excluir o usuário administrador principal.');
+        return;
+    }
+    
+    // Preenche os dados do modal de confirmação
+    document.getElementById('delete_user_id').value = id;
+    document.getElementById('delete_user_name').textContent = nome;
+    
+    // Abre o modal de confirmação
+    var deleteModal = new bootstrap.Modal(document.getElementById('deleteUserModal'));
+    deleteModal.show();
+}
+
+// Auto-dismiss alerts
+setTimeout(function() {
+    var alerts = document.querySelectorAll('.alert');
+    alerts.forEach(function(alert) {
+        var bsAlert = new bootstrap.Alert(alert);
+        bsAlert.close();
+    });
+}, 5000);
+</script>
+{% endblock %}

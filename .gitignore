@@ -1,0 +1,37 @@
+# Credenciais OAuth2 - NUNCA commitar
+credentials.json
+token.pickle
+
+# Arquivos de ambiente
+.env
+.env.example    
+
+# Cache Python
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+.Python
+
+# Ambiente virtual
+.venv/
+venv/
+env/
+
+
+# Dados locais
+data/
+*.json
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# Sistema
+.DS_Store
+Thumbs.db
+
+# Logs
+*.log

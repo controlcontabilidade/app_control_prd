@@ -1,0 +1,26 @@
+<!-- SVG da Logo Control Contabilidade -->
+<svg width="180" height="50" viewBox="0 0 180 50" xmlns="http://www.w3.org/2000/svg">
+  <!-- Círculo principal com gradiente -->
+  <defs>
+    <linearGradient id="circleGradient" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" style="stop-color:#1e3c72;stop-opacity:1" />
+      <stop offset="100%" style="stop-color:#2a5298;stop-opacity:1" />
+    </linearGradient>
+    <linearGradient id="textGradient" x1="0%" y1="0%" x2="100%" y2="0%">
+      <stop offset="0%" style="stop-color:#1e3c72;stop-opacity:1" />
+      <stop offset="100%" style="stop-color:#2a5298;stop-opacity:1" />
+    </linearGradient>
+  </defs>
+  
+  <!-- Círculo principal -->
+  <circle cx="25" cy="25" r="23" fill="url(#circleGradient)" stroke="none"/>
+  
+  <!-- Check mark estilizado em laranja -->
+  <path d="M16 25 L21 30 L34 17" stroke="#ff8c42" stroke-width="3.5" fill="none" stroke-linecap="round" stroke-linejoin="round"/>
+  
+  <!-- Texto "control" com fonte moderna -->
+  <text x="55" y="22" font-family="'Arial Black', Arial, sans-serif" font-size="18" font-weight="900" fill="url(#textGradient)">control</text>
+  
+  <!-- Texto "CONTABILIDADE" -->
+  <text x="55" y="35" font-family="Arial, sans-serif" font-size="9" font-weight="600" fill="#ff8c42" letter-spacing="1.5px">CONTABILIDADE</text>
+</svg>

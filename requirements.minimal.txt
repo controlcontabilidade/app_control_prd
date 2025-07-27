@@ -1,0 +1,16 @@
+# Versão mínima para deploy rápido
+gunicorn==21.2.0
+Flask==3.0.0
+google-api-python-client==2.108.0
+google-auth==2.23.4
+google-auth-oauthlib==1.1.0
+google-auth-httplib2==0.1.1
+requests==2.31.0
+python-dotenv==1.0.0
+werkzeug==2.3.7
+
+# Para importação (opcional - pode ser instalado depois)
+# pandas==2.0.3
+# openpyxl==3.1.1
+# numpy==1.24.4
+# pytz==2023.3

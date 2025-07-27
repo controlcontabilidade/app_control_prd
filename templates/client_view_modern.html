@@ -1,0 +1,747 @@
+{% extends "base.html" %}
+
+{% block title %}{{ client.nomeEmpresa }} - SIGEC{% endblock %}
+
+{% block content %}
+<!-- Header da página -->
+<div class="page-header">
+    <div class="row align-items-center">
+        <div class="col-md-8">
+            <h1>
+                <i class="bi bi-eye" style="color: var(--control-primary);"></i>
+                {{ client.nomeEmpresa }}
+            </h1>
+            <p class="mb-2">
+                {% if client.nomeFantasiaReceita and client.nomeFantasiaReceita != client.nomeEmpresa %}
+                    <strong>Nome Fantasia:</strong> {{ client.nomeFantasiaReceita }}
+                {% else %}
+                    SIGEC - Sistema de Gestão de Empresas Control - Visualização completa do cliente
+                {% endif %}
+            </p>
+            <div class="d-flex gap-2 align-items-center">
+                {% if client.ativo %}
+                    <span class="status-indicator">
+                        <span class="status-dot active"></span>
+                        <strong class="text-success">Cliente Ativo</strong>
+                    </span>
+                {% else %}
+                    <span class="status-indicator">
+                        <span class="status-dot inactive"></span>
+                        <strong class="text-muted">Cliente Inativo</strong>
+                    </span>
+                {% endif %}
+                {% if client.cnpj %}
+                    <span class="text-muted">•</span>
+                    <code class="text-muted">{{ client.cnpj }}</code>
+                {% endif %}
+                {% if client.cidade %}
+                    <span class="text-muted">•</span>
+                    <span class="text-muted">{{ client.cidade }}</span>
+                {% endif %}
+            </div>
+        </div>
+        <div class="col-md-4 text-end">
+            <a href="/client/{{ client.id }}/edit" class="btn btn-primary me-2">
+                <i class="bi bi-pencil"></i>
+                Editar
+            </a>
+            <a href="/" class="btn btn-secondary">
+                <i class="bi bi-arrow-left"></i>
+                Voltar
+            </a>
+        </div>
+    </div>
+</div>
+
+<div class="row">
+    <!-- Coluna principal - 8 colunas -->
+    <div class="col-lg-8">
+        <!-- Bloco 1: Informações da Pessoa Física / Jurídica -->
+        <div class="card mb-4">
+            <div class="card-header">
+                <h5 class="mb-0">
+                    <i class="bi bi-building me-2 text-primary"></i>
+                    Bloco 1 - Informações da Pessoa Física / Jurídica
+                </h5>
+            </div>
+            <div class="card-body">
+                <div class="row">
+                    <div class="col-md-6 mb-3">
+                        <label class="form-label text-muted">Nome da Empresa</label>
+                        <p class="mb-0"><strong>{{ client.nomeEmpresa or '-' }}</strong></p>
+                    </div>
+                    <div class="col-md-6 mb-3">
+                        <label class="form-label text-muted">Razão Social (Receita)</label>
+                        <p class="mb-0">{{ client.razaoSocialReceita or '-' }}</p>
+                    </div>
+                    <div class="col-md-6 mb-3">
+                        <label class="form-label text-muted">Nome Fantasia (Receita)</label>
+                        <p class="mb-0">{{ client.nomeFantasiaReceita or '-' }}</p>
+                    </div>
+                    <div class="col-md-6 mb-3">
+                        <label class="form-label text-muted">CPF/CNPJ</label>
+                        <p class="mb-0">
+                            {% if client.cpfCnpj or client.cnpj %}
+                                <code>{{ client.cpfCnpj or client.cnpj }}</code>
+                            {% else %}
+                                -
+                            {% endif %}
+                        </p>
+                    </div>
+                    <div class="col-md-4 mb-3">
+                        <label class="form-label text-muted">Perfil do Cliente</label>
+                        <p class="mb-0">
+                            {% if client.perfil %}
+                                <span class="badge bg-info">Escolha {{ client.perfil }}</span>
+                            {% else %}
+                                -
+                            {% endif %}
+                        </p>
+                    </div>
+                    <div class="col-md-4 mb-3">
+                        <label class="form-label text-muted">Inscrição Estadual</label>
+                        <p class="mb-0">{{ client.inscEst or '-' }}</p>
+                    </div>
+                    <div class="col-md-4 mb-3">
+                        <label class="form-label text-muted">Inscrição Municipal</label>
+                        <p class="mb-0">{{ client.inscMun or '-' }}</p>
+                    </div>
+                    <div class="col-md-4 mb-3">
+                        <label class="form-label text-muted">Estado</label>
+                        <p class="mb-0">
+                            {% if client.estado %}
+                                <span class="badge bg-primary">{{ client.estado }}</span>
+                            {% else %}
+                                -
+                            {% endif %}
+                        </p>
+                    </div>
+                    <div class="col-md-4 mb-3">
+                        <label class="form-label text-muted">Cidade</label>
+                        <p class="mb-0">{{ client.cidade or '-' }}</p>
+                    </div>
+                    <div class="col-md-4 mb-3">
+                        <label class="form-label text-muted">Regime Federal</label>
+                        <p class="mb-0">
+                            {% if client.regimeFederal or client.tributacao %}
+                                <span class="badge bg-secondary">{{ client.regimeFederal or client.tributacao }}</span>
+                            {% else %}
+                                -
+                            {% endif %}
+                        </p>
+                    </div>
+                    <div class="col-md-4 mb-3">
+                        <label class="form-label text-muted">Regime Estadual</label>
+                        <p class="mb-0">
+                            {% if client.regimeEstadual %}
+                                <span class="badge bg-secondary">{{ client.regimeEstadual }}</span>
+                            {% else %}
+                                -
+                            {% endif %}
+                        </p>
+                    </div>
+                    <div class="col-md-4 mb-3">
+                        <label class="form-label text-muted">Segmento</label>
+                        <p class="mb-0">{{ client.segmento or '-' }}</p>
+                    </div>
+                    <div class="col-md-4 mb-3">
+                        <label class="form-label text-muted">Atividade Principal</label>
+                        <p class="mb-0">{{ client.atividade or '-' }}</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Sócios da Empresa -->
+        <div class="card mb-4">
+            <div class="card-header">
+                <h5 class="mb-0">
+                    <i class="bi bi-people me-2 text-primary"></i>
+                    Sócios da Empresa
+                </h5>
+            </div>
+            <div class="card-body">
+                <div class="row">
+                    <div class="col-md-3 mb-3">
+                        <label class="form-label text-muted">Sócio 1</label>
+                        <p class="mb-0">{{ client.socio1 or '-' }}</p>
+                    </div>
+                    <div class="col-md-3 mb-3">
+                        <label class="form-label text-muted">Sócio 2</label>
+                        <p class="mb-0">{{ client.socio2 or '-' }}</p>
+                    </div>
+                    <div class="col-md-3 mb-3">
+                        <label class="form-label text-muted">Sócio 3</label>
+                        <p class="mb-0">{{ client.socio3 or '-' }}</p>
+                    </div>
+                    <div class="col-md-3 mb-3">
+                        <label class="form-label text-muted">Sócio 4</label>
+                        <p class="mb-0">{{ client.socio4 or '-' }}</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Bloco 2: Serviços Prestados pela Control -->
+        <div class="card mb-4">
+            <div class="card-header bg-success text-white">
+                <h5 class="mb-0">
+                    <i class="fas fa-handshake me-2"></i>
+                    Bloco 2 - Serviços Prestados pela Control
+                </h5>
+            </div>
+            <div class="card-body">
+                <div class="row">
+                    <div class="col-md-12 mb-3">
+                        <label class="form-label text-muted">Serviços Contratados</label>
+                        <div class="d-flex gap-2 flex-wrap">
+                            {% if client.bpoFinanceiro %}
+                                <span class="badge bg-info">
+                                    <i class="bi bi-graph-up me-1"></i>BPO Financeiro
+                                </span>
+                            {% endif %}
+                            {% if client.ct %}
+                                <span class="badge bg-primary">
+                                    <i class="bi bi-calculator me-1"></i>Departamento Contábil (CT)
+                                </span>
+                            {% endif %}
+                            {% if client.fs %}
+                                <span class="badge bg-success">
+                                    <i class="bi bi-file-text me-1"></i>Departamento Fiscal (FS)
+                                </span>
+                            {% endif %}
+                            {% if client.dp %}
+                                <span class="badge bg-warning">
+                                    <i class="bi bi-people me-1"></i>Departamento Pessoal (DP)
+                                </span>
+                            {% endif %}
+                            {% if not client.bpoFinanceiro and not client.ct and not client.fs and not client.dp %}
+                                <span class="text-muted">Nenhum serviço contratado</span>
+                            {% endif %}
+                        </div>
+                    </div>
+
+                    <div class="col-md-6 mb-3">
+                        <label class="form-label text-muted">Data de Início dos Serviços</label>
+                        <p class="mb-0">
+                            {% if client.dataInicioServicos or client.mesAnoInicio %}
+                                <i class="bi bi-calendar-event me-1"></i>
+                                {{ client.dataInicioServicos or client.mesAnoInicio }}
+                            {% else %}
+                                -
+                            {% endif %}
+                        </p>
+                    </div>
+
+                    <div class="col-md-6 mb-3">
+                        <label class="form-label text-muted">Responsável pelos Serviços</label>
+                        <p class="mb-0">
+                            {% if client.responsavelServicos or client.donoResp %}
+                                <i class="bi bi-person-badge me-1"></i>
+                                {{ client.responsavelServicos or client.donoResp }}
+                            {% else %}
+                                -
+                            {% endif %}
+                        </p>
+                    </div>
+                </div>
+
+                <!-- Códigos dos Sistemas -->
+                <div class="row mt-3">
+                    <div class="col-12">
+                        <h6 class="text-muted mb-3">
+                            <i class="fas fa-code me-2"></i>
+                            Códigos dos Sistemas
+                        </h6>
+                    </div>
+
+                    <div class="col-md-3 mb-3">
+                        <label class="form-label text-muted">Cód. Fortes CT</label>
+                        <p class="mb-0">
+                            {% if client.codFortesCt %}
+                                <code>{{ client.codFortesCt }}</code>
+                            {% else %}
+                                -
+                            {% endif %}
+                        </p>
+                    </div>
+
+                    <div class="col-md-3 mb-3">
+                        <label class="form-label text-muted">Cód. Fortes FS</label>
+                        <p class="mb-0">
+                            {% if client.codFortesFs %}
+                                <code>{{ client.codFortesFs }}</code>
+                            {% else %}
+                                -
+                            {% endif %}
+                        </p>
+                    </div>
+
+                    <div class="col-md-3 mb-3">
+                        <label class="form-label text-muted">Cód. Fortes PS</label>
+                        <p class="mb-0">
+                            {% if client.codFortesPs %}
+                                <code>{{ client.codFortesPs }}</code>
+                            {% else %}
+                                -
+                            {% endif %}
+                        </p>
+                    </div>
+
+                    <div class="col-md-3 mb-3">
+                        <label class="form-label text-muted">Cód. Domínio</label>
+                        <p class="mb-0">
+                            {% if client.codDominio %}
+                                <code>{{ client.codDominio }}</code>
+                            {% else %}
+                                -
+                            {% endif %}
+                        </p>
+                    </div>
+
+                    <div class="col-md-6 mb-3">
+                        <label class="form-label text-muted">Sistema Utilizado</label>
+                        <p class="mb-0">
+                            {% if client.sistemaUtilizado %}
+                                <i class="bi bi-pc-display me-1"></i>
+                                {{ client.sistemaUtilizado }}
+                            {% else %}
+                                -
+                            {% endif %}
+                        </p>
+                    </div>
+
+                    <div class="col-md-6 mb-3">
+                        <label class="form-label text-muted">Módulo SPED Trier</label>
+                        <p class="mb-0">
+                            {% if client.moduloSpedTrier %}
+                                <i class="bi bi-puzzle me-1"></i>
+                                {{ client.moduloSpedTrier }}
+                            {% else %}
+                                -
+                            {% endif %}
+                        </p>
+                    </div>
+                </div>
+            </div>
+        </div>
+                    <div class="col-md-4 mb-3">
+                        <label class="form-label text-muted">Responsável/Proprietário</label>
+                        <p class="mb-0">{{ client.donoResp or '-' }}</p>
+                    </div>
+                    <div class="col-md-6 mb-3">
+                        <label class="form-label text-muted">Responsável Imediato</label>
+                        <p class="mb-0">{{ client.responsavelImediato or '-' }}</p>
+                    </div>
+                    <div class="col-md-6 mb-3">
+                        <label class="form-label text-muted">Sistema Utilizado</label>
+                        <p class="mb-0">{{ client.sistemaUtilizado or '-' }}</p>
+                    </div>
+                    <div class="col-md-6 mb-3">
+                        <label class="form-label text-muted">Módulo SPED Trier</label>
+                        <p class="mb-0">{{ client.moduloSpedTrier or '-' }}</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Acessos e Senhas - Largura completa -->
+        <div class="card mb-4">
+            <div class="card-header">
+                <h5 class="mb-0">
+                    <i class="bi bi-key me-2 text-warning"></i>
+                    Acessos e Senhas
+                </h5>
+            </div>
+            <div class="card-body">
+                <div class="row">
+                    <div class="col-md-6 mb-3">
+                        <label class="form-label text-muted">CPF ou CNPJ (Acesso)</label>
+                        <p class="mb-0">
+                            {% if client.cpfOuCnpj %}
+                                <code>{{ client.cpfOuCnpj }}</code>
+                            {% else %}
+                                -
+                            {% endif %}
+                        </p>
+                    </div>
+                    <div class="col-md-6 mb-3">
+                        <label class="form-label text-muted">Acesso EmpWeb</label>
+                        <p class="mb-0">{{ client.acessoEmpWeb or '-' }}</p>
+                    </div>
+                    <div class="col-md-6 mb-3">
+                        <label class="form-label text-muted">Senha EmpWeb</label>
+                        <p class="mb-0">
+                            {% if client.senhaEmpWeb %}
+                                <span class="badge bg-secondary">••••••••</span>
+                            {% else %}
+                                -
+                            {% endif %}
+                        </p>
+                    </div>
+                    <div class="col-md-6 mb-3">
+                        <label class="form-label text-muted">Acesso ISS</label>
+                        <p class="mb-0">{{ client.acessoIss or '-' }}</p>
+                    </div>
+                    <div class="col-md-6 mb-3">
+                        <label class="form-label text-muted">Acesso SEFIN</label>
+                        <p class="mb-0">{{ client.acessoSefin or '-' }}</p>
+                    </div>
+                    <div class="col-md-6 mb-3">
+                        <label class="form-label text-muted">Acesso SEUMA</label>
+                        <p class="mb-0">{{ client.acessoSeuma or '-' }}</p>
+                    </div>
+                    <div class="col-md-6 mb-3">
+                        <label class="form-label text-muted">Acesso FAP/INSS</label>
+                        <p class="mb-0">{{ client.acessoFapInss or '-' }}</p>
+                    </div>
+                    <div class="col-md-6 mb-3">
+                        <label class="form-label text-muted">Acesso CRF</label>
+                        <p class="mb-0">{{ client.acessoCrf or '-' }}</p>
+                    </div>
+                    <div class="col-md-6 mb-3">
+                        <label class="form-label text-muted">Acesso IBAMA</label>
+                        <p class="mb-0">{{ client.acessoIbama or '-' }}</p>
+                    </div>
+                    <div class="col-md-6 mb-3">
+                        <label class="form-label text-muted">Acesso SEMACE</label>
+                        <p class="mb-0">{{ client.acessoSemace or '-' }}</p>
+                    </div>
+                    <div class="col-md-6 mb-3">
+                        <label class="form-label text-muted">Senha SEMACE</label>
+                        <p class="mb-0">
+                            {% if client.senhaSemace %}
+                                <span class="badge bg-secondary">••••••••</span>
+                            {% else %}
+                                -
+                            {% endif %}
+                        </p>
+                    </div>
+                    <div class="col-md-6 mb-3">
+                        <label class="form-label text-muted">ANVISA Gestor</label>
+                        <p class="mb-0">{{ client.anvisaGestor or '-' }}</p>
+                    </div>
+                    <div class="col-md-6 mb-3">
+                        <label class="form-label text-muted">ANVISA Empresa</label>
+                        <p class="mb-0">{{ client.anvisaEmpresa or '-' }}</p>
+                    </div>
+                    <div class="col-md-6 mb-3">
+                        <label class="form-label text-muted">Código Acesso Simples</label>
+                        <p class="mb-0">
+                            {% if client.codAcessoSimples %}
+                                <code>{{ client.codAcessoSimples }}</code>
+                            {% else %}
+                                -
+                            {% endif %}
+                        </p>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Procurações -->
+        <div class="card mb-4">
+            <div class="card-header">
+                <h5 class="mb-0">
+                    <i class="bi bi-file-earmark-text me-2 text-info"></i>
+                    Procurações
+                </h5>
+            </div>
+            <div class="card-body">
+                <div class="row">
+                    <div class="col-md-4 mb-3">
+                        <label class="form-label text-muted">Procuração RC</label>
+                        <p class="mb-0">{{ client.procRc or '-' }}</p>
+                    </div>
+                    <div class="col-md-4 mb-3">
+                        <label class="form-label text-muted">Procuração CX</label>
+                        <p class="mb-0">{{ client.procCx or '-' }}</p>
+                    </div>
+                    <div class="col-md-4 mb-3">
+                        <label class="form-label text-muted">Procuração SW</label>
+                        <p class="mb-0">{{ client.procSw or '-' }}</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Contatos -->
+        <div class="card mb-4">
+            <div class="card-header">
+                <h5 class="mb-0">
+                    <i class="bi bi-person-lines-fill me-2 text-secondary"></i>
+                    Informações de Contato
+                </h5>
+            </div>
+            <div class="card-body">
+                <div class="row">
+                    <div class="col-md-6 mb-3">
+                        <label class="form-label text-muted">Email do Gestor</label>
+                        <p class="mb-0">
+                            {% if client.emailGestor %}
+                                <a href="mailto:{{ client.emailGestor }}" class="text-primary">{{ client.emailGestor }}</a>
+                            {% else %}
+                                -
+                            {% endif %}
+                        </p>
+                    </div>
+                    <div class="col-md-6 mb-3">
+                        <label class="form-label text-muted">E-mails do Sócio</label>
+                        <p class="mb-0">
+                            {% if client.emailsSocio %}
+                                <a href="mailto:{{ client.emailsSocio }}" class="text-primary">{{ client.emailsSocio }}</a>
+                            {% else %}
+                                -
+                            {% endif %}
+                        </p>
+                    </div>
+                    <div class="col-md-6 mb-3">
+                        <label class="form-label text-muted">Telefone Fixo</label>
+                        <p class="mb-0">
+                            {% if client.telefoneFixo %}
+                                <a href="tel:{{ client.telefoneFixo }}" class="text-primary">{{ client.telefoneFixo }}</a>
+                            {% else %}
+                                -
+                            {% endif %}
+                        </p>
+                    </div>
+                    <div class="col-md-6 mb-3">
+                        <label class="form-label text-muted">Telefone Celular</label>
+                        <p class="mb-0">
+                            {% if client.telefoneCelular %}
+                                <a href="tel:{{ client.telefoneCelular }}" class="text-primary">{{ client.telefoneCelular }}</a>
+                            {% else %}
+                                -
+                            {% endif %}
+                        </p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Sidebar direita - 4 colunas -->
+    <div class="col-lg-4">
+        <!-- Status e Configurações -->
+        <div class="card mb-4">
+            <div class="card-header">
+                <h5 class="mb-0">
+                    <i class="bi bi-toggles me-2 text-success"></i>
+                    Status e Configurações
+                </h5>
+            </div>
+            <div class="card-body">
+                <div class="d-flex flex-column gap-3">
+                    <!-- Códigos dos Sistemas -->
+                    <div class="mb-3">
+                        <h6 class="mb-2 text-muted">Códigos dos Sistemas</h6>
+                        <div class="d-flex justify-content-between align-items-center mb-2">
+                            <span class="small">Código Domínio</span>
+                            {% if client.codDominio %}
+                                <code class="small">{{ client.codDominio }}</code>
+                            {% else %}
+                                <span class="text-muted">-</span>
+                            {% endif %}
+                        </div>
+                        <div class="d-flex justify-content-between align-items-center mb-2">
+                            <span class="small">Código Fortes CT</span>
+                            {% if client.codFortesCt %}
+                                <code class="small">{{ client.codFortesCt }}</code>
+                            {% else %}
+                                <span class="text-muted">-</span>
+                            {% endif %}
+                        </div>
+                        <div class="d-flex justify-content-between align-items-center mb-2">
+                            <span class="small">Código Fortes FS</span>
+                            {% if client.codFortesFs %}
+                                <code class="small">{{ client.codFortesFs }}</code>
+                            {% else %}
+                                <span class="text-muted">-</span>
+                            {% endif %}
+                        </div>
+                        <div class="d-flex justify-content-between align-items-center">
+                            <span class="small">Código Fortes PS</span>
+                            {% if client.codFortesPs %}
+                                <code class="small">{{ client.codFortesPs }}</code>
+                            {% else %}
+                                <span class="text-muted">-</span>
+                            {% endif %}
+                        </div>
+                    </div>
+                    
+                    <hr class="my-2">
+                    
+                    <!-- Status e Configurações -->
+                    <div class="d-flex justify-content-between align-items-center">
+                        <span class="small">Cliente Ativo</span>
+                        {% if client.ativo %}
+                            <span class="badge bg-success">Sim</span>
+                        {% else %}
+                            <span class="badge bg-danger">Não</span>
+                        {% endif %}
+                    </div>
+                    <div class="d-flex justify-content-between align-items-center">
+                        <span class="small">Portal Cliente</span>
+                        {% if client.portalCliente %}
+                            <span class="badge bg-warning">Ativo</span>
+                        {% else %}
+                            <span class="badge bg-secondary">Inativo</span>
+                        {% endif %}
+                    </div>
+                    <div class="d-flex justify-content-between align-items-center">
+                        <span class="small">ONVIO</span>
+                        {% if client.onvio %}
+                            <span class="badge bg-primary">Ativo</span>
+                        {% else %}
+                            <span class="badge bg-secondary">Inativo</span>
+                        {% endif %}
+                    </div>
+                    </div>
+                    {% if client.mesAnoInicio %}
+                    <div class="d-flex justify-content-between align-items-center">
+                        <span class="small">Mês/Ano de Início</span>
+                        <span class="text-muted small">{{ client.mesAnoInicio }}</span>
+                    </div>
+                    {% endif %}
+                    {% if client.id %}
+                    <div class="d-flex justify-content-between align-items-center">
+                        <span class="small">ID do Cliente</span>
+                        <code class="text-muted small">{{ client.id }}</code>
+                    </div>
+                    {% endif %}
+                    {% if client.criadoEm %}
+                    <div class="d-flex justify-content-between align-items-center">
+                        <span class="small">Criado em</span>
+                        <span class="text-muted small">{{ client.criadoEm[:10] if client.criadoEm else '-' }}</span>
+                    </div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+
+        <!-- Ações Rápidas -->
+        <div class="card mb-4">
+            <div class="card-header">
+                <h5 class="mb-0">
+                    <i class="bi bi-lightning me-2 text-warning"></i>
+                    Ações Rápidas
+                </h5>
+            </div>
+            <div class="card-body">
+                <div class="d-grid gap-2">
+                    <a href="/client/{{ client.id }}/edit" class="btn btn-outline-primary btn-sm">
+                        <i class="bi bi-pencil me-1"></i>
+                        Editar
+                    </a>
+                    <a href="/client/{{ client.id }}/meeting" class="btn btn-outline-info btn-sm">
+                        <i class="bi bi-calendar-plus me-1"></i>
+                        Ata de Reunião
+                    </a>
+                    {% if client.emailGestor %}
+                    <a href="mailto:{{ client.emailGestor }}" class="btn btn-outline-secondary btn-sm">
+                        <i class="bi bi-envelope me-1"></i>
+                        Email
+                    </a>
+                    {% endif %}
+                    {% if client.telefoneCelular %}
+                    <a href="https://wa.me/{{ client.telefoneCelular.replace('(', '').replace(')', '').replace(' ', '').replace('-', '') }}" 
+                       class="btn btn-outline-success btn-sm" target="_blank">
+                        <i class="bi bi-whatsapp me-1"></i>
+                        WhatsApp
+                    </a>
+                    {% endif %}
+                    {% if session.user_perfil and session.user_perfil.lower() == 'administrador' %}
+                    <button type="button" class="btn btn-outline-danger btn-sm" 
+                            onclick="confirmDelete('{{ client.id }}', '{{ client.nomeEmpresa }}')">
+                        <i class="bi bi-trash me-1"></i>
+                        Excluir
+                    </button>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+
+        <!-- Resumo de Acessos -->
+        <div class="card">
+            <div class="card-header">
+                <h5 class="mb-0">
+                    <i class="bi bi-shield-check me-2 text-info"></i>
+                    Resumo de Acessos
+                </h5>
+            </div>
+            <div class="card-body">
+                <div class="small">
+                    {% if client.acessoEmpWeb %}
+                    <div class="mb-2 p-2 bg-light rounded">
+                        <strong class="text-muted">EmpWeb:</strong><br>
+                        <code class="small">{{ client.acessoEmpWeb }}</code>
+                        {% if client.senhaEmpWeb %}
+                        <br><small class="text-muted">Senha cadastrada</small>
+                        {% endif %}
+                    </div>
+                    {% endif %}
+                    
+                    {% if client.acessoIss %}
+                    <div class="mb-2 p-2 bg-light rounded">
+                        <strong class="text-muted">ISS:</strong><br>
+                        <code class="small">{{ client.acessoIss }}</code>
+                    </div>
+                    {% endif %}
+                    
+                    {% if client.acessoSefin %}
+                    <div class="mb-2 p-2 bg-light rounded">
+                        <strong class="text-muted">SEFIN:</strong><br>
+                        <code class="small">{{ client.acessoSefin }}</code>
+                    </div>
+                    {% endif %}
+                    
+                    {% if client.codAcessoSimples %}
+                    <div class="mb-2 p-2 bg-light rounded">
+                        <strong class="text-muted">Acesso Simples:</strong><br>
+                        <code class="small">{{ client.codAcessoSimples }}</code>
+                    </div>
+                    {% endif %}
+                    
+                    {% if not client.acessoEmpWeb and not client.acessoIss and not client.acessoSefin and not client.codAcessoSimples %}
+                    <p class="text-muted mb-0">Nenhum acesso cadastrado</p>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Modal de confirmação de exclusão -->
+<div class="modal fade" id="deleteModal" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">
+                    <i class="bi bi-exclamation-triangle text-warning me-2"></i>
+                    Confirmar Exclusão
+                </h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <p>Tem certeza que deseja excluir o cliente <strong>{{ client.nomeEmpresa }}</strong>?</p>
+                <p class="text-muted">Esta ação não pode ser desfeita.</p>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
+                <form method="POST" action="/client/{{ client.id }}/delete" style="display: inline;">
+                    <button type="submit" class="btn btn-danger">
+                        <i class="bi bi-trash me-1"></i>Excluir
+                    </button>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+function confirmDelete(clientId, clientName) {
+    const modal = new bootstrap.Modal(document.getElementById('deleteModal'));
+    modal.show();
+}
+</script>
+{% endblock %}

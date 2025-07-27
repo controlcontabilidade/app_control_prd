@@ -1,0 +1,1169 @@
+{% extends "base.html" %}
+
+{% block title %}Relatórios Power BI{% endblock %}
+
+{% block extra_css %}
+<style>
+    .powerbi-alternative {
+        min-height: 400px;
+        display: flex;
+        flex-direction: column;
+        justify-content: center;
+        align-items: center;
+    }
+    
+    .powerbi-alternative .btn {
+        min-width: 200px;
+    }
+    
+    .report-iframe {
+        transition: opacity 0.3s ease-in-out;
+    }
+    
+    .loading-spinner {
+        min-height: 400px;
+    }
+    
+    @media (max-width: 768px) {
+        .powerbi-alternative .btn {
+            min-width: 100%;
+            margin-bottom: 10px;
+        }
+        
+        .powerbi-alternative .d-md-block {
+            display: block !important;
+        }
+    }
+</style>
+{% endblock %}
+
+{% block extra_js %}
+<script src="{{ url_for('static', filename='js/powerbi-smart-loader.js') }}"></script>
+{% endblock %}
+
+{% block content %}
+<div class="container-fluid px-4">
+    <div class="row">
+        <div class="col-12">
+            <div class="d-flex justify-content-between align-items-center mb-4">
+                <div>
+                    <h1 class="h3 mb-0 text-gray-800">
+                        <i class="bi bi-bar-chart me-2"></i>Relatórios Power BI
+                    </h1>
+                    <p class="text-muted mb-0">Acesse os relatórios e dashboards disponíveis</p>
+                </div>
+            </div>
+
+            <!-- Relatórios Recentes -->
+            <div class="row mb-4">
+                <div class="col-12">
+                    <div class="card border-0 shadow-sm">
+                        <div class="card-body">
+                            <div id="recent-reports" class="empty-state text-center text-muted">
+                                <i class="bi bi-clock-history fs-1 mb-2"></i>
+                                <p class="mb-0">Seus relatórios recentes aparecerão aqui</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            {% if reports %}
+            <div class="row">
+                {% for report in reports %}
+                {% if report.ativo %}
+                <div class="col-lg-4 col-md-6 mb-4">
+                    <div class="card h-100 border-0 shadow-sm report-card">
+                        <div class="card-body d-flex flex-column">
+                            <div class="d-flex align-items-center mb-3">
+                                <div class="report-icon me-3">
+                                    <i class="bi bi-graph-up text-primary"></i>
+                                </div>
+                                <div class="flex-grow-1">
+                                    <h5 class="card-title mb-1">{{ report.nome }}</h5>
+                                    <small class="text-muted">
+                                        <i class="bi bi-calendar me-1"></i>
+                                        Criado em {% if report.data_criacao and report.data_criacao.__class__.__name__ == 'datetime' %}{{ report.data_criacao.strftime('%d/%m/%Y') }}{% else %}{{ report.data_criacao or 'N/A' }}{% endif %}
+                                    </small>
+                                </div>
+                            </div>
+                            
+                            <p class="card-text text-muted mb-3 flex-grow-1">
+                                {{ report.descricao or 'Sem descrição disponível' }}
+                            </p>
+                            
+                            <div class="mt-auto">
+                                <button type="button" 
+                                        class="btn btn-primary btn-sm w-100 open-report-btn"
+                                        data-report-id="{{ report.id }}"
+                                        data-report-name="{{ report.nome }}"
+                                        data-report-link="{{ report.link }}">
+                                    <i class="bi bi-bar-chart me-2"></i>
+                                    Acessar Relatório
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                {% endif %}
+                {% endfor %}
+            </div>
+            {% else %}
+            <div class="row">
+                <div class="col-12">
+                    <div class="card border-0 shadow-sm">
+                        <div class="card-body text-center py-5">
+                            <div class="empty-state">
+                                <i class="bi bi-bar-chart display-4 text-muted mb-3"></i>
+                                <h4 class="text-muted">Nenhum relatório disponível</h4>
+                                <p class="text-muted mb-0">
+                                    Não há relatórios configurados no momento.<br>
+                                    Entre em contato com o administrador do sistema.
+                                </p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            {% endif %}
+        </div>
+    </div>
+</div>
+
+<!-- Modal para Exibir Relatório Embedado -->
+<div class="modal fade" id="reportModal" tabindex="-1" data-bs-backdrop="static" data-bs-keyboard="false">
+    <div class="modal-dialog modal-fullscreen">
+        <div class="modal-content">
+            <div class="modal-header bg-primary text-white">
+                <h5 class="modal-title d-flex align-items-center">
+                    <i class="bi bi-bar-chart me-2"></i>
+                    <span id="reportModalTitle">Relatório Power BI</span>
+                </h5>
+                <div class="d-flex gap-2">
+                    <button type="button" 
+                            class="btn btn-outline-light btn-sm" 
+                            id="openInNewTab"
+                            title="Abrir em nova aba">
+                        <i class="bi bi-box-arrow-up-right"></i>
+                    </button>
+                    <button type="button" 
+                            class="btn btn-outline-light btn-sm" 
+                            id="refreshReport"
+                            title="Atualizar relatório">
+                        <i class="bi bi-arrow-clockwise"></i>
+                    </button>
+                    <button type="button" 
+                            class="btn-close btn-close-white" 
+                            data-bs-dismiss="modal">
+                    </button>
+                </div>
+            </div>
+            <div class="modal-body p-0 position-relative">
+                <div id="reportLoading" class="d-flex justify-content-center align-items-center position-absolute w-100 h-100 bg-white" style="z-index: 10;">
+                    <div class="text-center">
+                        <div class="spinner-border text-primary mb-3" role="status" style="width: 3rem; height: 3rem;">
+                            <span class="visually-hidden">Carregando...</span>
+                        </div>
+                        <h5 class="text-muted">Carregando relatório...</h5>
+                        <p class="text-muted mb-0">Aguarde enquanto o Power BI é carregado</p>
+                    </div>
+                </div>
+                <iframe id="reportFrame" 
+                        src="" 
+                        frameborder="0" 
+                        allowfullscreen="true"
+                        allowtransparency="true"
+                        allow="microphone; camera; fullscreen; display-capture; autoplay; encrypted-media; payment"
+                        style="width: 100%; height: 85vh; min-height: 600px; border: none; background: white; display: none;">
+                    <p>Seu navegador não suporta iframes. <a href="" target="_blank" id="fallbackLink">Clique aqui para abrir o relatório</a></p>
+                </iframe>
+            </div>
+            <div class="modal-footer bg-light">
+                <div class="d-flex justify-content-between align-items-center w-100">
+                    <small class="text-muted">
+                        <i class="bi bi-info-circle me-1"></i>
+                        Sistema inteligente para links do Power BI
+                    </small>
+                    <div>
+                        <a href="" target="_blank" id="fallbackLinkBtn" class="btn btn-sm btn-secondary me-2">
+                            <i class="bi bi-box-arrow-up-right me-1"></i>Nova Aba
+                        </a>
+                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">
+                            <i class="bi bi-x-lg me-2"></i>Fechar
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<style>
+    .report-card {
+        transition: all 0.3s ease;
+        border-left: 4px solid var(--bs-primary) !important;
+    }
+
+    .report-card:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 4px 25px rgba(0,0,0,0.1) !important;
+    }
+
+    .report-icon {
+        width: 50px;
+        height: 50px;
+        border-radius: 12px;
+        background: linear-gradient(135deg, rgba(13, 110, 253, 0.1) 0%, rgba(13, 110, 253, 0.05) 100%);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        flex-shrink: 0;
+    }
+
+    .report-icon i {
+        font-size: 24px;
+    }
+
+    .empty-state i {
+        opacity: 0.6;
+    }
+
+    .card-title {
+        color: var(--bs-dark);
+        font-weight: 600;
+    }
+
+    .btn-primary {
+        background: linear-gradient(135deg, #0d6efd 0%, #0b5ed7 100%);
+        border: none;
+        font-weight: 500;
+        transition: all 0.3s ease;
+    }
+
+    .btn-primary:hover {
+        transform: translateY(-1px);
+        box-shadow: 0 4px 12px rgba(13, 110, 253, 0.3);
+    }
+
+    @media (max-width: 768px) {
+        .col-lg-4 {
+            margin-bottom: 1rem;
+        }
+        
+        .report-icon {
+            width: 40px;
+            height: 40px;
+        }
+        
+        .report-icon i {
+            font-size: 20px;
+        }
+    }
+</style>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const reportModal = new bootstrap.Modal(document.getElementById('reportModal'));
+    const reportFrame = document.getElementById('reportFrame');
+    const reportLoading = document.getElementById('reportLoading');
+    const reportModalTitle = document.getElementById('reportModalTitle');
+    const openInNewTab = document.getElementById('openInNewTab');
+    const refreshReport = document.getElementById('refreshReport');
+    
+    let currentReportLink = '';
+    
+    // Carrega relatórios recentes
+    updateRecentReports();
+    
+    // Event listeners para botões de abrir relatório
+    document.querySelectorAll('.open-report-btn').forEach(btn => {
+        btn.addEventListener('click', function() {
+            const reportId = this.dataset.reportId;
+            const reportName = this.dataset.reportName;
+            const reportLink = this.dataset.reportLink;
+            
+            openReport(reportId, reportName, reportLink);
+        });
+    });
+    
+    function openReport(id, name, link) {
+        console.log('🚀 ABRINDO RELATÓRIO:', name, link);
+        currentReportLink = link;
+        window.currentReportLink = link; // Global para teste
+        
+        // Salva nos favoritos/recentes
+        saveRecentReport(name, link);
+        
+        // Atualiza título do modal
+        reportModalTitle.textContent = name;
+        
+        // Configura links de fallback
+        const fallbackLink = document.getElementById('fallbackLink');
+        const fallbackLinkBtn = document.getElementById('fallbackLinkBtn');
+        if (fallbackLink) fallbackLink.href = link;
+        if (fallbackLinkBtn) fallbackLinkBtn.href = link;
+        
+        // Abre o modal
+        reportModal.show();
+        
+        console.log('🔍 TESTANDO: Se é link com autenticação...');
+        
+        // Teste específico para links com autenticação
+        if (link.includes('autoAuth=true') && link.includes('reportEmbed')) {
+            console.log('✅ LINK COM AUTENTICAÇÃO DETECTADO - USANDO MÉTODO ULTRA-SIMPLES!');
+            
+            // Versão ULTRA-SIMPLES: Apenas aplica o link com configuração básica
+            const reportFrame = document.getElementById('reportFrame');
+            const reportLoading = document.getElementById('reportLoading');
+            
+            // Loading simples
+            reportLoading.innerHTML = `
+                <div class="text-center">
+                    <div class="spinner-border text-primary"></div>
+                    <h5 class="mt-3">🔐 ${name}</h5>
+                    <p>Carregando...</p>
+                    <button onclick="showAuthAlternatives('${link}', '${name}')" class="btn btn-outline-primary btn-sm mt-3">
+                        🚀 Alternativas
+                    </button>
+                </div>
+            `;
+            
+            reportLoading.style.display = 'flex';
+            reportFrame.style.display = 'none';
+            
+            // Configuração mínima do iframe
+            reportFrame.removeAttribute('sandbox');
+            reportFrame.setAttribute('allow', 'fullscreen');
+            reportFrame.style.width = '100%';
+            reportFrame.style.height = '600px';
+            
+            console.log('⚙️ Configuração mínima aplicada');
+            
+            // Timeout simples de 3 segundos
+            setTimeout(() => {
+                console.log('⏰ 3 segundos - mostrando alternativas automaticamente');
+                showAuthAlternatives(link, name);
+            }, 3000);
+            
+            // Aplicar URL imediatamente
+            console.log('🚀 Aplicando URL:', link);
+            reportFrame.src = link;
+            
+        } else {
+            console.log('⚠️ Link não reconhecido como autenticado - usando fallback');
+            // Usa o novo sistema inteligente de carregamento
+            setTimeout(() => {
+                console.log('🚀 Chamando loadReportSmart para:', link);
+                
+                // Verifica se a função existe
+                if (typeof window.loadReportSmart === 'function') {
+                    console.log('✅ loadReportSmart encontrada - executando');
+                    window.loadReportSmart(link);
+                } else if (typeof loadReportSmart === 'function') {
+                    console.log('✅ loadReportSmart (global) encontrada - executando');
+                    loadReportSmart(link);
+                } else {
+                    console.error('❌ loadReportSmart NÃO encontrada - usando fallback direto');
+                    // Fallback direto baseado no teste que funcionou
+                    directIframeTest(link);
+                }
+            }, 300);
+        }
+    }
+    
+    // Teste direto SIMPLIFICADO para links com autenticação
+    function directAuthTest(link, name) {
+        console.log('🔐 TESTE DIRETO SIMPLIFICADO - BASEADO NO QUE FUNCIONOU!');
+        
+        const reportFrame = document.getElementById('reportFrame');
+        const reportLoading = document.getElementById('reportLoading');
+        
+        // Mostra loading mais simples
+        reportLoading.innerHTML = `
+            <div class="text-center">
+                <div class="spinner-border text-primary mb-3"></div>
+                <h5>🔐 ${name}</h5>
+                <p class="text-muted">Carregando com autenticação...</p>
+                <div class="mt-3">
+                    <button onclick="showAuthAlternatives('${link}', '${name}')" class="btn btn-outline-primary btn-sm">
+                        Usar alternativas ↗️
+                    </button>
+                </div>
+            </div>
+        `;
+        
+        reportLoading.style.display = 'flex';
+        reportFrame.style.display = 'none';
+        
+        // Configuração SIMPLES do iframe (igual ao teste que funcionou)
+        reportFrame.src = '';  // Reset
+        reportFrame.removeAttribute('sandbox');
+        reportFrame.setAttribute('allow', 'accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share; fullscreen');
+        reportFrame.setAttribute('allowfullscreen', 'true');
+        reportFrame.style.width = '100%';
+        reportFrame.style.height = '600px';
+        reportFrame.style.border = 'none';
+        
+        console.log('⚙️ Iframe configurado - aplicando URL em 1 segundo...');
+        
+        // Timeout RÁPIDO para mostrar alternativas (5 segundos)
+        let timeoutId = setTimeout(() => {
+            console.log('⏰ TIMEOUT de 5s - mostrando alternativas');
+            showAuthAlternatives(link, name);
+        }, 5000);
+        
+        // Handler simples de carregamento
+        reportFrame.onload = function() {
+            console.log('📡 Iframe carregou - verificando em 2s...');
+            
+            setTimeout(() => {
+                try {
+                    const rect = reportFrame.getBoundingClientRect();
+                    console.log(`📏 Dimensões: ${rect.width}x${rect.height}`);
+                    
+                    if (rect.height > 300 && rect.width > 500) {
+                        console.log('✅ SUCESSO! Dimensões boas - ocultando loading');
+                        clearTimeout(timeoutId);
+                        reportLoading.style.display = 'none';
+                        reportFrame.style.display = 'block';
+                        
+                        // Mostra notificação de sucesso
+                        const alert = document.createElement('div');
+                        alert.className = 'alert alert-success position-fixed top-0 start-50 translate-middle-x';
+                        alert.style.zIndex = '9999';
+                        alert.innerHTML = `✅ ${name} carregado!`;
+                        document.body.appendChild(alert);
+                        setTimeout(() => alert.remove(), 3000);
+                    } else {
+                        console.log('⚠️ Dimensões pequenas - pode não ter carregado');
+                        // Não faz nada, deixa o timeout cuidar
+                    }
+                } catch (e) {
+                    console.log('⚠️ Erro ao verificar dimensões:', e);
+                }
+            }, 2000);
+        };
+        
+        // Aplica a URL após pequeno delay
+        setTimeout(() => {
+            console.log('🚀 Aplicando URL:', link);
+            reportFrame.src = link;
+        }, 1000);
+    }
+    
+    function showSuccessMessage(name) {
+        const successDiv = document.createElement('div');
+        successDiv.className = 'alert alert-success position-fixed top-0 start-50 translate-middle-x mt-3';
+        successDiv.style.zIndex = '9999';
+        successDiv.innerHTML = `
+            <i class="bi bi-check-circle-fill me-2"></i>
+            <strong>✅ Sucesso!</strong> ${name} carregado com autenticação
+        `;
+        
+        document.body.appendChild(successDiv);
+        
+        setTimeout(() => {
+            successDiv.remove();
+        }, 4000);
+    }
+    
+    function showAuthAlternatives(link, name) {
+        const reportFrame = document.getElementById('reportFrame');
+        const reportLoading = document.getElementById('reportLoading');
+        const modalBody = reportFrame.parentElement;
+        
+        reportLoading.style.display = 'none';
+        reportFrame.style.display = 'none';
+        
+        // Remove alternativas existentes
+        const existing = modalBody.querySelector('.auth-alternatives');
+        if (existing) existing.remove();
+        
+        const alternativeDiv = document.createElement('div');
+        alternativeDiv.className = 'auth-alternatives text-center py-4';
+        alternativeDiv.innerHTML = `
+            <div class="mb-4">
+                <i class="bi bi-shield-lock text-warning" style="font-size: 4rem;"></i>
+            </div>
+            <h4 class="mb-3 text-warning">🔐 ${name}</h4>
+            <p class="text-muted mb-4">Este relatório requer autenticação no Power BI</p>
+            
+            <div class="d-grid gap-3 col-8 mx-auto">
+                <button onclick="openPopup('${link}')" class="btn btn-success btn-lg">
+                    <i class="bi bi-window-stack me-2"></i>
+                    🪟 Abrir em Popup (Recomendado)
+                </button>
+                
+                <a href="${link}" target="_blank" class="btn btn-primary btn-lg">
+                    <i class="bi bi-box-arrow-up-right me-2"></i>
+                    🔗 Abrir em Nova Aba
+                </a>
+                
+                <button onclick="retryAuth('${link}', '${name}')" class="btn btn-outline-success">
+                    <i class="bi bi-arrow-clockwise me-2"></i>
+                    🔄 Tentar Novamente
+                </button>
+            </div>
+            
+            <div class="mt-4 p-3 bg-info bg-opacity-10 border border-info rounded">
+                <small class="text-info">
+                    <i class="bi bi-info-circle me-1"></i>
+                    Se você já fez login no Power BI em outra aba, clique em "Tentar Novamente"
+                </small>
+            </div>
+        `;
+        
+        modalBody.appendChild(alternativeDiv);
+    }
+    
+    function openPopup(link) {
+        const width = Math.min(1400, window.screen.availWidth * 0.8);
+        const height = Math.min(900, window.screen.availHeight * 0.8);
+        const left = (window.screen.availWidth - width) / 2;
+        const top = (window.screen.availHeight - height) / 2;
+        
+        window.open(link, 'PowerBIReport', `width=${width},height=${height},left=${left},top=${top},scrollbars=yes,resizable=yes`);
+        
+        // Fecha modal após 1 segundo
+        setTimeout(() => {
+            reportModal.hide();
+        }, 1000);
+    }
+    
+    function retryAuth(link, name) {
+        const alternative = document.querySelector('.auth-alternatives');
+        if (alternative) alternative.remove();
+        directAuthTest(link, name);
+    }
+    
+    // Fallback direto se smart loader não funcionar
+    function directIframeTest(link) {
+        console.log('🔄 FALLBACK: Carregamento direto baseado no teste que funcionou');
+        
+        const reportFrame = document.getElementById('reportFrame');
+        const reportLoading = document.getElementById('reportLoading');
+        
+        // Configura iframe exatamente como no teste que funcionou
+        reportFrame.removeAttribute('sandbox');
+        reportFrame.setAttribute('allow', 'microphone; camera; fullscreen; display-capture; autoplay; encrypted-media; clipboard-read; clipboard-write; geolocation');
+        reportFrame.setAttribute('referrerpolicy', 'unsafe-url');
+        reportFrame.setAttribute('allowfullscreen', 'true');
+        reportFrame.setAttribute('allowtransparency', 'true');
+        reportFrame.setAttribute('crossorigin', 'use-credentials');
+        
+        let hasLoaded = false;
+        const startTime = Date.now();
+        
+        reportFrame.onload = function() {
+            const loadTime = Date.now() - startTime;
+            console.log(`✅ FALLBACK OnLoad após ${loadTime}ms`);
+            
+            setTimeout(() => {
+                const rect = reportFrame.getBoundingClientRect();
+                console.log(`📏 FALLBACK Dimensões: ${rect.width}x${rect.height}`);
+                
+                if (rect.height > 200 && rect.width > 400) {
+                    console.log('🎉 FALLBACK FUNCIONOU!');
+                    hasLoaded = true;
+                    reportLoading.style.display = 'none';
+                    reportFrame.style.display = 'block';
+                } else {
+                    console.log('⚠️ FALLBACK: Dimensões pequenas, mas tentando mesmo assim');
+                    hasLoaded = true;
+                    reportLoading.style.display = 'none';
+                    reportFrame.style.display = 'block';
+                }
+            }, 2000);
+        };
+        
+        reportFrame.onerror = function() {
+            console.error('❌ FALLBACK: Erro no iframe');
+            if (!hasLoaded) {
+                showFallbackAlternatives(link);
+            }
+        };
+        
+        console.log('🌐 FALLBACK: Carregando iframe...');
+        reportFrame.src = link;
+        
+        // Timeout para mostrar alternativas se não carregar
+        setTimeout(() => {
+            if (!hasLoaded) {
+                console.log('⏰ FALLBACK: Timeout - mostrando alternativas');
+                showFallbackAlternatives(link);
+            }
+        }, 15000);
+    }
+    
+    // Mostra alternativas se fallback não funcionar
+    function showFallbackAlternatives(link) {
+        const reportFrame = document.getElementById('reportFrame');
+        const reportLoading = document.getElementById('reportLoading');
+        const modalBody = reportFrame.parentElement;
+        
+        reportLoading.style.display = 'none';
+        reportFrame.style.display = 'none';
+        
+        const alternativeDiv = document.createElement('div');
+        alternativeDiv.className = 'text-center py-4';
+        alternativeDiv.innerHTML = `
+            <div class="mb-4">
+                <i class="bi bi-exclamation-triangle text-warning" style="font-size: 4rem;"></i>
+            </div>
+            <h4 class="mb-3 text-warning">⚠️ Problema no Carregamento</h4>
+            <p class="text-muted mb-4">O relatório não pôde ser carregado diretamente.</p>
+            
+            <div class="d-grid gap-3 col-8 mx-auto">
+                <a href="${link}" target="_blank" class="btn btn-primary btn-lg">
+                    <i class="bi bi-box-arrow-up-right me-2"></i>
+                    Abrir em Nova Aba
+                </a>
+                <button onclick="retryLoad('${link}')" class="btn btn-outline-primary">
+                    <i class="bi bi-arrow-clockwise me-2"></i>
+                    Tentar Novamente
+                </button>
+            </div>
+        `;
+        
+        modalBody.appendChild(alternativeDiv);
+    }
+    
+    // Função para tentar novamente
+    function retryLoad(link) {
+        const alternative = document.querySelector('.text-center.py-4');
+        if (alternative) {
+            alternative.remove();
+        }
+        directIframeTest(link);
+    }
+    
+    // Sistema de relatórios recentes/favoritos
+    function saveRecentReport(title, link) {
+        try {
+            let recents = JSON.parse(localStorage.getItem('powerbi_recent_reports') || '[]');
+            
+            // Remove se já existe
+            recents = recents.filter(r => r.link !== link);
+            
+            // Adiciona no início
+            recents.unshift({
+                title: title,
+                link: link,
+                lastAccessed: new Date().toISOString(),
+                accessCount: (recents.find(r => r.link === link)?.accessCount || 0) + 1
+            });
+            
+            // Mantém apenas os 10 mais recentes
+            recents = recents.slice(0, 10);
+            
+            localStorage.setItem('powerbi_recent_reports', JSON.stringify(recents));
+            console.log('💾 Relatório salvo nos recentes');
+            
+            updateRecentReports();
+        } catch (error) {
+            console.error('❌ Erro ao salvar relatório recente:', error);
+        }
+    }
+    
+    // Atualiza lista de relatórios recentes na interface
+    function updateRecentReports() {
+        try {
+            const recents = JSON.parse(localStorage.getItem('powerbi_recent_reports') || '[]');
+            const container = document.getElementById('recent-reports');
+            
+            if (container && recents.length > 0) {
+                container.innerHTML = `
+                    <h6 class="text-muted mb-2">📋 Relatórios Recentes:</h6>
+                    ${recents.slice(0, 5).map(report => `
+                        <div class="d-flex justify-content-between align-items-center py-2 border-bottom">
+                            <div>
+                                <strong class="d-block">${report.title}</strong>
+                                <small class="text-muted">
+                                    ${new Date(report.lastAccessed).toLocaleDateString('pt-BR')} 
+                                    (${report.accessCount}x acesso${report.accessCount > 1 ? 's' : ''})
+                                </small>
+                            </div>
+                            <button class="btn btn-sm btn-outline-primary" 
+                                    onclick="openQuickReport('${report.link}', '${report.title}')"
+                                    title="Abrir relatório">
+                                <i class="bi bi-arrow-right"></i>
+                            </button>
+                        </div>
+                    `).join('')}
+                `;
+            }
+        } catch (error) {
+            console.error('❌ Erro ao atualizar relatórios recentes:', error);
+        }
+    }
+    
+    // Abre relatório rapidamente (sem modal completo)
+    function openQuickReport(link, title) {
+        console.log('⚡ Abertura rápida:', title);
+        if (powerBISmartLoader) {
+            powerBISmartLoader.openOptimizedPopup(link);
+        } else {
+            window.open(link, '_blank');
+        }
+    }
+    
+    // Função para processar links do Power BI
+    function processPowerBILink(link) {
+        console.log('🔗 PROCESSANDO LINK:', link);
+        
+        // Links públicos do Power BI (/view?r=) precisam de tratamento especial
+        if (link.includes('/view?r=')) {
+            console.log('📊 Link público do Power BI detectado');
+            
+            // Tenta extrair o token do link público
+            try {
+                const urlObj = new URL(link);
+                const token = urlObj.searchParams.get('r');
+                
+                if (token) {
+                    // Tenta criar URL de embed alternativo
+                    const embedUrl = `https://app.powerbi.com/reportEmbed?reportId=${token}&autoAuth=true&ctid=0b754a09-0568-48fd-a100-8621a0bbd7ab`;
+                    console.log('🔄 Tentando URL de embed:', embedUrl);
+                    return { original: link, embed: embedUrl, type: 'public' };
+                }
+            } catch (e) {
+                console.log('❌ Erro ao processar link público:', e);
+            }
+            
+            return { original: link, embed: link, type: 'public' };
+        }
+        
+        // Links de embed (/reportEmbed) já devem funcionar
+        if (link.includes('/reportEmbed')) {
+            console.log('📊 Link de embed do Power BI detectado');
+            return { original: link, embed: link, type: 'embed' };
+        }
+        
+        // Para outros tipos de link, tentar usar como está
+        console.log('❓ Tipo de link desconhecido, usando direto');
+        return { original: link, embed: link, type: 'unknown' };
+    }
+
+    // Função específica para configurar iframe do Power BI
+    function configurePowerBIIframe(iframe, link) {
+        console.log('⚙️ CONFIGURANDO IFRAME PARA POWER BI');
+        
+        // Remove qualquer configuração anterior
+        iframe.removeAttribute('sandbox');
+        iframe.removeAttribute('referrerpolicy');
+        
+        // Configurações específicas para Power BI
+        iframe.setAttribute('allowfullscreen', 'true');
+        iframe.setAttribute('allowtransparency', 'true');
+        iframe.setAttribute('frameborder', '0');
+        
+        // Permite scripts, mesmo origem e pop-ups
+        iframe.setAttribute('sandbox', 'allow-scripts allow-same-origin allow-popups allow-forms allow-top-navigation allow-modals');
+        
+        // Headers específicos para Power BI
+        iframe.setAttribute('allow', 'microphone; camera; fullscreen; display-capture; autoplay; encrypted-media; clipboard-read; clipboard-write');
+        
+        // Configura referrer para máxima compatibilidade
+        iframe.setAttribute('referrerpolicy', 'unsafe-url');
+        
+        console.log('✅ Iframe configurado para Power BI');
+    }
+
+    // Função alternativa para teste direto do Power BI
+    function testDirectLoad(link) {
+        console.log('🧪 TESTE DIRETO: Tentando carregamento simplificado');
+        
+        if (!link) {
+            console.error('❌ Nenhum link fornecido para teste');
+            return;
+        }
+        
+        // Processa o link
+        const processedLink = processPowerBILink(link);
+        console.log('🔗 Link para teste:', processedLink);
+        
+        // Remove qualquer listener anterior
+        reportFrame.onload = null;
+        reportFrame.onerror = null;
+        
+        // Configura iframe para máxima compatibilidade
+        reportFrame.removeAttribute('sandbox');
+        reportFrame.setAttribute('allow', 'microphone; camera; fullscreen; display-capture; autoplay; encrypted-media; clipboard-read; clipboard-write; geolocation');
+        reportFrame.setAttribute('referrerpolicy', 'no-referrer-when-downgrade');
+        
+        // Mostra loading
+        reportLoading.style.display = 'flex';
+        reportFrame.style.display = 'none';
+        
+        // Carregamento direto sem eventos complexos
+        reportFrame.src = processedLink;
+        
+        // Timer simples para mostrar resultado
+        setTimeout(() => {
+            console.log('⏰ Timer simples: Exibindo iframe após 15 segundos');
+            reportLoading.style.display = 'none';
+            reportFrame.style.display = 'block';
+            
+            // Verifica se há conteúdo no iframe
+            try {
+                const iframeDoc = reportFrame.contentDocument || reportFrame.contentWindow.document;
+                console.log('📄 Documento do iframe:', iframeDoc ? 'Encontrado' : 'Não encontrado');
+            } catch (error) {
+                console.log('🔒 Iframe bloqueado por CORS (normal para Power BI)');
+            }
+        }, 15000);
+    }
+
+    // Função de teste com configurações ultra permissivas
+    function testUltraPermissive(link) {
+        console.log('🚨 TESTE ULTRA PERMISSIVO: Removendo todas as restrições');
+        
+        if (!link) {
+            console.error('❌ Nenhum link fornecido para teste');
+            return;
+        }
+        
+        const processedLink = processPowerBILink(link);
+        console.log('🔗 Link para teste ultra:', processedLink);
+        
+        // Remove TODOS os atributos restritivos
+        reportFrame.removeAttribute('sandbox');
+        reportFrame.removeAttribute('allow');
+        reportFrame.removeAttribute('referrerpolicy');
+        reportFrame.removeAttribute('csp');
+        reportFrame.removeAttribute('crossorigin');
+        
+        // Configura apenas o mínimo necessário
+        reportFrame.setAttribute('frameborder', '0');
+        reportFrame.setAttribute('allowfullscreen', 'true');
+        reportFrame.setAttribute('allowtransparency', 'true');
+        
+        // Mostra loading
+        reportLoading.style.display = 'flex';
+        reportFrame.style.display = 'none';
+        
+        console.log('🔓 Todas as restrições removidas, carregando...');
+        
+        // Carregamento sem qualquer restrição
+        reportFrame.src = processedLink;
+        
+        // Timer para exibir
+        setTimeout(() => {
+            console.log('⏰ Exibindo iframe após teste ultra permissivo');
+            reportLoading.style.display = 'none';
+            reportFrame.style.display = 'block';
+            
+            console.log('🔍 Verificando se o iframe carregou...');
+            console.log('📏 Altura do iframe:', reportFrame.offsetHeight);
+            console.log('📐 Largura do iframe:', reportFrame.offsetWidth);
+            console.log('🌐 Source atual:', reportFrame.src);
+        }, 12000);
+    }
+
+    function loadReport(link) {
+        console.log('=== INÍCIO CARREGAMENTO RELATÓRIO ===');
+        console.log('Link recebido:', link);
+        
+        // Validação básica
+        if (!link) {
+            console.error('❌ Link está vazio ou nulo');
+            showError('Link inválido', 'Nenhum link foi fornecido para o relatório.', '');
+            return;
+        }
+        
+        // Verifica se é um link válido do Power BI
+        const isPowerBILink = link.includes('powerbi.com') || link.includes('app.powerbi.com');
+        if (!isPowerBILink) {
+            console.error('❌ Não é um link válido do Power BI');
+            showError('Link inválido', 'Este não parece ser um link válido do Power BI.', link);
+            return;
+        }
+        
+        console.log('🔗 Detectado link público do Power BI');
+        
+        // Para links públicos (/view?r=), o Power BI geralmente bloqueia iframes
+        // Vamos mostrar uma interface alternativa
+        if (link.includes('/view?r=')) {
+            console.log('� Link público detectado - usando interface alternativa');
+            showPowerBIAlternative(link);
+            return;
+        }
+        
+        // Para outros tipos, tenta o iframe normal
+        console.log('🎯 Tentando carregamento em iframe...');
+        tryIframeLoad(link);
+    }
+    
+    function showPowerBIAlternative(originalLink, embedLink = null) {
+        console.log('🎨 Mostrando interface alternativa para Power BI');
+        console.log('Link original:', originalLink);
+        console.log('Link embed:', embedLink);
+        
+        // Esconde loading e iframe
+        reportLoading.style.display = 'none';
+        reportFrame.style.display = 'none';
+        
+        // Cria interface alternativa
+        const modalBody = reportFrame.parentElement;
+        
+        // Remove qualquer interface alternativa anterior
+        const existingAlt = modalBody.querySelector('.powerbi-alternative');
+        if (existingAlt) {
+            existingAlt.remove();
+        }
+        
+        const alternativeDiv = document.createElement('div');
+        alternativeDiv.className = 'powerbi-alternative text-center py-5';
+        
+        // Se temos um link de embed alternativo, oferece como opção
+        const embedOption = embedLink && embedLink !== originalLink ? 
+            `<button class="btn btn-outline-info btn-lg me-2" onclick="tryIframeLoad('${embedLink}')">
+                <i class="bi bi-code-square me-2"></i>
+                Tentar Embed
+            </button>` : '';
+        
+        alternativeDiv.innerHTML = `
+            <div class="mb-4">
+                <i class="bi bi-bar-chart-fill text-primary" style="font-size: 4rem;"></i>
+            </div>
+            <h4 class="mb-3">Relatório Power BI</h4>
+            <p class="text-muted mb-4">
+                Por questões de segurança, o Power BI não permite visualização direta em iframes.<br>
+                Use uma das opções abaixo para acessar o relatório:
+            </p>
+            
+            <div class="d-grid gap-2 d-md-block">
+                <button onclick="openPowerBIPopup('${originalLink}')" class="btn btn-primary btn-lg me-2">
+                    <i class="bi bi-window me-2"></i>
+                    Abrir em Popup
+                </button>
+                <a href="${originalLink}" target="_blank" class="btn btn-outline-primary btn-lg me-2">
+                    <i class="bi bi-box-arrow-up-right me-2"></i>
+                    Abrir em Nova Aba
+                </a>
+                ${embedOption}
+                <button class="btn btn-outline-secondary btn-lg me-2" onclick="tryForceIframe('${originalLink}')">
+                    <i class="bi bi-arrow-clockwise me-2"></i>
+                    Tentar Forçar Iframe
+                </button>
+            </div>
+            
+            <div class="mt-4 p-3 bg-light rounded">
+                <small class="text-muted">
+                    <i class="bi bi-info-circle me-1"></i>
+                    <strong>Dica:</strong> O popup oferece uma experiência integrada sem deixar o sistema
+                </small>
+            </div>
+            
+            <div class="mt-3">
+                <button class="btn btn-sm btn-link" onclick="copyToClipboard('${originalLink}')">
+                    <i class="bi bi-clipboard me-1"></i>Copiar Link
+                </button>
+            </div>
+        `;
+        
+        modalBody.appendChild(alternativeDiv);
+        console.log('✅ Interface alternativa criada');
+    }
+    
+    function tryIframeLoad(link) {
+        console.log('🎯 Tentando carregamento em iframe...');
+        
+        const processedLink = processPowerBILink(link);
+        configurePowerBIIframe(reportFrame, processedLink);
+        
+        reportLoading.style.display = 'flex';
+        reportFrame.style.display = 'none';
+        
+        // Timeout mais agressivo para detectar falha
+        const timeout = setTimeout(() => {
+            console.log('⏰ TIMEOUT: Iframe não carregou, mostrando alternativa');
+            showPowerBIAlternative(link);
+        }, 8000); // 8 segundos apenas
+        
+        reportFrame.onload = function() {
+            console.log('✅ Iframe carregou');
+            clearTimeout(timeout);
+            reportLoading.style.display = 'none';
+            reportFrame.style.display = 'block';
+        };
+        
+        reportFrame.onerror = function() {
+            console.error('❌ Erro no iframe');
+            clearTimeout(timeout);
+            showPowerBIAlternative(link);
+        };
+        
+        try {
+            reportFrame.src = processedLink;
+        } catch (error) {
+            console.error('❌ Erro ao definir src:', error);
+            clearTimeout(timeout);
+            showPowerBIAlternative(link);
+        }
+    }
+    
+    function tryForceIframe(link) {
+        console.log('🚨 FORÇANDO CARREGAMENTO EM IFRAME');
+        
+        // Remove interface alternativa
+        const alternativeDiv = document.querySelector('.powerbi-alternative');
+        if (alternativeDiv) {
+            alternativeDiv.remove();
+        }
+        
+        // Remove TODAS as restrições
+        reportFrame.removeAttribute('sandbox');
+        reportFrame.removeAttribute('allow');
+        reportFrame.removeAttribute('referrerpolicy');
+        reportFrame.setAttribute('frameborder', '0');
+        reportFrame.setAttribute('allowfullscreen', 'true');
+        
+        reportLoading.style.display = 'flex';
+        reportFrame.style.display = 'none';
+        
+        reportFrame.src = link;
+        
+        // Timeout longo para teste forçado
+        setTimeout(() => {
+            console.log('⏰ Mostrando iframe após tentativa forçada');
+            reportLoading.style.display = 'none';
+            reportFrame.style.display = 'block';
+            
+            // Se ainda não funcionou após 5 segundos, volta para alternativa
+            setTimeout(() => {
+                if (reportFrame.style.display === 'block') {
+                    try {
+                        // Tenta verificar se tem conteúdo
+                        const rect = reportFrame.getBoundingClientRect();
+                        if (rect.height < 100) {
+                            console.log('� Iframe parece vazio, voltando para alternativa');
+                            showPowerBIAlternative(link);
+                        }
+                    } catch (e) {
+                        console.log('🔍 Não foi possível verificar conteúdo do iframe');
+                    }
+                }
+            }, 5000);
+        }, 10000);
+    }
+    
+    function copyToClipboard(text) {
+        navigator.clipboard.writeText(text).then(() => {
+            // Feedback visual
+            const btn = event.target.closest('button');
+            const originalText = btn.innerHTML;
+            btn.innerHTML = '<i class="bi bi-check me-1"></i>Copiado!';
+            btn.classList.add('text-success');
+            
+            setTimeout(() => {
+                btn.innerHTML = originalText;
+                btn.classList.remove('text-success');
+            }, 2000);
+        }).catch(err => {
+            console.error('Erro ao copiar:', err);
+        });
+    }
+    
+    function openPowerBIPopup(link) {
+        console.log('🪟 Abrindo Power BI em popup');
+        
+        // Calcula posição centralizada
+        const width = Math.min(1400, window.screen.width * 0.8);
+        const height = Math.min(900, window.screen.height * 0.8);
+        const left = (window.screen.width - width) / 2;
+        const top = (window.screen.height - height) / 2;
+        
+        // Configurações do popup
+        const features = [
+            `width=${width}`,
+            `height=${height}`,
+            `left=${left}`,
+            `top=${top}`,
+            'scrollbars=yes',
+            'resizable=yes',
+            'status=no',
+            'menubar=no',
+            'toolbar=no',
+            'location=no'
+        ].join(',');
+        
+        // Abre popup
+        const popup = window.open(link, 'PowerBIReport', features);
+        
+        if (popup) {
+            popup.focus();
+            console.log('✅ Popup aberto com sucesso');
+            
+            // Feedback visual
+            const modalElement = document.getElementById('reportModal');
+            const modal = bootstrap.Modal.getInstance(modalElement);
+            if (modal) {
+                modal.hide();
+            }
+        } else {
+            console.error('❌ Popup bloqueado, abrindo em nova aba');
+            window.open(link, '_blank');
+        }
+    }
+    
+    function showError(title, message, link) {
+        reportLoading.innerHTML = `
+            <div class="text-center">
+                <i class="bi bi-exclamation-triangle text-warning mb-3" style="font-size: 3rem;"></i>
+                <h5 class="text-warning">${title}</h5>
+                <p class="text-muted">${message}</p>
+                <div class="mt-3">
+                    <button class="btn btn-primary" onclick="window.open('${link}', '_blank')">
+                        <i class="bi bi-box-arrow-up-right me-2"></i>Abrir em nova aba
+                    </button>
+                    <button class="btn btn-secondary ms-2" onclick="location.reload()">
+                        <i class="bi bi-arrow-clockwise me-2"></i>Recarregar página
+                    </button>
+                </div>
+                <details class="mt-3">
+                    <summary class="small text-muted">Detalhes técnicos</summary>
+                    <code class="small d-block mt-2 text-start">${link}</code>
+                </details>
+            </div>
+        `;
+    }
+    
+    // Botão para abrir em nova aba
+    openInNewTab.addEventListener('click', function() {
+        if (currentReportLink) {
+            window.open(currentReportLink, '_blank');
+        }
+    });
+    
+    // Botão para atualizar relatório
+    refreshReport.addEventListener('click', function() {
+        if (currentReportLink) {
+            reportLoading.style.display = 'flex';
+            reportFrame.style.display = 'none';
+            
+            // Força reload do iframe
+            reportFrame.src = '';
+            setTimeout(() => {
+                loadReport(currentReportLink);
+            }, 100);
+        }
+    });
+    
+    // Limpa iframe quando modal fecha
+    document.getElementById('reportModal').addEventListener('hidden.bs.modal', function() {
+        reportFrame.src = '';
+        reportLoading.style.display = 'flex';
+        reportFrame.style.display = 'none';
+        currentReportLink = '';
+    });
+    
+    // Suporte para tecla ESC fechar o modal
+    document.addEventListener('keydown', function(e) {
+        if (e.key === 'Escape' && reportModal._isShown) {
+            reportModal.hide();
+        }
+    });
+});
+</script>
+{% endblock %}
