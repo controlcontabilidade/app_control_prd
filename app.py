@@ -1000,17 +1000,8 @@ def save_client():
             'donoResp': request.form.get('responsavelServicos', ''),
             'mesAnoInicio': request.form.get('dataInicioServicos', ''),
             
-            # Sócios antigos (compatibilidade)
-            'socio1': request.form.get('socio1_nome', request.form.get('socio1', '')),
-            'socio2': request.form.get('socio2_nome', request.form.get('socio2', '')),
-            'socio3': request.form.get('socio3_nome', request.form.get('socio3', '')),
-            'socio4': request.form.get('socio4_nome', request.form.get('socio4', '')),
-            
             # Status e configurações
             'ativo': request.form.get('ativo') == 'on',
-            'integradoDominio': request.form.get('integradoDominio') == 'on',
-            'portalCliente': request.form.get('portalCliente') == 'on',
-            'onvio': request.form.get('onvio') == 'on',
         }
         
         # Processar sócios dinamicamente do Bloco 3

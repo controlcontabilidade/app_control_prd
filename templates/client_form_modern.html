@@ -84,8 +84,8 @@
                         <i class="bi bi-card-text me-1"></i>CPF/CNPJ
                         <span class="text-danger">*</span>
                     </label>
-                    <input type="text" class="form-control" id="cnpj" name="cnpj"
-                           value="{{ client.cnpj if client else '' }}" 
+                    <input type="text" class="form-control" id="cpfCnpj" name="cpfCnpj"
+                           value="{{ client.cpfCnpj if client else '' }}" 
                            placeholder="00.000.000/0001-00" required>
                     <div class="invalid-feedback">
                         Por favor, informe o CPF ou CNPJ.
@@ -509,408 +509,6 @@
         </div>
     </div>
 
-    <!-- Códigos e Sistemas -->
-    <div class="card mb-4">
-        <div class="card-header">
-            <h5 class="mb-0">
-                <i class="bi bi-code-square me-2 text-info"></i>
-                Códigos e Sistemas
-            </h5>
-        </div>
-        <div class="card-body">
-            <div class="row">
-                <div class="col-md-4 mb-3">
-                    <label for="codFortesCt" class="form-label">
-                        <i class="bi bi-hash me-1"></i>Código Fortes CT
-                    </label>
-                    <input type="text" class="form-control" id="codFortesCt" name="codFortesCt"
-                           value="{{ client.codFortesCt if client else '' }}">
-                </div>
-                
-                <div class="col-md-4 mb-3">
-                    <label for="codFortesFs" class="form-label">
-                        <i class="bi bi-hash me-1"></i>Código Fortes FS
-                    </label>
-                    <input type="text" class="form-control" id="codFortesFs" name="codFortesFs"
-                           value="{{ client.codFortesFs if client else '' }}">
-                </div>
-                
-                <div class="col-md-4 mb-3">
-                    <label for="codFortesPs" class="form-label">
-                        <i class="bi bi-hash me-1"></i>Código Fortes PS
-                    </label>
-                    <input type="text" class="form-control" id="codFortesPs" name="codFortesPs"
-                           value="{{ client.codFortesPs if client else '' }}">
-                </div>
-                
-                <div class="col-md-6 mb-3">
-                    <label for="codDominio" class="form-label">
-                        <i class="bi bi-code me-1"></i>Código Domínio
-                    </label>
-                    <input type="text" class="form-control" id="codDominio" name="codDominio"
-                           value="{{ client.codDominio if client else '' }}">
-                </div>
-                
-                <div class="col-md-6 mb-3">
-                    <label for="sistemaUtilizado" class="form-label">
-                        <i class="bi bi-display me-1"></i>Sistema Utilizado
-                    </label>
-                    <input type="text" class="form-control" id="sistemaUtilizado" name="sistemaUtilizado"
-                           value="{{ client.sistemaUtilizado if client else '' }}">
-                </div>
-                
-                <div class="col-md-12 mb-3">
-                    <label for="moduloSpedTrier" class="form-label">
-                        <i class="bi bi-file-code me-1"></i>Módulo SPED Trier
-                    </label>
-                    <input type="text" class="form-control" id="moduloSpedTrier" name="moduloSpedTrier"
-                           value="{{ client.moduloSpedTrier if client else '' }}">
-                </div>
-            </div>
-        </div>
-    </div>
-
-    <!-- Acessos e Senhas -->
-    <div class="card mb-4">
-        <div class="card-header">
-            <h5 class="mb-0">
-                <i class="bi bi-key me-2 text-warning"></i>
-                Acessos e Senhas
-            </h5>
-        </div>
-        <div class="card-body">
-            <div class="row">
-                <div class="col-md-4 mb-3">
-                    <label for="codAcessoSimples" class="form-label">
-                        <i class="bi bi-shield-check me-1"></i>Código Acesso Simples
-                    </label>
-                    <input type="text" class="form-control" id="codAcessoSimples" name="codAcessoSimples"
-                           value="{{ client.codAcessoSimples if client else '' }}">
-                </div>
-                
-                <div class="col-md-4 mb-3">
-                    <label for="cpfOuCnpj" class="form-label">
-                        <i class="bi bi-card-text me-1"></i>CPF ou CNPJ (Acesso)
-                    </label>
-                    <input type="text" class="form-control" id="cpfOuCnpj" name="cpfOuCnpj"
-                           value="{{ client.cpfOuCnpj if client else '' }}">
-                </div>
-                
-                <div class="col-md-4 mb-3">
-                    <label for="acessoEmpWeb" class="form-label">
-                        <i class="bi bi-globe me-1"></i>Acesso EmpWeb
-                    </label>
-                    <input type="text" class="form-control" id="acessoEmpWeb" name="acessoEmpWeb"
-                           value="{{ client.acessoEmpWeb if client else '' }}">
-                </div>
-                
-                <div class="col-md-4 mb-3">
-                    <label for="senhaEmpWeb" class="form-label">
-                        <i class="bi bi-lock me-1"></i>Senha EmpWeb
-                    </label>
-                    <input type="password" class="form-control" id="senhaEmpWeb" name="senhaEmpWeb"
-                           value="{{ client.senhaEmpWeb if client else '' }}">
-                </div>
-                
-                <div class="col-md-4 mb-3">
-                    <label for="acessoIss" class="form-label">
-                        <i class="bi bi-building me-1"></i>Acesso ISS
-                    </label>
-                    <input type="text" class="form-control" id="acessoIss" name="acessoIss"
-                           value="{{ client.acessoIss if client else '' }}">
-                </div>
-                
-                <div class="col-md-4 mb-3">
-                    <label for="acessoSefin" class="form-label">
-                        <i class="bi bi-bank me-1"></i>Acesso SEFIN
-                    </label>
-                    <input type="text" class="form-control" id="acessoSefin" name="acessoSefin"
-                           value="{{ client.acessoSefin if client else '' }}">
-                </div>
-                
-                <div class="col-md-4 mb-3">
-                    <label for="acessoSeuma" class="form-label">
-                        <i class="bi bi-tree me-1"></i>Acesso SEUMA
-                    </label>
-                    <input type="text" class="form-control" id="acessoSeuma" name="acessoSeuma"
-                           value="{{ client.acessoSeuma if client else '' }}">
-                </div>
-                
-                <div class="col-md-4 mb-3">
-                    <label for="acessoFapInss" class="form-label">
-                        <i class="bi bi-shield-check me-1"></i>Acesso FAP/INSS
-                    </label>
-                    <input type="text" class="form-control" id="acessoFapInss" name="acessoFapInss"
-                           value="{{ client.acessoFapInss if client else '' }}">
-                </div>
-                
-                <div class="col-md-4 mb-3">
-                    <label for="acessoCrf" class="form-label">
-                        <i class="bi bi-award me-1"></i>Acesso CRF
-                    </label>
-                    <input type="text" class="form-control" id="acessoCrf" name="acessoCrf"
-                           value="{{ client.acessoCrf if client else '' }}">
-                </div>
-                
-                <div class="col-md-4 mb-3">
-                    <label for="acessoIbama" class="form-label">
-                        <i class="bi bi-tree-fill me-1"></i>Acesso IBAMA
-                    </label>
-                    <input type="text" class="form-control" id="acessoIbama" name="acessoIbama"
-                           value="{{ client.acessoIbama if client else '' }}">
-                </div>
-                
-                <div class="col-md-4 mb-3">
-                    <label for="acessoSemace" class="form-label">
-                        <i class="bi bi-shield-fill-check me-1"></i>Acesso SEMACE
-                    </label>
-                    <input type="text" class="form-control" id="acessoSemace" name="acessoSemace"
-                           value="{{ client.acessoSemace if client else '' }}">
-                </div>
-                
-                <div class="col-md-6 mb-3">
-                    <label for="senhaSemace" class="form-label">
-                        <i class="bi bi-lock-fill me-1"></i>Senha SEMACE
-                    </label>
-                    <input type="password" class="form-control" id="senhaSemace" name="senhaSemace"
-                           value="{{ client.senhaSemace if client else '' }}">
-                </div>
-            </div>
-        </div>
-    </div>
-
-    <!-- Procurações -->
-    <div class="card mb-4">
-        <div class="card-header">
-            <h5 class="mb-0">
-                <i class="bi bi-file-earmark-text me-2 text-info"></i>
-                Procurações
-            </h5>
-        </div>
-        <div class="card-body">
-            <div class="row">
-                <div class="col-md-4 mb-3">
-                    <label for="procRc" class="form-label">
-                        <i class="bi bi-file-text me-1"></i>Procuração RC
-                    </label>
-                    <input type="text" class="form-control" id="procRc" name="procRc"
-                           value="{{ client.procRc if client else '' }}">
-                </div>
-                
-                <div class="col-md-4 mb-3">
-                    <label for="procCx" class="form-label">
-                        <i class="bi bi-file-text me-1"></i>Procuração CX
-                    </label>
-                    <input type="text" class="form-control" id="procCx" name="procCx"
-                           value="{{ client.procCx if client else '' }}">
-                </div>
-                
-                <div class="col-md-4 mb-3">
-                    <label for="procSw" class="form-label">
-                        <i class="bi bi-file-text me-1"></i>Procuração SW
-                    </label>
-                    <input type="text" class="form-control" id="procSw" name="procSw"
-                           value="{{ client.procSw if client else '' }}">
-                </div>
-            </div>
-        </div>
-    </div>
-
-    <!-- Gestão Ambiental e Sanitária -->
-    <div class="card mb-4">
-        <div class="card-header">
-            <h5 class="mb-0">
-                <i class="bi bi-shield-check me-2 text-success"></i>
-                Gestão Ambiental e Sanitária
-            </h5>
-        </div>
-        <div class="card-body">
-            <div class="row">
-                <div class="col-md-6 mb-3">
-                    <label for="anvisaGestor" class="form-label">
-                        <i class="bi bi-person-badge me-1"></i>ANVISA Gestor
-                    </label>
-                    <input type="text" class="form-control" id="anvisaGestor" name="anvisaGestor"
-                           value="{{ client.anvisaGestor if client else '' }}">
-                </div>
-                
-                <div class="col-md-6 mb-3">
-                    <label for="anvisaEmpresa" class="form-label">
-                        <i class="bi bi-building me-1"></i>ANVISA Empresa
-                    </label>
-                    <input type="text" class="form-control" id="anvisaEmpresa" name="anvisaEmpresa"
-                           value="{{ client.anvisaEmpresa if client else '' }}">
-                </div>
-            </div>
-        </div>
-    </div>
-
-    <!-- Contatos e Gestão -->
-    <div class="card mb-4">
-        <div class="card-header">
-            <h5 class="mb-0">
-                <i class="bi bi-person-lines-fill me-2 text-secondary"></i>
-                Contatos e Gestão
-            </h5>
-        </div>
-        <div class="card-body">
-            <div class="row">
-                <div class="col-md-6 mb-3">
-                    <label for="responsavelImediato" class="form-label">
-                        <i class="bi bi-person-badge me-1"></i>Responsável Imediato
-                    </label>
-                    <input type="text" class="form-control" id="responsavelImediato" name="responsavelImediato"
-                           value="{{ client.responsavelImediato if client else '' }}">
-                </div>
-                
-                <div class="col-md-6 mb-3">
-                    <label for="emailGestor" class="form-label">
-                        <i class="bi bi-envelope me-1"></i>Email do Gestor
-                    </label>
-                    <input type="email" class="form-control" id="emailGestor" name="emailGestor"
-                           value="{{ client.emailGestor if client else '' }}">
-                </div>
-                
-                <div class="col-md-4 mb-3">
-                    <label for="telefoneFixo" class="form-label">
-                        <i class="bi bi-telephone me-1"></i>Telefone Fixo
-                    </label>
-                    <input type="tel" class="form-control" id="telefoneFixo" name="telefoneFixo"
-                           value="{{ client.telefoneFixo if client else '' }}"
-                           placeholder="(85) 3000-0000">
-                </div>
-                
-                <div class="col-md-4 mb-3">
-                    <label for="telefoneCelular" class="form-label">
-                        <i class="bi bi-phone me-1"></i>Telefone Celular
-                    </label>
-                    <input type="tel" class="form-control" id="telefoneCelular" name="telefoneCelular"
-                           value="{{ client.telefoneCelular if client else '' }}"
-                           placeholder="(85) 99999-9999">
-                </div>
-                
-                <div class="col-md-4 mb-3">
-                    <label for="emailsSocio" class="form-label">
-                        <i class="bi bi-envelope-at me-1"></i>Emails do Sócio
-                    </label>
-                    <input type="email" class="form-control" id="emailsSocios" name="emailsSocios"
-                           value="{{ client.emailsSocios if client else '' }}">
-                </div>
-            </div>
-        </div>
-    </div>
-
-    <!-- Sócios -->
-    <div class="card mb-4">
-        <div class="card-header">
-            <h5 class="mb-0">
-                <i class="bi bi-people me-2 text-primary"></i>
-                Informações dos Sócios
-            </h5>
-        </div>
-        <div class="card-body">
-            <div class="row">
-                <div class="col-md-3 mb-3">
-                    <label for="socio1" class="form-label">
-                        <i class="bi bi-person me-1"></i>Sócio 1
-                    </label>
-                    <input type="text" class="form-control" id="socio1" name="socio1"
-                           value="{{ client.socio1 if client else '' }}">
-                </div>
-                
-                <div class="col-md-3 mb-3">
-                    <label for="socio2" class="form-label">
-                        <i class="bi bi-person me-1"></i>Sócio 2
-                    </label>
-                    <input type="text" class="form-control" id="socio2" name="socio2"
-                           value="{{ client.socio2 if client else '' }}">
-                </div>
-                
-                <div class="col-md-3 mb-3">
-                    <label for="socio3" class="form-label">
-                        <i class="bi bi-person me-1"></i>Sócio 3
-                    </label>
-                    <input type="text" class="form-control" id="socio3" name="socio3"
-                           value="{{ client.socio3 if client else '' }}">
-                </div>
-                
-                <div class="col-md-3 mb-3">
-                    <label for="socio4" class="form-label">
-                        <i class="bi bi-person me-1"></i>Sócio 4
-                    </label>
-                    <input type="text" class="form-control" id="socio4" name="socio4"
-                           value="{{ client.socio4 if client else '' }}">
-                </div>
-            </div>
-        </div>
-    </div>
-
-    <!-- Configurações e Status -->
-    <div class="card mb-4">
-        <div class="card-header">
-            <h5 class="mb-0">
-                <i class="bi bi-toggles me-2 text-success"></i>
-                Configurações e Status
-            </h5>
-        </div>
-        <div class="card-body">
-            <div class="row">
-                <div class="col-md-3 mb-3">
-                    <div class="form-check form-switch">
-                        <input class="form-check-input" type="checkbox" id="ativo" name="ativo"
-                               {% if not client or client.ativo %}checked{% endif %}>
-                        <label class="form-check-label" for="ativo">
-                            <i class="bi bi-check-circle me-1 text-success"></i>
-                            <strong>Cliente Ativo</strong>
-                        </label>
-                    </div>
-                </div>
-                
-                <div class="col-md-3 mb-3">
-                    <div class="form-check form-switch">
-                        <input class="form-check-input" type="checkbox" id="integracaoDominio" name="integracaoDominio"
-                               {% if client and client.integracaoDominio %}checked{% endif %}>
-                        <label class="form-check-label" for="integracaoDominio">
-                            <i class="bi bi-link me-1 text-info"></i>
-                            <strong>Integrado Domínio</strong>
-                        </label>
-                    </div>
-                </div>
-                
-                <div class="col-md-3 mb-3">
-                    <div class="form-check form-switch">
-                        <input class="form-check-input" type="checkbox" id="portalClienteAtivo" name="portalClienteAtivo"
-                               {% if client and client.portalClienteAtivo %}checked{% endif %}>
-                        <label class="form-check-label" for="portalClienteAtivo">
-                            <i class="bi bi-globe me-1 text-warning"></i>
-                            <strong>Portal Cliente</strong>
-                        </label>
-                    </div>
-                </div>
-                
-                <div class="col-md-3 mb-3">
-                    <div class="form-check form-switch">
-                        <input class="form-check-input" type="checkbox" id="sistemaOnvio" name="sistemaOnvio"
-                               {% if client and client.sistemaOnvio %}checked{% endif %}>
-                        <label class="form-check-label" for="sistemaOnvio">
-                            <i class="bi bi-cloud-check me-1 text-primary"></i>
-                            <strong>ONVIO</strong>
-                        </label>
-                        <small class="form-text text-muted d-block">Cliente cadastrado no sistema ONVIO</small>
-                    </div>
-                </div>
-                
-                <div class="col-md-3 mb-3">
-                    <label for="tarefasVinculadas" class="form-label">
-                        <i class="bi bi-list-task me-1"></i>Tarefas Vinculadas
-                    </label>
-                    <input type="number" class="form-control" id="tarefasVinculadas" name="tarefasVinculadas"
-                           value="{{ client.tarefasVinculadas if client else '0' }}" min="0">
-                </div>
-            </div>
-        </div>
-    </div>
-
     <!-- Bloco 4: Contatos -->
     <div class="card mb-4">
         <div class="card-header bg-info text-white">
@@ -1053,41 +651,6 @@
                     <input type="text" class="form-control" id="cpfCnpjAcesso" name="cpfCnpjAcesso" 
                            value="{{ client.cpfCnpjAcesso if client else '' }}" 
                            placeholder="CPF ou CNPJ usado nos acessos">
-                </div>
-            </div>
-            
-            <div class="row">
-                <!-- Portal do Cliente -->
-                <div class="col-md-4 mb-3">
-                    <div class="form-check">
-                        <input class="form-check-input" type="checkbox" id="portalClienteAtivo" name="portalClienteAtivo" 
-                               {{ 'checked' if client and client.portalClienteAtivo else '' }}>
-                        <label class="form-check-label" for="portalClienteAtivo">
-                            Portal do Cliente Ativo
-                        </label>
-                    </div>
-                </div>
-                
-                <!-- Integração Domínio -->
-                <div class="col-md-4 mb-3">
-                    <div class="form-check">
-                        <input class="form-check-input" type="checkbox" id="integracaoDominio" name="integracaoDominio" 
-                               {{ 'checked' if client and client.integracaoDominio else '' }}>
-                        <label class="form-check-label" for="integracaoDominio">
-                            Integração com Domínio
-                        </label>
-                    </div>
-                </div>
-                
-                <!-- Sistema Onvio -->
-                <div class="col-md-4 mb-3">
-                    <div class="form-check">
-                        <input class="form-check-input" type="checkbox" id="sistemaOnvio" name="sistemaOnvio" 
-                               {{ 'checked' if client and client.sistemaOnvio else '' }}>
-                        <label class="form-check-label" for="sistemaOnvio">
-                            Sistema Onvio
-                        </label>
-                    </div>
                 </div>
             </div>
         </div>
@@ -1541,251 +1104,6 @@
 {% endif %}
 
 <script>
-// ===== FUNCIONALIDADE DINÂMICA DOS SÓCIOS =====
-
-let socioCounter = 1;
-
-// Função para adicionar novo sócio
-document.getElementById('add-socio').addEventListener('click', function() {
-    socioCounter++;
-    const container = document.getElementById('socios-container');
-    
-    const newSocioHTML = `
-        <div class="socio-item" data-socio-index="${socioCounter}">
-            <div class="d-flex justify-content-between align-items-center mb-3">
-                <h6 class="text-muted mb-0">
-                    <i class="fas fa-user me-2"></i>
-                    Sócio ${socioCounter}
-                </h6>
-                <button type="button" class="btn btn-sm btn-outline-danger remove-socio" data-socio-index="${socioCounter}">
-                    <i class="fas fa-trash me-1"></i>Remover
-                </button>
-            </div>
-            
-            <div class="row">
-                <div class="col-md-4 mb-3">
-                    <label for="socio${socioCounter}_nome" class="form-label">
-                        <i class="bi bi-person me-1"></i>
-                        Nome
-                    </label>
-                    <input type="text" class="form-control" id="socio${socioCounter}_nome" name="socio${socioCounter}_nome" 
-                           placeholder="Nome completo do sócio">
-                </div>
-
-                <div class="col-md-4 mb-3">
-                    <label for="socio${socioCounter}_cpf" class="form-label">
-                        <i class="bi bi-card-text me-1"></i>
-                        CPF
-                    </label>
-                    <input type="text" class="form-control cpf-mask" id="socio${socioCounter}_cpf" name="socio${socioCounter}_cpf" 
-                           placeholder="000.000.000-00">
-                </div>
-
-                <div class="col-md-4 mb-3">
-                    <label for="socio${socioCounter}_nascimento" class="form-label">
-                        <i class="bi bi-calendar me-1"></i>
-                        Data de Nascimento
-                    </label>
-                    <input type="date" class="form-control" id="socio${socioCounter}_nascimento" name="socio${socioCounter}_nascimento">
-                </div>
-
-                <div class="col-md-3 mb-3">
-                    <label for="socio${socioCounter}_admin" class="form-label">
-                        <i class="bi bi-shield-check me-1"></i>
-                        Sócio Administrador
-                    </label>
-                    <select class="form-select" id="socio${socioCounter}_admin" name="socio${socioCounter}_admin">
-                        <option value="">Selecionar</option>
-                        <option value="Sim">Sim</option>
-                        <option value="Não">Não</option>
-                    </select>
-                </div>
-
-                <div class="col-md-3 mb-3">
-                    <label for="socio${socioCounter}_cotas" class="form-label">
-                        <i class="bi bi-percent me-1"></i>
-                        % de Cotas
-                    </label>
-                    <input type="number" class="form-control" id="socio${socioCounter}_cotas" name="socio${socioCounter}_cotas" 
-                           min="0" max="100" step="0.01" placeholder="0.00">
-                </div>
-
-                <div class="col-md-6 mb-3">
-                    <label for="socio${socioCounter}_resp_legal" class="form-label">
-                        <i class="bi bi-award me-1"></i>
-                        Responsável Legal na Receita
-                    </label>
-                    <select class="form-select resp-legal-select" id="socio${socioCounter}_resp_legal" name="socio${socioCounter}_resp_legal">
-                        <option value="">Selecionar</option>
-                        <option value="Sim">Sim</option>
-                        <option value="Não">Não</option>
-                    </select>
-                    <div class="form-text">
-                        <small class="text-warning">
-                            <i class="fas fa-exclamation-triangle me-1"></i>
-                            Apenas um sócio pode ser marcado como Responsável Legal
-                        </small>
-                    </div>
-                </div>
-            </div>
-            <hr class="my-4">
-        </div>
-    `;
-    
-    container.insertAdjacentHTML('beforeend', newSocioHTML);
-    
-    // Aplicar máscara CPF no novo campo
-    applyCpfMask();
-    
-    // Mostrar botão remover do primeiro sócio se tiver mais de um
-    updateRemoveButtons();
-    
-    // Reaplica o controle de responsável legal
-    setupRespLegalControl();
-});
-
-// Função para remover sócio
-document.addEventListener('click', function(e) {
-    if (e.target.classList.contains('remove-socio') || e.target.closest('.remove-socio')) {
-        const button = e.target.classList.contains('remove-socio') ? e.target : e.target.closest('.remove-socio');
-        const socioItem = button.closest('.socio-item');
-        
-        if (socioItem) {
-            socioItem.remove();
-            updateRemoveButtons();
-            renumberSocios();
-        }
-    }
-});
-
-// Função para atualizar visibilidade dos botões remover
-function updateRemoveButtons() {
-    const socioItems = document.querySelectorAll('.socio-item');
-    const removeButtons = document.querySelectorAll('.remove-socio');
-    
-    if (socioItems.length > 1) {
-        removeButtons.forEach(btn => {
-            btn.style.display = 'inline-block';
-        });
-    } else {
-        removeButtons.forEach(btn => {
-            btn.style.display = 'none';
-        });
-    }
-}
-
-// Função para renumerar sócios após remoção
-function renumberSocios() {
-    const socioItems = document.querySelectorAll('.socio-item');
-    socioItems.forEach((item, index) => {
-        const newIndex = index + 1;
-        
-        // Atualizar data-socio-index
-        item.setAttribute('data-socio-index', newIndex);
-        
-        // Atualizar título
-        const title = item.querySelector('h6');
-        title.innerHTML = `<i class="fas fa-user me-2"></i>Sócio ${newIndex}`;
-        
-        // Atualizar IDs e names dos inputs
-        const inputs = item.querySelectorAll('input, select');
-        inputs.forEach(input => {
-            const currentName = input.name;
-            const currentId = input.id;
-            
-            if (currentName && currentName.startsWith('socio')) {
-                const fieldType = currentName.split('_')[1];
-                input.name = `socio${newIndex}_${fieldType}`;
-                input.id = `socio${newIndex}_${fieldType}`;
-            }
-        });
-        
-        // Atualizar labels
-        const labels = item.querySelectorAll('label');
-        labels.forEach(label => {
-            const currentFor = label.getAttribute('for');
-            if (currentFor && currentFor.startsWith('socio')) {
-                const fieldType = currentFor.split('_')[1];
-                label.setAttribute('for', `socio${newIndex}_${fieldType}`);
-            }
-        });
-        
-        // Atualizar botão remover
-        const removeBtn = item.querySelector('.remove-socio');
-        if (removeBtn) {
-            removeBtn.setAttribute('data-socio-index', newIndex);
-        }
-    });
-    
-    socioCounter = socioItems.length;
-}
-
-// Função para aplicar máscara de CPF
-function applyCpfMask() {
-    document.querySelectorAll('.cpf-mask').forEach(input => {
-        input.addEventListener('input', function(e) {
-            let value = e.target.value.replace(/\D/g, '');
-            if (value.length <= 11) {
-                value = value.replace(/^(\d{3})(\d)/, '$1.$2');
-                value = value.replace(/^(\d{3})\.(\d{3})(\d)/, '$1.$2.$3');
-                value = value.replace(/\.(\d{3})(\d)/, '.$1-$2');
-            }
-            e.target.value = value;
-        });
-    });
-}
-
-// Função para controlar responsável legal (apenas um pode ser selecionado)
-function setupRespLegalControl() {
-    document.querySelectorAll('.resp-legal-select').forEach(select => {
-        select.addEventListener('change', function() {
-            if (this.value === 'Sim') {
-                // Desmarcar todos os outros
-                document.querySelectorAll('.resp-legal-select').forEach(otherSelect => {
-                    if (otherSelect !== this) {
-                        otherSelect.value = 'Não';
-                    }
-                });
-            }
-        });
-    });
-}
-
-// Inicializar funcionalidades
-document.addEventListener('DOMContentLoaded', function() {
-    applyCpfMask();
-    applyPhoneMasks();
-    setupRespLegalControl();
-    updateRemoveButtons();
-});
-
-// Função para aplicar máscaras de telefone
-function applyPhoneMasks() {
-    // Telefones fixos
-    document.querySelectorAll('#telefoneFixo, #telefoneContador').forEach(input => {
-        input.addEventListener('input', function() {
-            let value = this.value.replace(/\D/g, '');
-            if (value.length <= 10) {
-                value = value.replace(/(\d{2})(\d{4})(\d{4})/, '($1) $2-$3');
-            }
-            this.value = value;
-        });
-    });
-    
-    // Telefones celulares
-    document.querySelectorAll('#telefoneCelular, #whatsapp').forEach(input => {
-        input.addEventListener('input', function() {
-            let value = this.value.replace(/\D/g, '');
-            if (value.length <= 11) {
-                value = value.replace(/(\d{2})(\d{5})(\d{4})/, '($1) $2-$3');
-            }
-            this.value = value;
-        });
-    });
-}
-
-// ===== FIM DA FUNCIONALIDADE DOS SÓCIOS =====
-
 // Validação do formulário
 (function() {
     'use strict';
@@ -1802,6 +1120,65 @@ function applyPhoneMasks() {
         });
     }, false);
 })();
+
+// Formatação de CNPJ
+document.getElementById('cpfCnpj').addEventListener('input', function(e) {
+    let value = e.target.value.replace(/\D/g, '');
+    if (value.length <= 14) {
+        value = value.replace(/^(\d{2})(\d)/, '$1.$2');
+        value = value.replace(/^(\d{2})\.(\d{3})(\d)/, '$1.$2.$3');
+        value = value.replace(/\.(\d{3})(\d)/, '.$1/$2');
+        value = value.replace(/(\d{4})(\d)/, '$1-$2');
+    }
+    e.target.value = value;
+});
+
+// Formatação de telefones
+function formatPhone(input) {
+    let value = input.value.replace(/\D/g, '');
+    if (value.length <= 11) {
+        if (value.length <= 10) {
+            value = value.replace(/^(\d{2})(\d)/, '($1) $2');
+            value = value.replace(/(\d{4})(\d)/, '$1-$2');
+        } else {
+            value = value.replace(/^(\d{2})(\d)/, '($1) $2');
+            value = value.replace(/(\d{5})(\d)/, '$1-$2');
+        }
+    }
+    input.value = value;
+}
+
+// Aplicar máscaras de telefone
+document.addEventListener('DOMContentLoaded', function() {
+    const telefoneFixo = document.getElementById('telefoneFixo');
+    const telefoneCelular = document.getElementById('telefoneCelular');
+    const whatsapp = document.getElementById('whatsapp');
+    const telefoneContador = document.getElementById('telefoneContador');
+    
+    if (telefoneFixo) {
+        telefoneFixo.addEventListener('input', function(e) {
+            formatPhone(e.target);
+        });
+    }
+    
+    if (telefoneCelular) {
+        telefoneCelular.addEventListener('input', function(e) {
+            formatPhone(e.target);
+        });
+    }
+    
+    if (whatsapp) {
+        whatsapp.addEventListener('input', function(e) {
+            formatPhone(e.target);
+        });
+    }
+    
+    if (telefoneContador) {
+        telefoneContador.addEventListener('input', function(e) {
+            formatPhone(e.target);
+        });
+    }
+});
 
 // Formatação de CNPJ
 document.getElementById('cnpj').addEventListener('input', function(e) {
