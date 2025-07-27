@@ -12,6 +12,7 @@ __pycache__/
 *.pyo
 *.pyd
 .Python
+service-account-key.json
 
 # Ambiente virtual
 .venv/
