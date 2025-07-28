@@ -849,13 +849,25 @@ def test():
 @login_required
 def view_client(client_id):
     try:
+        print(f"🔍 [VIEW] ===== CARREGANDO CLIENTE PARA VISUALIZAÇÃO =====")
+        print(f"🔍 [VIEW] ID solicitado: '{client_id}'")
+        print(f"🔍 [VIEW] Tipo do ID: {type(client_id)}")
+        
         client = storage_service.get_client(client_id)
+        print(f"🔍 [VIEW] Cliente carregado: {client is not None}")
+        
         if client:
+            print(f"🔍 [VIEW] Nome do cliente: {client.get('nomeEmpresa')}")
+            print(f"🔍 [VIEW] ID do cliente retornado: '{client.get('id')}'")
             return render_template('client_view_modern.html', client=client)
         else:
+            print(f"❌ [VIEW] Cliente {client_id} não encontrado!")
             flash('Cliente não encontrado', 'error')
             return redirect(url_for('index'))
     except Exception as e:
+        print(f"❌ [VIEW] Erro ao carregar cliente: {str(e)}")
+        import traceback
+        print(f"❌ [VIEW] Traceback: {traceback.format_exc()}")
         flash(f'Erro ao carregar cliente: {str(e)}', 'error')
         return redirect(url_for('index'))
 
@@ -1262,6 +1274,136 @@ def all_meetings():
     except Exception as e:
         flash(f'Erro ao carregar atas: {str(e)}', 'error')
         return redirect(url_for('index'))
+
+@app.route('/debug-render')
+def debug_render():
+    """Rota de debug para verificar configurações no Render"""
+    try:
+        import json
+        import sys
+        
+        debug_info = {
+            'timestamp': datetime.now().isoformat(),
+            'python_version': sys.version,
+            'environment': {}
+        }
+        
+        # Verificar variáveis de ambiente
+        env_vars = ['GOOGLE_SERVICE_ACCOUNT_JSON', 'GOOGLE_SHEETS_ID', 'FLASK_ENV']
+        for var in env_vars:
+            value = os.environ.get(var)
+            if var == 'GOOGLE_SERVICE_ACCOUNT_JSON' and value:
+                # Não expor credenciais completas
+                debug_info['environment'][var] = f"Presente ({len(value)} chars)"
+                try:
+                    creds_info = json.loads(value)
+                    debug_info['environment'][f'{var}_parsed'] = {
+                        'project_id': creds_info.get('project_id', 'N/A'),
+                        'client_email': creds_info.get('client_email', 'N/A'),
+                        'keys_available': list(creds_info.keys())
+                    }
+                except:
+                    debug_info['environment'][f'{var}_parsed'] = "Erro ao parsear JSON"
+            else:
+                debug_info['environment'][var] = value or "Não encontrada"
+        
+        # Testar importações
+        debug_info['imports'] = {}
+        try:
+            from google.oauth2.service_account import Credentials
+            debug_info['imports']['google_oauth2'] = "OK"
+        except ImportError as e:
+            debug_info['imports']['google_oauth2'] = f"ERRO: {e}"
+        
+        try:
+            from googleapiclient.discovery import build
+            debug_info['imports']['googleapiclient'] = "OK"
+        except ImportError as e:
+            debug_info['imports']['googleapiclient'] = f"ERRO: {e}"
+        
+        # Testar serviço
+        debug_info['service_test'] = {}
+        try:
+            if USE_GOOGLE_SHEETS and storage_service:
+                debug_info['service_test']['storage_type'] = "Google Sheets"
+                debug_info['service_test']['service_initialized'] = bool(storage_service.service)
+                debug_info['service_test']['spreadsheet_id'] = storage_service.spreadsheet_id
+                
+                # Testar busca de clientes
+                clients = storage_service.get_clients()
+                debug_info['service_test']['clients_count'] = len(clients)
+                
+                if clients:
+                    first_client = clients[0]
+                    debug_info['service_test']['first_client'] = {
+                        'name': first_client.get('nomeEmpresa', 'N/A'),
+                        'id': first_client.get('id', 'N/A'),
+                        'keys_count': len(first_client.keys())
+                    }
+            else:
+                debug_info['service_test']['storage_type'] = "Local"
+                
+        except Exception as e:
+            debug_info['service_test']['error'] = str(e)
+        
+        return jsonify(debug_info)
+        
+    except Exception as e:
+        return jsonify({
+            'error': str(e),
+            'timestamp': datetime.now().isoformat()
+        })
+
+@app.route('/debug-client/<client_id>')
+def debug_client_search(client_id):
+    """Rota específica para debug de busca de cliente"""
+    try:
+        debug_info = {
+            'timestamp': datetime.now().isoformat(),
+            'client_id_received': client_id,
+            'client_id_type': str(type(client_id)),
+            'client_id_length': len(str(client_id)),
+            'storage_type': 'Google Sheets' if USE_GOOGLE_SHEETS else 'Local'
+        }
+        
+        # Teste 1: Buscar cliente específico
+        print(f"🔍 [DEBUG_CLIENT] Buscando cliente: {client_id}")
+        client = storage_service.get_client(client_id)
+        debug_info['client_found'] = client is not None
+        
+        if client:
+            debug_info['client_data'] = {
+                'nome': client.get('nomeEmpresa', 'N/A'),
+                'id': client.get('id', 'N/A'),
+                'id_type': str(type(client.get('id'))),
+                'fields_count': len(client.keys()),
+                'has_cnpj': bool(client.get('cnpj')),
+                'has_razao_social': bool(client.get('razaoSocialReceita'))
+            }
+        else:
+            debug_info['client_data'] = None
+            
+            # Teste 2: Listar todos os clientes para comparar IDs
+            all_clients = storage_service.get_clients()
+            debug_info['total_clients'] = len(all_clients)
+            debug_info['sample_client_ids'] = []
+            
+            for i, c in enumerate(all_clients[:10]):  # Primeiros 10
+                debug_info['sample_client_ids'].append({
+                    'index': i,
+                    'name': c.get('nomeEmpresa', 'N/A'),
+                    'id': c.get('id', 'N/A'),
+                    'id_matches': str(c.get('id', '')).strip() == str(client_id).strip()
+                })
+        
+        return jsonify(debug_info)
+        
+    except Exception as e:
+        return jsonify({
+            'error': str(e),
+            'timestamp': datetime.now().isoformat(),
+            'client_id': client_id
+        })
 
 if __name__ == '__main__':
     print("🚀 Iniciando aplicação Flask...")
