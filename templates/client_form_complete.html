@@ -1,0 +1,1114 @@
+{% extends "base.html" %}
+{% block title %}{% if client %}Editar Cliente{% else %}Novo Cliente{% endif %}{% endblock %}
+
+{% block head %}
+<style>
+.socio-card {
+    background-color: #f8f9fa;
+    border: 1px solid #e9ecef;
+    transition: all 0.3s ease;
+}
+
+.socio-card:hover {
+    background-color: #e9ecef;
+    border-color: #dee2e6;
+}
+
+.socio-card .form-control-sm {
+    font-size: 0.875rem;
+}
+
+.socio-card .form-label.small {
+    font-size: 0.75rem;
+    font-weight: 600;
+    color: #6c757d;
+    margin-bottom: 2px;
+}
+
+#sociosContainer {
+    max-height: 400px;
+    overflow-y: auto;
+    border: 1px solid #dee2e6;
+    border-radius: 0.375rem;
+    padding: 0.5rem;
+    background-color: #ffffff;
+}
+
+.btn-outline-primary.btn-sm {
+    font-size: 0.75rem;
+    padding: 0.25rem 0.5rem;
+}
+
+.btn-outline-danger.btn-sm {
+    font-size: 0.75rem;
+    padding: 0.25rem 0.5rem;
+}
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="container-fluid py-4">
+    <div class="row justify-content-center">
+        <div class="col-12">
+            <!-- Formulário Principal -->
+            <form method="POST" action="{{ url_for('save_client') }}" class="needs-validation" novalidate>
+                <!-- Campo hidden para ID do cliente -->
+                {% if client %}
+                <input type="hidden" name="id" value="{{ client.id }}">
+                {% endif %}
+                <!-- Bloco 1: Informações da Pessoa Física / Jurídica -->
+                <div class="card mb-4">
+                    <div class="card-header bg-primary text-white">
+                        <h5 class="mb-0">
+                            <i class="bi bi-building me-2"></i>
+                            Bloco 1 - Informações da Pessoa Física / Jurídica
+                        </h5>
+                    </div>
+                    <div class="card-body">
+                        <div class="row">
+                            <div class="col-md-6 mb-3">
+                                <label for="nomeEmpresa" class="form-label">
+                                    <i class="bi bi-building me-1"></i>NOME DA EMPRESA 
+                                    <span class="text-danger">*</span>
+                                </label>
+                                <input type="text" class="form-control" id="nomeEmpresa" name="nomeEmpresa" 
+                                       value="{{ client.nomeEmpresa if client else '' }}" required>
+                                <div class="invalid-feedback">
+                                    Por favor, informe o nome da empresa.
+                                </div>
+                            </div>
+                            <div class="col-md-6 mb-3">
+                                <label for="razaoSocialReceita" class="form-label">
+                                    <i class="bi bi-file-text me-1"></i>RAZÃO SOCIAL (RECEITA)
+                                    <span class="text-danger">*</span>
+                                </label>
+                                <input type="text" class="form-control" id="razaoSocialReceita" name="razaoSocialReceita"
+                                       value="{{ client.razaoSocialReceita if client else '' }}" required>
+                                <div class="invalid-feedback">
+                                    Por favor, informe a razão social.
+                                </div>
+                            </div>
+                        </div>
+                        <div class="row">
+                            <div class="col-md-6 mb-3">
+                                <label for="nomeFantasiaReceita" class="form-label">
+                                    <i class="bi bi-shop me-1"></i>NOME FANTASIA (RECEITA)
+                                    <span class="text-danger">*</span>
+                                </label>
+                                <input type="text" class="form-control" id="nomeFantasiaReceita" name="nomeFantasiaReceita"
+                                       value="{{ client.nomeFantasiaReceita if client else '' }}" required>
+                                <div class="invalid-feedback">
+                                    Por favor, informe o nome fantasia.
+                                </div>
+                            </div>
+                            <div class="col-md-6 mb-3">
+                                <label for="cpfCnpj" class="form-label">
+                                    <i class="bi bi-card-text me-1"></i>CPF/CNPJ
+                                    <span class="text-danger">*</span>
+                                </label>
+                                <input type="text" class="form-control" id="cpfCnpj" name="cpfCnpj"
+                                       value="{{ client.cpfCnpj if client else '' }}" 
+                                       placeholder="00.000.000/0001-00" required>
+                                <div class="invalid-feedback">
+                                    Por favor, informe o CPF ou CNPJ.
+                                </div>
+                            </div>
+                        </div>
+                        <div class="row">
+                            <div class="col-md-6 mb-3">
+                                <label for="perfil" class="form-label">
+                                    <i class="bi bi-star me-1"></i>PERFIL do cliente
+                                    <span class="text-danger">*</span>
+                                </label>
+                                <select class="form-select" id="perfil" name="perfil" required>
+                                    <option value="">Selecione um perfil</option>
+                                    <option value="A" {% if client and client.perfil == 'A' %}selected{% endif %}>Escolha A</option>
+                                    <option value="B" {% if client and client.perfil == 'B' %}selected{% endif %}>Escolha B</option>
+                                    <option value="C" {% if client and client.perfil == 'C' %}selected{% endif %}>Escolha C</option>
+                                    <option value="D" {% if client and client.perfil == 'D' %}selected{% endif %}>Escolha D</option>
+                                </select>
+                                <div class="invalid-feedback">
+                                    Por favor, selecione um perfil.
+                                </div>
+                            </div>
+                            <div class="col-md-6 mb-3">
+                                <label for="inscEst" class="form-label">
+                                    <i class="bi bi-card-list me-1"></i>INSCRIÇÃO ESTADUAL
+                                    <span class="text-danger">*</span>
+                                </label>
+                                <input type="text" class="form-control" id="inscEst" name="inscEst"
+                                       value="{{ client.inscEst if client else '' }}" required>
+                                <div class="invalid-feedback">
+                                    Por favor, informe a inscrição estadual.
+                                </div>
+                            </div>
+                        </div>
+                        <div class="row">
+                            <div class="col-md-6 mb-3">
+                                <label for="inscMun" class="form-label">
+                                    <i class="bi bi-geo-alt me-1"></i>INSCRIÇÃO MUNICIPAL
+                                    <span class="text-danger">*</span>
+                                </label>
+                                <input type="text" class="form-control" id="inscMun" name="inscMun"
+                                       value="{{ client.inscMun if client else '' }}" required>
+                                <div class="invalid-feedback">
+                                    Por favor, informe a inscrição municipal.
+                                </div>
+                            </div>
+                            <div class="col-md-6 mb-3">
+                                <label for="estado" class="form-label">
+                                    <i class="bi bi-map me-1"></i>ESTADO
+                                    <span class="text-danger">*</span>
+                                </label>
+                                <select class="form-select" id="estado" name="estado" required>
+                                    <option value="">Selecione o estado</option>
+                                    <option value="AC" {% if client and client.estado == 'AC' %}selected{% endif %}>Acre</option>
+                                    <option value="AL" {% if client and client.estado == 'AL' %}selected{% endif %}>Alagoas</option>
+                                    <option value="AP" {% if client and client.estado == 'AP' %}selected{% endif %}>Amapá</option>
+                                    <option value="AM" {% if client and client.estado == 'AM' %}selected{% endif %}>Amazonas</option>
+                                    <option value="BA" {% if client and client.estado == 'BA' %}selected{% endif %}>Bahia</option>
+                                    <option value="CE" {% if client and client.estado == 'CE' %}selected{% endif %}>Ceará</option>
+                                    <option value="DF" {% if client and client.estado == 'DF' %}selected{% endif %}>Distrito Federal</option>
+                                    <option value="ES" {% if client and client.estado == 'ES' %}selected{% endif %}>Espírito Santo</option>
+                                    <option value="GO" {% if client and client.estado == 'GO' %}selected{% endif %}>Goiás</option>
+                                    <option value="MA" {% if client and client.estado == 'MA' %}selected{% endif %}>Maranhão</option>
+                                    <option value="MT" {% if client and client.estado == 'MT' %}selected{% endif %}>Mato Grosso</option>
+                                    <option value="MS" {% if client and client.estado == 'MS' %}selected{% endif %}>Mato Grosso do Sul</option>
+                                    <option value="MG" {% if client and client.estado == 'MG' %}selected{% endif %}>Minas Gerais</option>
+                                    <option value="PA" {% if client and client.estado == 'PA' %}selected{% endif %}>Pará</option>
+                                    <option value="PB" {% if client and client.estado == 'PB' %}selected{% endif %}>Paraíba</option>
+                                    <option value="PR" {% if client and client.estado == 'PR' %}selected{% endif %}>Paraná</option>
+                                    <option value="PE" {% if client and client.estado == 'PE' %}selected{% endif %}>Pernambuco</option>
+                                    <option value="PI" {% if client and client.estado == 'PI' %}selected{% endif %}>Piauí</option>
+                                    <option value="RJ" {% if client and client.estado == 'RJ' %}selected{% endif %}>Rio de Janeiro</option>
+                                    <option value="RN" {% if client and client.estado == 'RN' %}selected{% endif %}>Rio Grande do Norte</option>
+                                    <option value="RS" {% if client and client.estado == 'RS' %}selected{% endif %}>Rio Grande do Sul</option>
+                                    <option value="RO" {% if client and client.estado == 'RO' %}selected{% endif %}>Rondônia</option>
+                                    <option value="RR" {% if client and client.estado == 'RR' %}selected{% endif %}>Roraima</option>
+                                    <option value="SC" {% if client and client.estado == 'SC' %}selected{% endif %}>Santa Catarina</option>
+                                    <option value="SP" {% if client and client.estado == 'SP' %}selected{% endif %}>São Paulo</option>
+                                    <option value="SE" {% if client and client.estado == 'SE' %}selected{% endif %}>Sergipe</option>
+                                    <option value="TO" {% if client and client.estado == 'TO' %}selected{% endif %}>Tocantins</option>
+                                </select>
+                                <div class="invalid-feedback">
+                                    Por favor, selecione o estado.
+                                </div>
+                            </div>
+                        </div>
+                        <div class="row">
+                            <div class="col-md-6 mb-3">
+                                <label for="cidade" class="form-label">
+                                    <i class="bi bi-geo me-1"></i>CIDADE
+                                    <span class="text-danger">*</span>
+                                </label>
+                                <input type="text" class="form-control" id="cidade" name="cidade"
+                                       value="{{ client.cidade if client else '' }}" required>
+                                <div class="invalid-feedback">
+                                    Por favor, informe a cidade.
+                                </div>
+                            </div>
+                            <div class="col-md-6 mb-3">
+                                <label for="regimeFederal" class="form-label">
+                                    <i class="bi bi-percent me-1"></i>REGIME FEDERAL
+                                    <span class="text-danger">*</span>
+                                </label>
+                                <select class="form-select" id="regimeFederal" name="regimeFederal" required>
+                                    <option value="">Selecione o regime federal</option>
+                                    <option value="SIMPLES" {% if client and client.regimeFederal == 'SIMPLES' %}selected{% endif %}>Simples Nacional</option>
+                                    <option value="LUCRO_PRESUMIDO" {% if client and client.regimeFederal == 'LUCRO_PRESUMIDO' %}selected{% endif %}>Lucro Presumido</option>
+                                    <option value="LUCRO_REAL" {% if client and client.regimeFederal == 'LUCRO_REAL' %}selected{% endif %}>Lucro Real</option>
+                                    <option value="MEI" {% if client and client.regimeFederal == 'MEI' %}selected{% endif %}>MEI</option>
+                                </select>
+                                <div class="invalid-feedback">
+                                    Por favor, selecione o regime federal.
+                                </div>
+                            </div>
+                        </div>
+                        <div class="row">
+                            <div class="col-md-6 mb-3">
+                                <label for="regimeEstadual" class="form-label">
+                                    <i class="bi bi-bank me-1"></i>REGIME ESTADUAL
+                                    <span class="text-danger">*</span>
+                                </label>
+                                <select class="form-select" id="regimeEstadual" name="regimeEstadual" required>
+                                    <option value="">Selecione o regime estadual</option>
+                                    <option value="SIMPLES" {% if client and client.regimeEstadual == 'SIMPLES' %}selected{% endif %}>Simples Nacional</option>
+                                    <option value="NORMAL" {% if client and client.regimeEstadual == 'NORMAL' %}selected{% endif %}>Regime Normal</option>
+                                    <option value="ISENTO" {% if client and client.regimeEstadual == 'ISENTO' %}selected{% endif %}>Isento</option>
+                                </select>
+                                <div class="invalid-feedback">
+                                    Por favor, selecione o regime estadual.
+                                </div>
+                            </div>
+                            <div class="col-md-6 mb-3">
+                                <label for="segmento" class="form-label">
+                                    <i class="bi bi-tags me-1"></i>SEGMENTO
+                                    <span class="text-danger">*</span>
+                                </label>
+                                <input type="text" class="form-control" id="segmento" name="segmento"
+                                       value="{{ client.segmento if client else '' }}" required>
+                                <div class="invalid-feedback">
+                                    Por favor, informe o segmento.
+                                </div>
+                            </div>
+                        </div>
+                        <div class="row">
+                            <div class="col-md-6 mb-3">
+                                <label for="atividade" class="form-label">
+                                    <i class="bi bi-briefcase me-1"></i>ATIVIDADE PRINCIPAL
+                                    <span class="text-danger">*</span>
+                                </label>
+                                <input type="text" class="form-control" id="atividade" name="atividade"
+                                       value="{{ client.atividade if client else '' }}" required>
+                                <div class="invalid-feedback">
+                                    Por favor, informe a atividade principal.
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Bloco 2: Serviços Prestados pela Control -->
+                <div class="card mb-4">
+                    <div class="card-header bg-success text-white">
+                        <h5 class="mb-0">
+                            <i class="bi bi-handshake me-2"></i>
+                            Bloco 2: Serviços Prestados pela Control
+                        </h5>
+                    </div>
+                    <div class="card-body">
+                        <div class="row">
+                            <!-- BPO Financeiro -->
+                            <div class="col-md-3 mb-3">
+                                <div class="form-check">
+                                    <input class="form-check-input" type="checkbox" id="bpoFinanceiro" name="bpoFinanceiro" 
+                                           {% if client and client.bpoFinanceiro %}checked{% endif %}>
+                                    <label class="form-check-label" for="bpoFinanceiro">
+                                        <i class="bi bi-graph-up me-1 text-info"></i>
+                                        <strong>BPO Financeiro</strong>
+                                    </label>
+                                </div>
+                            </div>
+                            <!-- Departamento Contábil (CT) -->
+                            <div class="col-md-3 mb-3">
+                                <div class="form-check">
+                                    <input class="form-check-input" type="checkbox" id="ct" name="ct" 
+                                           {% if client and client.ct %}checked{% endif %}>
+                                    <label class="form-check-label" for="ct">
+                                        <i class="bi bi-calculator me-1" style="color: var(--control-primary);"></i>
+                                        <strong>Departamento Contábil (CT)</strong>
+                                    </label>
+                                </div>
+                            </div>
+                            <!-- Departamento Fiscal (FS) -->
+                            <div class="col-md-3 mb-3">
+                                <div class="form-check">
+                                    <input class="form-check-input" type="checkbox" id="fs" name="fs" 
+                                           {% if client and client.fs %}checked{% endif %}>
+                                    <label class="form-check-label" for="fs">
+                                        <i class="bi bi-file-text me-1" style="color: var(--control-secondary);"></i>
+                                        <strong>Departamento Fiscal (FS)</strong>
+                                    </label>
+                                </div>
+                            </div>
+                            <!-- Departamento Pessoal (DP) -->
+                            <div class="col-md-3 mb-3">
+                                <div class="form-check">
+                                    <input class="form-check-input" type="checkbox" id="dp" name="dp" 
+                                           {% if client and client.dp %}checked{% endif %}>
+                                    <label class="form-check-label" for="dp">
+                                        <i class="bi bi-people me-1 text-success"></i>
+                                        <strong>Departamento Pessoal (DP)</strong>
+                                    </label>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="row">
+                            <!-- Data de Início dos Serviços -->
+                            <div class="col-md-6 mb-3">
+                                <label for="dataInicioServicos" class="form-label">
+                                    <i class="bi bi-calendar-event me-1"></i>
+                                    Data de início dos serviços
+                                </label>
+                                <input type="month" class="form-control" id="dataInicioServicos" name="dataInicioServicos" 
+                                       value="{{ client.dataInicioServicos or client.mesAnoInicio if client else '' }}">
+                                <div class="form-text">
+                                    Formato: Mês/Ano (Ex: 2024-01)
+                                </div>
+                            </div>
+                            <!-- Responsável pelos Serviços -->
+                            <div class="col-md-6 mb-3">
+                                <label for="responsavelServicos" class="form-label">
+                                    <i class="bi bi-person-badge me-1"></i>
+                                    Responsável pelos serviços
+                                </label>
+                                <input type="text" class="form-control" id="responsavelServicos" name="responsavelServicos" 
+                                       value="{{ client.responsavelServicos if client else '' }}"
+                                       placeholder="NOME DO RESPONSÁVEL">
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Bloco 3: Contatos -->
+                <div class="card mb-4">
+                    <div class="card-header bg-info text-white">
+                        <h5 class="mb-0">
+                            <i class="bi bi-telephone me-2"></i>
+                            Bloco 3: Contatos
+                        </h5>
+                    </div>
+                    <div class="card-body">
+                        <div class="row">
+                            <!-- E-MAIL SECUNDÁRIO -->
+                            <div class="col-md-6 mb-3">
+                                <label for="emailSecundario" class="form-label">E-MAIL SECUNDÁRIO</label>
+                                <input type="email" class="form-control" id="emailSecundario" name="emailSecundario" 
+                                       value="{{ client.emailSecundario if client else '' }}" 
+                                       placeholder="FINANCEIRO@EMPRESA.COM.BR">
+                            </div>
+                            <!-- RESPONSÁVEL IMEDIATO -->
+                            <div class="col-md-6 mb-3">
+                                <label for="responsavelImediato" class="form-label">RESPONSÁVEL IMEDIATO</label>
+                                <input type="text" class="form-control" id="responsavelImediato" name="responsavelImediato" 
+                                       value="{{ client.responsavelImediato if client else '' }}" 
+                                       placeholder="NOME DO RESPONSÁVEL PELA EMPRESA">
+                            </div>
+                        </div>
+                        <div class="row">
+                            <!-- SÓCIOS DA EMPRESA -->
+                            <div class="col-12 mb-3">
+                                <div class="d-flex justify-content-between align-items-center mb-3">
+                                    <label class="form-label fw-bold">
+                                        <i class="bi bi-people-fill me-1"></i>SÓCIOS DA EMPRESA
+                                    </label>
+                                    <button type="button" class="btn btn-outline-primary btn-sm" onclick="adicionarSocio()">
+                                        <i class="bi bi-plus-circle me-1"></i>Adicionar Sócio
+                                    </button>
+                                </div>
+                                
+                                <!-- Container para os sócios -->
+                                <div id="sociosContainer">
+                                    <!-- Sócio 1 (sempre presente) -->
+                                    <div class="card border-light mb-2 socio-card" id="socio_1">
+                                        <div class="card-body py-2">
+                                            <div class="row align-items-center">
+                                                <div class="col-md-3">
+                                                    <label class="form-label small mb-1">Nome do Sócio</label>
+                                                    <input type="text" class="form-control form-control-sm" 
+                                                           name="socio_1_nome" id="socio_1_nome"
+                                                           placeholder="Nome completo do sócio">
+                                                </div>
+                                                <div class="col-md-2">
+                                                    <label class="form-label small mb-1">CPF</label>
+                                                    <input type="text" class="form-control form-control-sm cpf-mask" 
+                                                           name="socio_1_cpf" id="socio_1_cpf"
+                                                           placeholder="000.000.000-00">
+                                                </div>
+                                                <div class="col-md-3">
+                                                    <label class="form-label small mb-1">E-mail</label>
+                                                    <input type="email" class="form-control form-control-sm" 
+                                                           name="socio_1_email" id="socio_1_email"
+                                                           placeholder="socio@email.com">
+                                                </div>
+                                                <div class="col-md-2">
+                                                    <label class="form-label small mb-1">Telefone</label>
+                                                    <input type="tel" class="form-control form-control-sm phone-mask" 
+                                                           name="socio_1_telefone" id="socio_1_telefone"
+                                                           placeholder="(85) 99999-9999">
+                                                </div>
+                                                <div class="col-md-2">
+                                                    <label class="form-label small mb-1">% Participação</label>
+                                                    <input type="number" class="form-control form-control-sm" 
+                                                           name="socio_1_participacao" id="socio_1_participacao"
+                                                           placeholder="50.00" step="0.01" min="0" max="100">
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                                
+                                <!-- E-MAILS DOS SÓCIOS (campo adicional para compatibilidade) -->
+                                <div class="mt-3">
+                                    <label for="emailsSocios" class="form-label small">E-MAILS ADICIONAIS DOS SÓCIOS</label>
+                                    <textarea class="form-control" id="emailsSocios" name="emailsSocios" rows="2" 
+                                              placeholder="Outros e-mails dos sócios separados por vírgula">{{ client.emailsSocios if client else '' }}</textarea>
+                                    <div class="form-text">Use este campo apenas para e-mails adicionais não cadastrados acima</div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Bloco 4: Contatos Contador -->
+                <div class="card mb-4">
+                    <div class="card-header bg-warning text-dark">
+                        <h5 class="mb-0">
+                            <i class="bi bi-person-badge me-2"></i>
+                            Bloco 4: Contatos Contador
+                        </h5>
+                    </div>
+                    <div class="card-body">
+                        <div class="row">
+                            <!-- CONTATO CONTADOR -->
+                            <div class="col-md-4 mb-3">
+                                <label for="contatoContador" class="form-label">CONTATO CONTADOR</label>
+                                <input type="text" class="form-control" id="contatoContador" name="contatoContador" 
+                                       value="{{ client.contatoContador if client else '' }}" 
+                                       placeholder="NOME DO CONTADOR RESPONSÁVEL">
+                            </div>
+                            <!-- TELEFONE CONTADOR -->
+                            <div class="col-md-4 mb-3">
+                                <label for="telefoneContador" class="form-label">TELEFONE CONTADOR</label>
+                                <input type="tel" class="form-control" id="telefoneContador" name="telefoneContador" 
+                                       value="{{ client.telefoneContador if client else '' }}" 
+                                       placeholder="(85) 99999-9999">
+                            </div>
+                            <!-- E-MAIL CONTADOR -->
+                            <div class="col-md-4 mb-3">
+                                <label for="emailContador" class="form-label">E-MAIL CONTADOR</label>
+                                <input type="email" class="form-control" id="emailContador" name="emailContador" 
+                                       value="{{ client.emailContador if client else '' }}" 
+                                       placeholder="CONTADOR@CONTROLCONTABILIDADE.COM.BR">
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Bloco 5: Sistemas e Acessos -->
+                <div class="card mb-4">
+                    <div class="card-header bg-primary text-white">
+                        <h5 class="mb-0">
+                            <i class="bi bi-laptop me-2"></i>Bloco 5: Sistemas e Acessos
+                        </h5>
+                    </div>
+                    <div class="card-body">
+                        <div class="row">
+                            <!-- SISTEMA PRINCIPAL UTILIZADO -->
+                            <div class="col-md-6 mb-3">
+                                <label for="sistemaPrincipal" class="form-label">SISTEMA PRINCIPAL UTILIZADO</label>
+                                <select class="form-select" id="sistemaPrincipal" name="sistemaPrincipal">
+                                    <option value="">Selecione...</option>
+                                    <option value="Dominio" {{ 'selected' if client and client.sistemaPrincipal == 'Dominio' else '' }}>Domínio</option>
+                                    <option value="Fortes" {{ 'selected' if client and client.sistemaPrincipal == 'Fortes' else '' }}>Fortes</option>
+                                    <option value="Outros" {{ 'selected' if client and client.sistemaPrincipal == 'Outros' else '' }}>Outros</option>
+                                </select>
+                            </div>
+                            <!-- VERSÃO DO SISTEMA -->
+                            <div class="col-md-6 mb-3">
+                                <label for="versaoSistema" class="form-label">VERSÃO DO SISTEMA</label>
+                                <input type="text" class="form-control" id="versaoSistema" name="versaoSistema" 
+                                       value="{{ client.versaoSistema if client else '' }}" 
+                                       placeholder="EX: 2024.1, V3.2, ETC.">
+                            </div>
+                        </div>
+                        <div class="row">
+                            <!-- CPF ou CNPJ para Acesso -->
+                            <div class="col-md-6 mb-3">
+                                <label for="cpfCnpjAcesso" class="form-label">CPF/CNPJ PARA ACESSO</label>
+                                <input type="text" class="form-control" id="cpfCnpjAcesso" name="cpfCnpjAcesso" 
+                                       value="{{ client.cpfCnpjAcesso if client else '' }}" 
+                                       placeholder="CPF OU CNPJ USADO NOS ACESSOS">
+                            </div>
+                            <!-- Código de Acesso Simples Nacional -->
+                            <div class="col-md-6 mb-3">
+                                <label for="codAcessoSimples" class="form-label">CÓDIGO ACESSO SIMPLES NACIONAL</label>
+                                <input type="text" class="form-control" id="codAcessoSimples" name="codAcessoSimples" 
+                                       value="{{ client.codAcessoSimples if client else '' }}" 
+                                       placeholder="CÓDIGO DE ACESSO SN">
+                            </div>
+                        </div>
+                        <div class="row">
+                            <!-- Portal Cliente Ativo -->
+                            <div class="col-md-4 mb-3">
+                                <div class="form-check">
+                                    <input class="form-check-input" type="checkbox" id="portalClienteAtivo" name="portalClienteAtivo" 
+                                           {% if client and client.portalClienteAtivo %}checked{% endif %}>
+                                    <label class="form-check-label" for="portalClienteAtivo">
+                                        <i class="bi bi-globe me-1 text-info"></i>
+                                        <strong>Portal Cliente Ativo</strong>
+                                    </label>
+                                </div>
+                            </div>
+                            <!-- Integração Domínio -->
+                            <div class="col-md-4 mb-3">
+                                <div class="form-check">
+                                    <input class="form-check-input" type="checkbox" id="integracaoDominio" name="integracaoDominio" 
+                                           {% if client and client.integracaoDominio %}checked{% endif %}>
+                                    <label class="form-check-label" for="integracaoDominio">
+                                        <i class="bi bi-link-45deg me-1 text-success"></i>
+                                        <strong>Integração Domínio</strong>
+                                    </label>
+                                </div>
+                            </div>
+                            <!-- Sistema Onvio -->
+                            <div class="col-md-4 mb-3">
+                                <div class="form-check">
+                                    <input class="form-check-input" type="checkbox" id="sistemaOnvio" name="sistemaOnvio" 
+                                           {% if client and client.sistemaOnvio %}checked{% endif %}>
+                                    <label class="form-check-label" for="sistemaOnvio">
+                                        <i class="bi bi-cloud-check me-1 text-primary"></i>
+                                        <strong>Sistema Onvio</strong>
+                                    </label>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Bloco 6: Senhas e Credenciais -->
+                <div class="card mb-4">
+                    <div class="card-header bg-danger text-white">
+                        <h5 class="mb-0">
+                            <i class="bi bi-key me-2"></i>Bloco 6: Senhas e Credenciais
+                        </h5>
+                    </div>
+                    <div class="card-body">
+                        <div class="alert alert-warning" role="alert">
+                            <i class="bi bi-exclamation-triangle me-2"></i>
+                            <strong>Atenção!</strong> Informações sensíveis. Mantenha a confidencialidade.
+                        </div>
+                        
+                        <div class="row">
+                            <!-- ACESSO ISS -->
+                            <div class="col-md-6 mb-3">
+                                <label for="acessoIss" class="form-label">ACESSO ISS</label>
+                                <input type="text" class="form-control" id="acessoIss" name="acessoIss" 
+                                       value="{{ client.acessoIss if client else '' }}" 
+                                       placeholder="LOGIN ISS">
+                            </div>
+                            <!-- SENHA ISS -->
+                            <div class="col-md-6 mb-3">
+                                <label for="senhaIss" class="form-label">SENHA ISS</label>
+                                <input type="password" class="form-control" id="senhaIss" name="senhaIss" 
+                                       value="{{ client.senhaIss if client else '' }}">
+                            </div>
+                        </div>
+                        <div class="row">
+                            <!-- ACESSO SEFIN -->
+                            <div class="col-md-6 mb-3">
+                                <label for="acessoSefin" class="form-label">ACESSO SEFIN</label>
+                                <input type="text" class="form-control" id="acessoSefin" name="acessoSefin" 
+                                       value="{{ client.acessoSefin if client else '' }}" 
+                                       placeholder="LOGIN SEFIN">
+                            </div>
+                            <!-- SENHA SEFIN -->
+                            <div class="col-md-6 mb-3">
+                                <label for="senhaSefin" class="form-label">SENHA SEFIN</label>
+                                <input type="password" class="form-control" id="senhaSefin" name="senhaSefin" 
+                                       value="{{ client.senhaSefin if client else '' }}">
+                            </div>
+                        </div>
+                        <div class="row">
+                            <!-- ACESSO SEUMA -->
+                            <div class="col-md-6 mb-3">
+                                <label for="acessoSeuma" class="form-label">ACESSO SEUMA</label>
+                                <input type="text" class="form-control" id="acessoSeuma" name="acessoSeuma" 
+                                       value="{{ client.acessoSeuma if client else '' }}" 
+                                       placeholder="LOGIN SEUMA">
+                            </div>
+                            <!-- SENHA SEUMA -->
+                            <div class="col-md-6 mb-3">
+                                <label for="senhaSeuma" class="form-label">SENHA SEUMA</label>
+                                <input type="password" class="form-control" id="senhaSeuma" name="senhaSeuma" 
+                                       value="{{ client.senhaSeuma if client else '' }}">
+                            </div>
+                        </div>
+                        <div class="row">
+                            <!-- ACESSO EMPWEB -->
+                            <div class="col-md-6 mb-3">
+                                <label for="acessoEmpWeb" class="form-label">ACESSO EMPWEB</label>
+                                <input type="text" class="form-control" id="acessoEmpWeb" name="acessoEmpWeb" 
+                                       value="{{ client.acessoEmpWeb if client else '' }}" 
+                                       placeholder="Login EmpWeb">
+                            </div>
+                            <!-- SENHA EMPWEB -->
+                            <div class="col-md-6 mb-3">
+                                <label for="senhaEmpWeb" class="form-label">SENHA EMPWEB</label>
+                                <input type="password" class="form-control" id="senhaEmpWeb" name="senhaEmpWeb" 
+                                       value="{{ client.senhaEmpWeb if client else '' }}">
+                            </div>
+                        </div>
+                        <div class="row">
+                            <!-- Outros acessos importantes -->
+                            <div class="col-md-6 mb-3">
+                                <label for="emailGestor" class="form-label">E-MAIL GESTOR</label>
+                                <input type="email" class="form-control" id="emailGestor" name="emailGestor" 
+                                       value="{{ client.emailGestor if client else '' }}" 
+                                       placeholder="gestor@empresa.com.br">
+                            </div>
+                            <div class="col-md-6 mb-3">
+                                <label for="senhaEmailGestor" class="form-label">SENHA E-MAIL GESTOR</label>
+                                <input type="password" class="form-control" id="senhaEmailGestor" name="senhaEmailGestor" 
+                                       value="{{ client.senhaEmailGestor if client else '' }}">
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Bloco 7: Procurações -->
+                <div class="card mb-4">
+                    <div class="card-header bg-secondary text-white">
+                        <h5 class="mb-0">
+                            <i class="bi bi-file-earmark-text me-2"></i>Bloco 7: Procurações
+                        </h5>
+                    </div>
+                    <div class="card-body">
+                        <div class="row">
+                            <!-- Procuração RFB (Receita Federal) -->
+                            <div class="col-md-4 mb-3">
+                                <div class="form-check">
+                                    <input class="form-check-input" type="checkbox" id="procRfb" name="procRfb" 
+                                           {{ 'checked' if client and client.procRfb else '' }}>
+                                    <label class="form-check-label" for="procRfb">
+                                        Procuração RFB (Receita Federal)
+                                    </label>
+                                </div>
+                                <div class="mt-2">
+                                    <label for="procRfbData" class="form-label">DATA DA PROCURAÇÃO</label>
+                                    <input type="date" class="form-control" id="procRfbData" name="procRfbData" 
+                                           value="{{ client.procRfbData if client else '' }}">
+                                </div>
+                            </div>
+                            <!-- Procuração RC (Receita Estadual) -->
+                            <div class="col-md-4 mb-3">
+                                <div class="form-check">
+                                    <input class="form-check-input" type="checkbox" id="procRc" name="procRc" 
+                                           {{ 'checked' if client and client.procRc else '' }}>
+                                    <label class="form-check-label" for="procRc">
+                                        Procuração RC (Receita Estadual)
+                                    </label>
+                                </div>
+                                <div class="mt-2">
+                                    <label for="procRcData" class="form-label">DATA DA PROCURAÇÃO</label>
+                                    <input type="date" class="form-control" id="procRcData" name="procRcData" 
+                                           value="{{ client.procRcData if client else '' }}">
+                                </div>
+                            </div>
+                            <!-- Procuração CX (Caixa Econômica) -->
+                            <div class="col-md-4 mb-3">
+                                <div class="form-check">
+                                    <input class="form-check-input" type="checkbox" id="procCx" name="procCx" 
+                                           {{ 'checked' if client and client.procCx else '' }}>
+                                    <label class="form-check-label" for="procCx">
+                                        Procuração CX (Caixa Econômica)
+                                    </label>
+                                </div>
+                                <div class="mt-2">
+                                    <label for="procCxData" class="form-label">DATA DA PROCURAÇÃO</label>
+                                    <input type="date" class="form-control" id="procCxData" name="procCxData" 
+                                           value="{{ client.procCxData if client else '' }}">
+                                </div>
+                            </div>
+                        </div>
+                        <div class="row">
+                            <!-- Procuração SW (Previdência Social) -->
+                            <div class="col-md-4 mb-3">
+                                <div class="form-check">
+                                    <input class="form-check-input" type="checkbox" id="procSw" name="procSw" 
+                                           {{ 'checked' if client and client.procSw else '' }}>
+                                    <label class="form-check-label" for="procSw">
+                                        Procuração SW (Previdência Social)
+                                    </label>
+                                </div>
+                                <div class="mt-2">
+                                    <label for="procSwData" class="form-label">DATA DA PROCURAÇÃO</label>
+                                    <input type="date" class="form-control" id="procSwData" name="procSwData" 
+                                           value="{{ client.procSwData if client else '' }}">
+                                </div>
+                            </div>
+                            <!-- Procuração Municipal -->
+                            <div class="col-md-4 mb-3">
+                                <div class="form-check">
+                                    <input class="form-check-input" type="checkbox" id="procMunicipal" name="procMunicipal" 
+                                           {{ 'checked' if client and client.procMunicipal else '' }}>
+                                    <label class="form-check-label" for="procMunicipal">
+                                        Procuração Municipal
+                                    </label>
+                                </div>
+                                <div class="mt-2">
+                                    <label for="procMunicipalData" class="form-label">DATA DA PROCURAÇÃO</label>
+                                    <input type="date" class="form-control" id="procMunicipalData" name="procMunicipalData" 
+                                           value="{{ client.procMunicipalData if client else '' }}">
+                                </div>
+                            </div>
+                            <!-- outras procurações -->
+                            <div class="col-md-4 mb-3">
+                                <label for="outrasProc" class="form-label">OUTRAS PROCURAÇÕES</label>
+                                <textarea class="form-control" id="outrasProc" name="outrasProc" rows="3" 
+                                          placeholder="Descreva outras procurações...">{{ client.outrasProc if client else '' }}</textarea>
+                            </div>
+                        </div>
+                        <div class="row">
+                            <!-- observações sobre procurações -->
+                            <div class="col-12 mb-3">
+                                <label for="obsProcuracoes" class="form-label">OBSERVAÇÕES SOBRE PROCURAÇÕES</label>
+                                <textarea class="form-control" id="obsProcuracoes" name="obsProcuracoes" rows="3" 
+                                          placeholder="Observações gerais sobre as procurações...">{{ client.obsProcuracoes if client else '' }}</textarea>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Bloco 8: Observações e Dados Adicionais -->
+                <div class="card mb-4">
+                    <div class="card-header bg-dark text-white">
+                        <h5 class="mb-0">
+                            <i class="bi bi-sticky-note me-2"></i>Bloco 8: Observações e Dados Adicionais
+                        </h5>
+                    </div>
+                    <div class="card-body">
+                        <div class="row">
+                            <!-- observações gerais -->
+                            <div class="col-12 mb-3">
+                                <label for="observacoesGerais" class="form-label">OBSERVAÇÕES GERAIS</label>
+                                <textarea class="form-control" id="observacoesGerais" name="observacoesGerais" rows="4" 
+                                          placeholder="Observações gerais sobre o cliente, particularidades, histórico, etc.">{{ client.observacoesGerais if client else '' }}</textarea>
+                            </div>
+                        </div>
+                        <div class="row">
+                            <!-- tarefas vinculadas -->
+                            <div class="col-md-4 mb-3">
+                                <label for="tarefasVinculadas" class="form-label">TAREFAS VINCULADAS</label>
+                                <input type="number" class="form-control" id="tarefasVinculadas" name="tarefasVinculadas" 
+                                       value="{{ client.tarefasVinculadas if client else '' }}" 
+                                       placeholder="0" min="0">
+                                <div class="form-text">Número de tarefas vinculadas ao cliente</div>
+                            </div>
+                            <!-- status do cliente -->
+                            <div class="col-md-4 mb-3">
+                                <label for="statusCliente" class="form-label">STATUS DO CLIENTE</label>
+                                <select class="form-select" id="statusCliente" name="statusCliente">
+                                    <option value="ativo" {{ 'selected' if client and client.statusCliente == 'ativo' else '' }}>Ativo</option>
+                                    <option value="inativo" {{ 'selected' if client and client.statusCliente == 'inativo' else '' }}>Inativo</option>
+                                    <option value="suspenso" {{ 'selected' if client and client.statusCliente == 'suspenso' else '' }}>Suspenso</option>
+                                    <option value="em_analise" {{ 'selected' if client and client.statusCliente == 'em_analise' else '' }}>Em Análise</option>
+                                </select>
+                            </div>
+                            <!-- prioridade -->
+                            <div class="col-md-4 mb-3">
+                                <label for="prioridadeCliente" class="form-label">PRIORIDADE</label>
+                                <select class="form-select" id="prioridadeCliente" name="prioridadeCliente">
+                                    <option value="normal" {{ 'selected' if client and client.prioridadeCliente == 'normal' else '' }}>Normal</option>
+                                    <option value="alta" {{ 'selected' if client and client.prioridadeCliente == 'alta' else '' }}>Alta</option>
+                                    <option value="urgente" {{ 'selected' if client and client.prioridadeCliente == 'urgente' else '' }}>Urgente</option>
+                                    <option value="baixa" {{ 'selected' if client and client.prioridadeCliente == 'baixa' else '' }}>Baixa</option>
+                                </select>
+                            </div>
+                        </div>
+                        <div class="row">
+                            <!-- Cliente Ativo (checkbox para compatibilidade) -->
+                            <div class="col-md-6 mb-3">
+                                <label class="form-label">CLIENTE ATIVO NO SISTEMA</label>
+                                <div class="form-check mt-2">
+                                    <input class="form-check-input" type="checkbox" id="ativo" name="ativo" 
+                                           {% if not client or client.ativo or client.statusCliente == 'ativo' %}checked{% endif %}>
+                                    <label class="form-check-label" for="ativo">
+                                        <i class="bi bi-check-circle me-1 text-success"></i>
+                                        <strong>Marcar como cliente ativo</strong>
+                                    </label>
+                                </div>
+                                <div class="form-text">Este campo controla se o cliente aparece como ativo nos relatórios</div>
+                            </div>
+                            <!-- Data da última atualização -->
+                            <div class="col-md-6 mb-3">
+                                <label for="ultimaAtualizacao" class="form-label">Última atualização</label>
+                                <input type="datetime-local" class="form-control" id="ultimaAtualizacao" name="ultimaAtualizacao" 
+                                       value="{{ client.ultimaAtualizacao if client else '' }}" readonly>
+                                <div class="form-text">Atualizado automaticamente</div>
+                            </div>
+                        </div>
+                        <div class="row">
+                            <!-- tags/categorias -->
+                            <div class="col-md-6 mb-3">
+                                <label for="tagsCliente" class="form-label">TAGS/CATEGORIAS</label>
+                                <input type="text" class="form-control" id="tagsCliente" name="tagsCliente" 
+                                       value="{{ client.tagsCliente if client else '' }}" 
+                                       placeholder="empresa_grande, complexo, especial">
+                                <div class="form-text">Separar tags por vírgula</div>
+                            </div>
+                            <!-- Data da última atualização -->
+                            <div class="col-md-6 mb-3">
+                                <label for="ultimaAtualizacao" class="form-label">Última atualização</label>
+                                <input type="datetime-local" class="form-control" id="ultimaAtualizacao" name="ultimaAtualizacao" 
+                                       value="{{ client.ultimaAtualizacao if client else '' }}" readonly>
+                                <div class="form-text">Atualizado automaticamente</div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Botões de ação -->
+                <div class="card">
+                    <div class="card-body">
+                        <div class="d-flex justify-content-between align-items-center">
+                            <div>
+                                <button type="submit" class="btn btn-primary me-3">
+                                    <i class="bi bi-check-lg me-1"></i>
+                                    {% if client %}Atualizar Cliente{% else %}Salvar Cliente{% endif %}
+                                </button>
+                                <a href="/" class="btn btn-secondary">
+                                    <i class="bi bi-x-lg me-1"></i>
+                                    Cancelar
+                                </a>
+                            </div>
+                            {% if client %}
+                            <button type="button" class="btn btn-outline-danger" 
+                                    onclick="confirmDelete('{{ client.id }}', '{{ client.nomeEmpresa }}')">
+                                <i class="bi bi-trash me-1"></i>
+                                Excluir Cliente
+                            </button>
+                            {% endif %}
+                        </div>
+                    </div>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<!-- Modal de confirmação de exclusão -->
+{% if client %}
+<div class="modal fade" id="deleteModal" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">
+                    <i class="bi bi-exclamation-triangle text-warning me-2"></i>
+                    Confirmar Exclusão
+                </h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <p>Tem certeza que deseja excluir o cliente <strong id="clientName">{{ client.nomeEmpresa }}</strong>?</p>
+                <p class="text-muted">Esta ação não pode ser desfeita.</p>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
+                <form id="deleteForm" method="POST" action="/client/{{ client.id }}/delete" style="display: inline;">
+                    <button type="submit" class="btn btn-danger">
+                        <i class="bi bi-trash me-1"></i>Excluir
+                    </button>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+{% endif %}
+
+<script>
+// Validação do formulário
+(function() {
+    'use strict';
+    window.addEventListener('load', function() {
+        var forms = document.getElementsByClassName('needs-validation');
+        var validation = Array.prototype.filter.call(forms, function(form) {
+            form.addEventListener('submit', function(event) {
+                if (form.checkValidity() === false) {
+                    event.preventDefault();
+                    event.stopPropagation();
+                }
+                form.classList.add('was-validated');
+            }, false);
+        });
+    }, false);
+})();
+
+// Formatação de CNPJ
+document.getElementById('cpfCnpj').addEventListener('input', function(e) {
+    let value = e.target.value.replace(/\D/g, '');
+    if (value.length <= 14) {
+        value = value.replace(/^(\d{2})(\d)/, '$1.$2');
+        value = value.replace(/^(\d{2})\.(\d{3})(\d)/, '$1.$2.$3');
+        value = value.replace(/\.(\d{3})(\d)/, '.$1/$2');
+        value = value.replace(/(\d{4})(\d)/, '$1-$2');
+    }
+    e.target.value = value;
+});
+
+// Formatação de telefones
+function formatPhone(input) {
+    let value = input.value.replace(/\D/g, '');
+    if (value.length <= 11) {
+        value = value.replace(/(\d{2})(\d)/, '($1) $2');
+        value = value.replace(/(\d{4,5})(\d{4})$/, '$1-$2');
+    }
+    input.value = value;
+}
+
+// Aplicar formatação de telefone
+document.getElementById('telefoneContador').addEventListener('input', function() {
+    formatPhone(this);
+});
+
+// Formatação de CPF
+function formatCPF(input) {
+    let value = input.value.replace(/\D/g, '');
+    if (value.length <= 11) {
+        value = value.replace(/(\d{3})(\d)/, '$1.$2');
+        value = value.replace(/(\d{3})(\d)/, '$1.$2');
+        value = value.replace(/(\d{3})(\d{1,2})$/, '$1-$2');
+    }
+    input.value = value;
+}
+
+// Aplicar máscaras aos campos existentes
+document.addEventListener('DOMContentLoaded', function() {
+    // Aplicar máscara de CPF
+    document.querySelectorAll('.cpf-mask').forEach(function(input) {
+        input.addEventListener('input', function() {
+            formatCPF(this);
+        });
+    });
+    
+    // Aplicar máscara de telefone
+    document.querySelectorAll('.phone-mask').forEach(function(input) {
+        input.addEventListener('input', function() {
+            formatPhone(this);
+        });
+    });
+});
+
+// Variável global para controlar o número de sócios
+let numeroSocios = 1;
+
+// Função para adicionar novo sócio
+function adicionarSocio() {
+    numeroSocios++;
+    const container = document.getElementById('sociosContainer');
+    
+    const novoSocio = document.createElement('div');
+    novoSocio.className = 'card border-light mb-2 socio-card';
+    novoSocio.id = `socio_${numeroSocios}`;
+    
+    novoSocio.innerHTML = `
+        <div class="card-body py-2">
+            <div class="row align-items-center">
+                <div class="col-md-3">
+                    <label class="form-label small mb-1">Nome do Sócio</label>
+                    <input type="text" class="form-control form-control-sm" 
+                           name="socio_${numeroSocios}_nome" id="socio_${numeroSocios}_nome"
+                           placeholder="Nome completo do sócio">
+                </div>
+                <div class="col-md-2">
+                    <label class="form-label small mb-1">CPF</label>
+                    <input type="text" class="form-control form-control-sm cpf-mask" 
+                           name="socio_${numeroSocios}_cpf" id="socio_${numeroSocios}_cpf"
+                           placeholder="000.000.000-00">
+                </div>
+                <div class="col-md-3">
+                    <label class="form-label small mb-1">E-mail</label>
+                    <input type="email" class="form-control form-control-sm" 
+                           name="socio_${numeroSocios}_email" id="socio_${numeroSocios}_email"
+                           placeholder="socio@email.com">
+                </div>
+                <div class="col-md-2">
+                    <label class="form-label small mb-1">Telefone</label>
+                    <input type="tel" class="form-control form-control-sm phone-mask" 
+                           name="socio_${numeroSocios}_telefone" id="socio_${numeroSocios}_telefone"
+                           placeholder="(85) 99999-9999">
+                </div>
+                <div class="col-md-1">
+                    <label class="form-label small mb-1">% Part.</label>
+                    <input type="number" class="form-control form-control-sm" 
+                           name="socio_${numeroSocios}_participacao" id="socio_${numeroSocios}_participacao"
+                           placeholder="50.00" step="0.01" min="0" max="100">
+                </div>
+                <div class="col-md-1">
+                    <label class="form-label small mb-1">&nbsp;</label>
+                    <button type="button" class="btn btn-outline-danger btn-sm w-100" 
+                            onclick="removerSocio(${numeroSocios})" title="Remover sócio">
+                        <i class="bi bi-trash"></i>
+                    </button>
+                </div>
+            </div>
+        </div>
+    `;
+    
+    container.appendChild(novoSocio);
+    
+    // Aplicar máscaras aos novos campos
+    const novoCpfInput = novoSocio.querySelector('.cpf-mask');
+    const novoTelInput = novoSocio.querySelector('.phone-mask');
+    
+    if (novoCpfInput) {
+        novoCpfInput.addEventListener('input', function() {
+            formatCPF(this);
+        });
+    }
+    
+    if (novoTelInput) {
+        novoTelInput.addEventListener('input', function() {
+            formatPhone(this);
+        });
+    }
+    
+    // Animação de entrada
+    novoSocio.style.opacity = '0';
+    novoSocio.style.transform = 'translateY(-20px)';
+    setTimeout(() => {
+        novoSocio.style.transition = 'all 0.3s ease';
+        novoSocio.style.opacity = '1';
+        novoSocio.style.transform = 'translateY(0)';
+    }, 10);
+}
+
+// Função para remover sócio
+function removerSocio(numero) {
+    const socio = document.getElementById(`socio_${numero}`);
+    if (socio && numero > 1) { // Não permite remover o primeiro sócio
+        // Animação de saída
+        socio.style.transition = 'all 0.3s ease';
+        socio.style.opacity = '0';
+        socio.style.transform = 'translateY(-20px)';
+        
+        setTimeout(() => {
+            socio.remove();
+        }, 300);
+    }
+}
+
+// Função para carregar dados dos sócios (para edição)
+function carregarSocios(dadosCliente) {
+    if (!dadosCliente) return;
+    
+    // Procurar por campos de sócios nos dados do cliente
+    for (let i = 1; i <= 10; i++) { // Suporte para até 10 sócios
+        const nome = dadosCliente[`socio_${i}_nome`];
+        if (nome) {
+            if (i > 1) {
+                adicionarSocio(); // Adicionar card de sócio se não for o primeiro
+            }
+            
+            // Preencher os campos
+            const nomeInput = document.getElementById(`socio_${i}_nome`);
+            const cpfInput = document.getElementById(`socio_${i}_cpf`);
+            const emailInput = document.getElementById(`socio_${i}_email`);
+            const telefoneInput = document.getElementById(`socio_${i}_telefone`);
+            const participacaoInput = document.getElementById(`socio_${i}_participacao`);
+            
+            if (nomeInput) nomeInput.value = nome || '';
+            if (cpfInput) cpfInput.value = dadosCliente[`socio_${i}_cpf`] || '';
+            if (emailInput) emailInput.value = dadosCliente[`socio_${i}_email`] || '';
+            if (telefoneInput) telefoneInput.value = dadosCliente[`socio_${i}_telefone`] || '';
+            if (participacaoInput) participacaoInput.value = dadosCliente[`socio_${i}_participacao`] || '';
+        }
+    }
+}
+
+// Função para confirmar exclusão
+function confirmDelete(clientId, clientName) {
+    document.getElementById('clientName').textContent = clientName;
+    var deleteModal = new bootstrap.Modal(document.getElementById('deleteModal'));
+    deleteModal.show();
+}
+
+// Carregar dados dos sócios se estiver editando
+{% if client %}
+document.addEventListener('DOMContentLoaded', function() {
+    const dadosCliente = {{ client|tojson }};
+    carregarSocios(dadosCliente);
+});
+{% endif %}
+</script>
+{% endblock %}

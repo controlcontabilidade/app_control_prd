@@ -1,4 +1,4 @@
-{% extends "base.html" %}
+﻿{% extends "base.html" %}
 
 {% block title %}Registrar Ata de Reunião - {{ client.nomeEmpresa }} - SIGEC{% endblock %}
 
@@ -40,7 +40,7 @@
             <div class="row">
                 <div class="col-md-3 mb-3">
                     <label for="meeting_date" class="form-label">
-                        <i class="bi bi-calendar me-1"></i>Data da Reunião *
+                        <i class="bi bi-calendar me-1"></i>data da reunião *
                     </label>
                     <input type="date" class="form-control" id="meeting_date" name="meeting_date" required>
                     <div class="invalid-feedback">
@@ -57,7 +57,7 @@
                 
                 <div class="col-md-6 mb-3">
                     <label for="participants" class="form-label">
-                        <i class="bi bi-people me-1"></i>Participantes *
+                        <i class="bi bi-people me-1"></i>participantes *
                     </label>
                     <textarea class="form-control" id="participants" name="participants" rows="3" 
                               placeholder="Liste todos os participantes da reunião..." required></textarea>
@@ -92,7 +92,7 @@
                 
                 <div class="col-12 mb-4">
                     <label for="decisions" class="form-label">
-                        <i class="bi bi-check2-square me-1"></i>Decisões Tomadas
+                        <i class="bi bi-check2-square me-1"></i>decisões tomadas
                     </label>
                     <textarea class="form-control" id="decisions" name="decisions" rows="4" 
                               placeholder="Liste as principais decisões tomadas durante a reunião..."></textarea>
@@ -100,7 +100,7 @@
                 
                 <div class="col-12 mb-3">
                     <label for="next_steps" class="form-label">
-                        <i class="bi bi-arrow-right-circle me-1"></i>Próximos Passos
+                        <i class="bi bi-arrow-right-circle me-1"></i>próximos passos
                     </label>
                     <textarea class="form-control" id="next_steps" name="next_steps" rows="4" 
                               placeholder="Defina os próximos passos, responsáveis e prazos..."></textarea>

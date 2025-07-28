@@ -1,15 +1,15 @@
-{% extends "base.html" %}
+﻿{% extends "base.html" %}
 
-{% block title %}Gerenciar Usuários - SIGEC{% endblock %}
+{% block title %}Gerenciar usuários - SIGEC{% endblock %}
 
 {% block content %}
 <div class="d-flex justify-content-between align-items-center mb-4">
     <div>
-        <h2><i class="bi bi-people text-primary me-2"></i>Gerenciar Usuários</h2>
+        <h2><i class="bi bi-people text-primary me-2"></i>Gerenciar usuários</h2>
         <p class="text-muted mb-0">Controle de acesso ao sistema SIGEC</p>
     </div>
     <button type="button" class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#newUserModal">
-        <i class="bi bi-person-plus me-2"></i>Novo Usuário
+        <i class="bi bi-person-plus me-2"></i>Novo usuário
     </button>
 </div>
 
@@ -38,12 +38,12 @@
                 <select class="form-select" id="perfilFilter">
                     <option value="">Todos os Perfis</option>
                     <option value="administrador">Administrador</option>
-                    <option value="usuario">Usuário</option>
+                    <option value="usuario">USUÁRIO</option>
                 </select>
             </div>
             <div class="col-md-3">
                 <select class="form-select" id="statusFilter">
-                    <option value="">Todos os Status</option>
+                    <option value="">Todos os status</option>
                     <option value="sim">Ativo</option>
                     <option value="nao">Inativo</option>
                 </select>
@@ -56,13 +56,13 @@
             <table class="table table-hover mb-0" id="usersTable">
                 <thead class="table-light">
                     <tr>
-                        <th>Nome</th>
-                        <th>Email</th>
-                        <th>Usuário</th>
-                        <th>Perfil</th>
-                        <th>Status</th>
+                        <th>NOME</th>
+                        <th>EMAIL</th>
+                        <th>USUÁRIO</th>
+                        <th>PERFIL</th>
+                        <th>STATUS</th>
                         <th>Último Login</th>
-                        <th class="text-center">Ações</th>
+                        <th class="text-center">ações</th>
                     </tr>
                 </thead>
                 <tbody>
@@ -87,7 +87,7 @@
                                 </span>
                             {% else %}
                                 <span class="badge bg-primary rounded-pill">
-                                    <i class="bi bi-person me-1"></i>Usuário
+                                    <i class="bi bi-person me-1"></i>usuário
                                 </span>
                             {% endif %}
                         </td>
@@ -133,13 +133,13 @@
     </div>
 </div>
 
-<!-- Modal Novo Usuário -->
+<!-- Modal Novo usuário -->
 <div class="modal fade" id="newUserModal" tabindex="-1">
     <div class="modal-dialog">
         <div class="modal-content">
             <div class="modal-header">
                 <h5 class="modal-title">
-                    <i class="bi bi-person-plus me-2"></i>Novo Usuário
+                    <i class="bi bi-person-plus me-2"></i>Novo usuário
                 </h5>
                 <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
             </div>
@@ -147,26 +147,26 @@
                 <div class="modal-body">
                     <div class="row g-3">
                         <div class="col-12">
-                            <label for="nome" class="form-label">Nome Completo</label>
+                            <label for="nome" class="form-label">NOME COMPLETO</label>
                             <input type="text" class="form-control" id="nome" name="nome" required>
                         </div>
                         <div class="col-12">
-                            <label for="email" class="form-label">Email</label>
+                            <label for="email" class="form-label">EMAIL</label>
                             <input type="email" class="form-control" id="email" name="email" required>
                         </div>
                         <div class="col-md-6">
-                            <label for="usuario" class="form-label">Usuário</label>
+                            <label for="usuario" class="form-label">USUÁRIO</label>
                             <input type="text" class="form-control" id="usuario" name="usuario" required>
                         </div>
                         <div class="col-md-6">
-                            <label for="perfil" class="form-label">Perfil</label>
+                            <label for="perfil" class="form-label">PERFIL</label>
                             <select class="form-select" id="perfil" name="perfil" required>
-                                <option value="Usuario">Usuário</option>
+                                <option value="Usuario">USUÁRIO</option>
                                 <option value="Administrador">Administrador</option>
                             </select>
                         </div>
                         <div class="col-12">
-                            <label for="senha" class="form-label">Senha</label>
+                            <label for="senha" class="form-label">SENHA</label>
                             <input type="password" class="form-control" id="senha" name="senha" required minlength="6">
                             <div class="form-text">Mínimo 6 caracteres</div>
                         </div>
@@ -175,7 +175,7 @@
                 <div class="modal-footer">
                     <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
                     <button type="submit" class="btn btn-primary">
-                        <i class="bi bi-save me-2"></i>Criar Usuário
+                        <i class="bi bi-save me-2"></i>criar usuário
                     </button>
                 </div>
             </form>
@@ -183,13 +183,13 @@
     </div>
 </div>
 
-<!-- Modal Editar Usuário -->
+<!-- Modal editar usuário -->
 <div class="modal fade" id="editUserModal" tabindex="-1">
     <div class="modal-dialog">
         <div class="modal-content">
             <div class="modal-header">
                 <h5 class="modal-title">
-                    <i class="bi bi-pencil me-2"></i>Editar Usuário
+                    <i class="bi bi-pencil me-2"></i>editar usuário
                 </h5>
                 <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
             </div>
@@ -198,33 +198,33 @@
                 <div class="modal-body">
                     <div class="row g-3">
                         <div class="col-12">
-                            <label for="edit_nome" class="form-label">Nome Completo</label>
+                            <label for="edit_nome" class="form-label">NOME COMPLETO</label>
                             <input type="text" class="form-control" id="edit_nome" name="nome" required>
                         </div>
                         <div class="col-12">
-                            <label for="edit_email" class="form-label">Email</label>
+                            <label for="edit_email" class="form-label">EMAIL</label>
                             <input type="email" class="form-control" id="edit_email" name="email" required>
                         </div>
                         <div class="col-md-6">
-                            <label for="edit_usuario" class="form-label">Usuário</label>
+                            <label for="edit_usuario" class="form-label">USUÁRIO</label>
                             <input type="text" class="form-control" id="edit_usuario" name="usuario" required>
                         </div>
                         <div class="col-md-6">
-                            <label for="edit_perfil" class="form-label">Perfil</label>
+                            <label for="edit_perfil" class="form-label">PERFIL</label>
                             <select class="form-select" id="edit_perfil" name="perfil" required>
-                                <option value="Usuario">Usuário</option>
+                                <option value="Usuario">USUÁRIO</option>
                                 <option value="Administrador">Administrador</option>
                             </select>
                         </div>
                         <div class="col-md-6">
-                            <label for="edit_ativo" class="form-label">Status</label>
+                            <label for="edit_ativo" class="form-label">STATUS</label>
                             <select class="form-select" id="edit_ativo" name="ativo" required>
                                 <option value="Sim">Ativo</option>
                                 <option value="Nao">Inativo</option>
                             </select>
                         </div>
                         <div class="col-md-6">
-                            <label for="edit_nova_senha" class="form-label">Nova Senha</label>
+                            <label for="edit_nova_senha" class="form-label">NOVA SENHA</label>
                             <input type="password" class="form-control" id="edit_nova_senha" name="nova_senha" minlength="6">
                             <div class="form-text">Deixe em branco para manter a senha atual</div>
                         </div>
@@ -263,7 +263,7 @@
                 <form method="POST" action="{{ url_for('delete_user') }}" style="display: inline;">
                     <input type="hidden" id="delete_user_id" name="user_id">
                     <button type="submit" class="btn btn-danger">
-                        <i class="bi bi-trash me-2"></i>Excluir Usuário
+                        <i class="bi bi-trash me-2"></i>Excluir usuário
                     </button>
                 </form>
             </div>
@@ -295,12 +295,12 @@ document.addEventListener('DOMContentLoaded', function() {
                                 email.includes(searchTerm) || 
                                 usuario.includes(searchTerm);
             
-            const matchesPerfil = !perfilValue || perfil.includes(perfilValue);
-            const matchesStatus = !statusValue || 
+            const matchesperfil = !perfilValue || perfil.includes(perfilValue);
+            const matchesstatus = !statusValue || 
                                 (statusValue === 'sim' && status.includes('ativo')) ||
                                 (statusValue === 'nao' && status.includes('inativo'));
 
-            if (matchesSearch && matchesPerfil && matchesStatus) {
+            if (matchesSearch && matchesperfil && matchesstatus) {
                 row.style.display = '';
             } else {
                 row.style.display = 'none';

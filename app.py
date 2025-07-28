@@ -1,3 +1,4 @@
+# -*- coding: utf-8 -*-
 from flask import Flask, render_template, request, jsonify, redirect, url_for, flash, session
 import json
 import os
@@ -23,6 +24,16 @@ from werkzeug.utils import secure_filename
 
 app = Flask(__name__)
 app.secret_key = os.environ.get('SECRET_KEY', 'your-secret-key-here-change-in-production')
+
+# Configurações de encoding UTF-8
+app.config['JSON_AS_ASCII'] = False
+app.jinja_env.globals['ord'] = ord  # Função para debug de encoding
+import sys
+if hasattr(sys, 'setdefaultencoding'):
+    sys.setdefaultencoding('utf-8')
+
+# Forçar encoding UTF-8 para templates Jinja2
+app.jinja_env.charset = 'utf-8'
 
 # Configurações para upload de arquivos - OTIMIZADO PARA MEMÓRIA
 # Reduzido de 16MB para 8MB para economizar RAM no Render
@@ -851,7 +862,7 @@ def view_client(client_id):
 @app.route('/client/new')
 @login_required
 def new_client():
-    return render_template('client_form_modern.html')
+    return render_template('client_form_complete.html')
 
 @app.route('/client/<client_id>/edit')
 @login_required
@@ -874,7 +885,7 @@ def edit_client(client_id):
                 print(f"⚠️ [EDIT] Cliente não tem ID! Forçando ID = {client_id}")
                 client['id'] = client_id
             
-            return render_template('client_form_modern.html', client=client)
+            return render_template('client_form_complete.html', client=client)
         else:
             print(f"❌ [EDIT] Cliente {client_id} não encontrado!")
             flash('Cliente não encontrado', 'error')
@@ -1007,6 +1018,22 @@ def save_client():
             'contatoContador': request.form.get('contatoContador', ''),
             'telefoneContador': request.form.get('telefoneContador', ''),
             'emailContador': request.form.get('emailContador', ''),
+        }
+        
+        # Processar dados dos sócios dinamicamente
+        print("🔍 Processando dados dos sócios...")
+        for i in range(1, 11):  # Suporte para até 10 sócios
+            nome_socio = request.form.get(f'socio_{i}_nome', '').strip()
+            if nome_socio:  # Se há nome, processar os dados do sócio
+                client_data[f'socio_{i}_nome'] = nome_socio
+                client_data[f'socio_{i}_cpf'] = request.form.get(f'socio_{i}_cpf', '').strip()
+                client_data[f'socio_{i}_email'] = request.form.get(f'socio_{i}_email', '').strip()
+                client_data[f'socio_{i}_telefone'] = request.form.get(f'socio_{i}_telefone', '').strip()
+                client_data[f'socio_{i}_participacao'] = request.form.get(f'socio_{i}_participacao', '').strip()
+                print(f"🔍 Sócio {i}: {nome_socio}")
+        
+        # Continuar com outros dados
+        client_data.update({
             
             # Bloco 5: Sistemas e Acessos
             'sistemaPrincipal': request.form.get('sistemaPrincipal', ''),
@@ -1016,6 +1043,11 @@ def save_client():
             'portalClienteAtivo': request.form.get('portalClienteAtivo') == 'on',
             'integracaoDominio': request.form.get('integracaoDominio') == 'on',
             'sistemaOnvio': request.form.get('sistemaOnvio') == 'on',
+            
+            # Novos campos Sistema Onvio
+            'sistemaOnvioContabil': request.form.get('sistemaOnvioContabil') == 'on',
+            'sistemaOnvioFiscal': request.form.get('sistemaOnvioFiscal') == 'on',
+            'sistemaOnvioPessoal': request.form.get('sistemaOnvioPessoal') == 'on',
             
             # Bloco 6: Senhas e Credenciais
             'acessoIss': request.form.get('acessoIss', ''),
@@ -1070,17 +1102,11 @@ def save_client():
             
             # Status e configurações
             'ativo': request.form.get('ativo') == 'on',
-        }
+        })
         
-        # Processar sócios dinamicamente do Bloco 3
-        for key in request.form.keys():
-            if key.startswith('socio') and '_' in key:
-                # Extrair número do sócio e tipo do campo (ex: socio1_nome -> 1, nome)
-                parts = key.split('_', 1)
-                if len(parts) == 2:
-                    value = request.form.get(key, '').strip()
-                    if value:  # Só incluir se tiver valor
-                        client_data[key] = value
+        # Sincronizar statusCliente com ativo para compatibilidade
+        status_cliente = client_data.get('statusCliente', 'ativo')
+        client_data['ativo'] = status_cliente == 'ativo'
         
         # CORREÇÃO DUPLICAÇÃO: Melhor controle de criação vs edição
         if not client_data.get('id'):
@@ -1102,6 +1128,9 @@ def save_client():
             return redirect(url_for('index'))
         
         print("🔍 Chamando storage_service.save_client...")
+        print(f"🔍 client_data['id']: '{client_data.get('id')}'")
+        print(f"🔍 client_data['nomeEmpresa']: '{client_data.get('nomeEmpresa')}'")
+        print(f"🔍 Dados essenciais: ID={client_data.get('id')}, Nome={client_data.get('nomeEmpresa')}")
         
         success = storage_service.save_client(client_data)
         

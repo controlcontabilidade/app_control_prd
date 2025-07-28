@@ -20,7 +20,7 @@
     <div class="d-flex gap-2">
         {% if client.ativo %}
             <span class="badge bg-success fs-6 px-3 py-2">
-                <i class="bi bi-check-circle-fill me-1"></i>Cliente Ativo
+                <i class="bi bi-check-circle-fill me-1"></i>CLIENTE ATIVO
             </span>
         {% else %}
             <span class="badge bg-danger fs-6 px-3 py-2">
@@ -54,7 +54,7 @@
                             <p class="mb-0"><code>#{{ client.id }}</code></p>
                         </div>
                         <div class="info-item mb-3">
-                            <label class="fw-bold text-muted">Nome da Empresa</label>
+                            <label class="fw-bold text-muted">NOME DA EMPRESA</label>
                             <p class="mb-0 text-primary fw-medium">{{ client.nomeEmpresa }}</p>
                         </div>
                         <div class="info-item mb-3">
@@ -78,19 +78,19 @@
                     </div>
                     <div class="col-md-6">
                         <div class="info-item mb-3">
-                            <label class="fw-bold text-muted">Inscrição Estadual</label>
+                            <label class="fw-bold text-muted">INSCRIÇÃO ESTADUAL</label>
                             <p class="mb-0">{{ client.inscEst or 'Não informada' }}</p>
                         </div>
                         <div class="info-item mb-3">
-                            <label class="fw-bold text-muted">Inscrição Municipal</label>
+                            <label class="fw-bold text-muted">INSCRIÇÃO MUNICIPAL</label>
                             <p class="mb-0">{{ client.inscMun or 'Não informada' }}</p>
                         </div>
                         <div class="info-item mb-3">
-                            <label class="fw-bold text-muted">Segmento</label>
+                            <label class="fw-bold text-muted">SEGMENTO</label>
                             <p class="mb-0">{{ client.segmento or 'Não informado' }}</p>
                         </div>
                         <div class="info-item mb-3">
-                            <label class="fw-bold text-muted">Atividade</label>
+                            <label class="fw-bold text-muted">ATIVIDADE</label>
                             <p class="mb-0">{{ client.atividade or 'Não informada' }}</p>
                         </div>
                         <div class="info-item mb-3">
@@ -100,7 +100,7 @@
                             </p>
                         </div>
                         <div class="info-item mb-3">
-                            <label class="fw-bold text-muted">Cidade</label>
+                            <label class="fw-bold text-muted">CIDADE</label>
                             <p class="mb-0">
                                 <i class="bi bi-geo-alt me-1"></i>{{ client.cidade or 'Não informada' }}
                             </p>
@@ -202,14 +202,14 @@
             <div class="card-body">
                 <div class="row">
                     <div class="col-md-6">
-                        <p><strong>Código Fortes CT:</strong> {{ client.codFortesCt or '-' }}</p>
-                        <p><strong>Código Fortes FS:</strong> {{ client.codFortesFs or '-' }}</p>
-                        <p><strong>Código Fortes PS:</strong> {{ client.codFortesPs or '-' }}</p>
+                        <p><strong>CÓDIGO FORTES CT:</strong> {{ client.codFortesCt or '-' }}</p>
+                        <p><strong>CÓDIGO FORTES FS:</strong> {{ client.codFortesFs or '-' }}</p>
+                        <p><strong>CÓDIGO FORTES PS:</strong> {{ client.codFortesPs or '-' }}</p>
                     </div>
                     <div class="col-md-6">
-                        <p><strong>Código Domínio:</strong> {{ client.codDominio or '-' }}</p>
-                        <p><strong>Sistema Utilizado:</strong> {{ client.sistemaUtilizado or '-' }}</p>
-                        <p><strong>Módulo SPED Trier:</strong> {{ client.moduloSpedTrier or '-' }}</p>
+                        <p><strong>CÓDIGO DOMÍNIO:</strong> {{ client.codDominio or '-' }}</p>
+                        <p><strong>SISTEMA UTILIZADO:</strong> {{ client.sistemaUtilizado or '-' }}</p>
+                        <p><strong>MÓDULO SPED TRIER:</strong> {{ client.moduloSpedTrier or '-' }}</p>
                     </div>
                 </div>
             </div>
@@ -223,13 +223,13 @@
             <div class="card-body">
                 <div class="row">
                     <div class="col-md-6">
-                        <p><strong>Responsável Imediato:</strong> {{ client.responsavelImediato or 'Não informado' }}</p>
+                        <p><strong>RESPONSÁVEL IMEDIATO:</strong> {{ client.responsavelImediato or 'Não informado' }}</p>
                         <p><strong>Telefone Fixo:</strong> {{ client.telefoneFixo or 'Não informado' }}</p>
                         <p><strong>Telefone Celular:</strong> {{ client.telefoneCelular or 'Não informado' }}</p>
                     </div>
                     <div class="col-md-6">
                         <p><strong>E-mail do Gestor:</strong> {{ client.emailGestor or 'Não informado' }}</p>
-                        <p><strong>E-mails dos Sócios:</strong> {{ client.emailsSocio or 'Não informado' }}</p>
+                        <p><strong>E-MAILS DOS SÓCIOS:</strong> {{ client.emailsSocio or 'Não informado' }}</p>
                     </div>
                 </div>
             </div>
@@ -279,7 +279,7 @@
                         <span class="badge bg-secondary">Inativo</span>
                     {% endif %}
                 </p>
-                <p><strong>Tarefas Vinculadas:</strong> {{ client.tarefasVinculadas or 0 }}</p>
+                <p><strong>TAREFAS VINCULADAS:</strong> {{ client.tarefasVinculadas or 0 }}</p>
             </div>
         </div>
 
@@ -301,8 +301,8 @@
                 <h5 class="mb-0">Órgãos Reguladores</h5>
             </div>
             <div class="card-body">
-                <p><strong>ANVISA Gestor:</strong> {{ client.anvisaGestor or '-' }}</p>
-                <p><strong>ANVISA Empresa:</strong> {{ client.anvisaEmpresa or '-' }}</p>
+                <p><strong>ANVISA GESTOR:</strong> {{ client.anvisaGestor or '-' }}</p>
+                <p><strong>ANVISA EMPRESA:</strong> {{ client.anvisaEmpresa or '-' }}</p>
                 <p><strong>IBAMA:</strong> {{ client.acessoIbama or '-' }}</p>
                 <p><strong>SEMACE:</strong> {{ client.acessoSemace or '-' }}</p>
             </div>

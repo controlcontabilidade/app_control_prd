@@ -443,6 +443,9 @@ class GoogleSheetsServiceAccountService:
             'PORTAL CLIENTE ATIVO',              # 46. Portal ativo? (SIM/NÃO)
             'INTEGRAÇÃO DOMÍNIO',                # 47. Integrado Domínio? (SIM/NÃO)
             'SISTEMA ONVIO',                     # 48. Usa Onvio? (SIM/NÃO)
+            'SISTEMA ONVIO CONTÁBIL',           # 49. Sistema Onvio Contábil (SIM/NÃO)
+            'SISTEMA ONVIO FISCAL',             # 50. Sistema Onvio Fiscal (SIM/NÃO)
+            'SISTEMA ONVIO PESSOAL',            # 51. Sistema Onvio Pessoal (SIM/NÃO)
             
             # Bloco 6: Senhas e Credenciais
             'ACESSO ISS',                        # 49. Login ISS municipal
@@ -603,15 +606,18 @@ class GoogleSheetsServiceAccountService:
             'SIM' if client.get('portalClienteAtivo') else 'NÃO',    # 46. PORTAL CLIENTE ATIVO
             'SIM' if client.get('integracaoDominio') else 'NÃO',     # 47. INTEGRAÇÃO DOMÍNIO
             'SIM' if client.get('sistemaOnvio') else 'NÃO',          # 48. SISTEMA ONVIO
+            'SIM' if client.get('sistemaOnvioContabil') else 'NÃO',  # 49. SISTEMA ONVIO CONTÁBIL
+            'SIM' if client.get('sistemaOnvioFiscal') else 'NÃO',    # 50. SISTEMA ONVIO FISCAL
+            'SIM' if client.get('sistemaOnvioPessoal') else 'NÃO',   # 51. SISTEMA ONVIO PESSOAL
             
             # Bloco 6: Senhas e Credenciais
-            client.get('acessoIss', ''),                      # 49. ACESSO ISS
-            client.get('senhaIss', ''),                       # 50. SENHA ISS
-            client.get('acessoSefin', ''),                    # 51. ACESSO SEFIN
-            client.get('senhaSefin', ''),                     # 52. SENHA SEFIN
-            client.get('acessoSeuma', ''),                    # 53. ACESSO SEUMA
-            client.get('senhaSeuma', ''),                     # 54. SENHA SEUMA
-            client.get('acessoEmpWeb', ''),                   # 55. ACESSO EMPWEB
+            client.get('acessoIss', ''),                      # 52. ACESSO ISS
+            client.get('senhaIss', ''),                       # 53. SENHA ISS
+            client.get('acessoSefin', ''),                    # 54. ACESSO SEFIN
+            client.get('senhaSefin', ''),                     # 55. SENHA SEFIN
+            client.get('acessoSeuma', ''),                    # 56. ACESSO SEUMA
+            client.get('senhaSeuma', ''),                     # 57. SENHA SEUMA
+            client.get('acessoEmpWeb', ''),                   # 58. ACESSO EMPWEB
             client.get('senhaEmpWeb', ''),                    # 56. SENHA EMPWEB
             client.get('acessoFapInss', ''),                  # 57. ACESSO FAP/INSS
             client.get('senhaFapInss', ''),                   # 58. SENHA FAP/INSS
@@ -750,6 +756,9 @@ class GoogleSheetsServiceAccountService:
             'portalClienteAtivo': bool_from_text(safe_get(row, 45)), # 46. PORTAL CLIENTE ATIVO
             'integracaoDominio': bool_from_text(safe_get(row, 46)),  # 47. INTEGRAÇÃO DOMÍNIO
             'sistemaOnvio': bool_from_text(safe_get(row, 47)),  # 48. SISTEMA ONVIO
+            'sistemaOnvioContabil': bool_from_text(safe_get(row, 48)), # 49. SISTEMA ONVIO CONTÁBIL
+            'sistemaOnvioFiscal': bool_from_text(safe_get(row, 49)),   # 50. SISTEMA ONVIO FISCAL
+            'sistemaOnvioPessoal': bool_from_text(safe_get(row, 50)),  # 51. SISTEMA ONVIO PESSOAL
             
             # Campos legados para compatibilidade
             'portalCliente': bool_from_text(safe_get(row, 45)), # Alias para portalClienteAtivo
@@ -757,18 +766,18 @@ class GoogleSheetsServiceAccountService:
             'onvio': bool_from_text(safe_get(row, 47)),         # Alias para sistemaOnvio
             
             # Bloco 6: Senhas e Credenciais
-            'acessoIss': safe_get(row, 48),                     # 49. ACESSO ISS
-            'senhaIss': safe_get(row, 49),                      # 50. SENHA ISS
-            'acessoSefin': safe_get(row, 50),                   # 51. ACESSO SEFIN
-            'senhaSefin': safe_get(row, 51),                    # 52. SENHA SEFIN
-            'acessoSeuma': safe_get(row, 52),                   # 53. ACESSO SEUMA
-            'senhaSeuma': safe_get(row, 53),                    # 54. SENHA SEUMA
-            'acessoEmpWeb': safe_get(row, 54),                  # 55. ACESSO EMPWEB
-            'senhaEmpWeb': safe_get(row, 55),                   # 56. SENHA EMPWEB
-            'acessoFapInss': safe_get(row, 56),                 # 57. ACESSO FAP/INSS
-            'senhaFapInss': safe_get(row, 57),                  # 58. SENHA FAP/INSS
-            'acessoCrf': safe_get(row, 58),                     # 59. ACESSO CRF
-            'senhaCrf': safe_get(row, 59),                      # 60. SENHA CRF
+            'acessoIss': safe_get(row, 51),                     # 52. ACESSO ISS
+            'senhaIss': safe_get(row, 52),                      # 53. SENHA ISS
+            'acessoSefin': safe_get(row, 53),                   # 54. ACESSO SEFIN
+            'senhaSefin': safe_get(row, 54),                    # 55. SENHA SEFIN
+            'acessoSeuma': safe_get(row, 55),                   # 56. ACESSO SEUMA
+            'senhaSeuma': safe_get(row, 56),                    # 57. SENHA SEUMA
+            'acessoEmpWeb': safe_get(row, 57),                  # 58. ACESSO EMPWEB
+            'senhaEmpWeb': safe_get(row, 58),                   # 59. SENHA EMPWEB
+            'acessoFapInss': safe_get(row, 59),                 # 60. ACESSO FAP/INSS
+            'senhaFapInss': safe_get(row, 60),                  # 61. SENHA FAP/INSS
+            'acessoCrf': safe_get(row, 61),                     # 62. ACESSO CRF
+            'senhaCrf': safe_get(row, 62),                      # 63. SENHA CRF
             'emailGestor': safe_get(row, 60),                   # 61. EMAIL GESTOR
             'senhaEmailGestor': safe_get(row, 61),              # 62. SENHA EMAIL GESTOR
             'anvisaGestor': safe_get(row, 62),                  # 63. ANVISA GESTOR
