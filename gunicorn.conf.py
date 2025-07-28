@@ -5,7 +5,71 @@ import os
 import multiprocessing
 
 # Configurações básicas
-bind = f"0.0.0.0:{os.environ.get('PORT', '5000')}"
+# Configuração Gunicorn otimizada para Render 512MB
+import os
+import multiprocessing
+
+# Configurações básicas
+bind = f"0.0.0.0:{os.environ.get('PORT', 5000)}"
+workers = 1  # APENAS 1 worker para economizar memória (era 2)
+worker_class = "sync"  # Sync é mais eficiente em memória que async
+worker_connections = 50  # Reduzido de 1000 para 50
+
+# Otimizações de memória críticas para Render 512MB
+max_requests = 100  # Reciclar worker após 100 requests
+max_requests_jitter = 10  # Adicionar variação
+worker_memory_limit = 400 * 1024 * 1024  # 400MB limite por worker
+preload_app = False  # NÃO precarregar app (economia de memória)
+
+# Timeouts otimizados
+timeout = 60  # Reduzido de 120 para 60 segundos
+keepalive = 2
+graceful_timeout = 30
+
+# Configurações de logging minimalistas
+accesslog = "-"
+errorlog = "-"
+loglevel = "warning"  # Menos logs = menos memória
+access_log_format = '%(h)s "%(r)s" %(s)s %(b)s %(D)s'  # Formato mínimo
+
+# Configurações específicas para produção
+if os.environ.get('FLASK_ENV') == 'production':
+    # Ainda mais conservador em produção
+    workers = 1
+    worker_connections = 25
+    max_requests = 50
+    loglevel = "error"  # Apenas erros
+    
+    print("🧠 Gunicorn configurado para máxima economia de memória (Render 512MB)")
+else:
+    print("🔧 Gunicorn configurado para desenvolvimento")
+
+# Funções de hook para monitoramento de memória
+def when_ready(server):
+    """Executado quando o servidor está pronto"""
+    print(f"🚀 Gunicorn iniciado com {workers} worker(s)")
+    print(f"💾 Configurado para Render 512MB - workers limitados")
+
+def worker_exit(server, worker):
+    """Executado quando um worker sai"""
+    try:
+        import gc
+        gc.collect()
+        print(f"🧹 Worker {worker.pid} finalizado - memoria limpa")
+    except:
+        pass
+
+def on_starting(server):
+    """Executado ao iniciar"""
+    print("⚙️ Iniciando Gunicorn com configurações otimizadas para memória")
+    
+def pre_fork(server, worker):
+    """Executado antes de fazer fork do worker"""
+    try:
+        import gc
+        gc.collect()
+    except:
+        pass
 wsgi_module = "wsgi:application"
 
 # OTIMIZAÇÕES CRÍTICAS PARA MEMÓRIA NO RENDER
