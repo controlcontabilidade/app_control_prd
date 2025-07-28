@@ -35,3 +35,80 @@ Thumbs.db
 
 # Logs
 *.log
+
+# === ARQUIVOS DE TESTE E DEBUG ===
+# Arquivos de teste
+test_*.py
+*_test.py
+testing_*.py
+*_testing.py
+debug_*.py
+*_debug.py
+
+# Diretórios de teste
+tests/
+test/
+testing/
+debug/
+
+# Arquivos temporários de desenvolvimento
+temp_*.py
+tmp_*.py
+*_temp.py
+*_tmp.py
+temp.*
+tmp.*
+
+# Arquivos HTML de debug (não templates)
+debug_*.html
+temp_*.html
+*_debug.html
+*_temp.html
+
+# Arquivos de backup e rascunho
+*.bak
+*.backup
+draft_*
+*_draft.*
+scratch_*
+*_scratch.*
+
+# Arquivos de monitoramento e diagnóstico
+diagnostic_*.py
+analyze_*.py
+monitor_*.py
+memory_*.py
+capture_*.py
+*_diagnostic.py
+*_analyze.py
+*_monitor.py
+
+# Arquivos de migração e correção temporários
+migrate_*.py
+fix_*.py
+cleanup_*.py
+convert_*.py
+revert_*.py
+*_migrate.py
+*_fix.py
+*_cleanup.py
+*_convert.py
+*_revert.py
+
+# Arquivos de validação e verificação
+validate_*.py
+check_*.py
+verify_*.py
+*_validate.py
+*_check.py
+*_verify.py
+
+# Outros arquivos de desenvolvimento
+experimental_*.py
+prototype_*.py
+*_experimental.py
+*_prototype.py
+
+# Arquivos Excel temporários
+~$*.xlsx
+~$*.xls
