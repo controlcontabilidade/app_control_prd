@@ -163,29 +163,52 @@ class MemoryOptimizedGoogleSheetsService:
     def row_to_client(self, row: List[str]) -> Dict:
         """
         Converte linha da planilha para objeto cliente (versão otimizada)
+        CORRIGIDO: Mapeamento correto dos campos baseado no serviço padrão
         """
         if not row or len(row) < 3:
             return {}
         
+        def bool_from_text(text, default=False):
+            if isinstance(text, bool):
+                return text
+            if isinstance(text, str):
+                return text.upper() in ['SIM', 'TRUE', '1', 'VERDADEIRO', 'S', 'YES']
+            return default
+        
         # Processar apenas campos essenciais para economizar memória
+        # MAPEAMENTO CORRETO baseado na estrutura da planilha:
+        # row[0] = NOME DA EMPRESA, row[1] = RAZÃO SOCIAL, row[2] = NOME FANTASIA, row[3] = CNPJ, row[94] = ID
         client = {
-            'id': row[0] if len(row) > 0 and row[0] else '',
-            'nomeEmpresa': row[1] if len(row) > 1 and row[1] else '',
-            'cnpj': row[2] if len(row) > 2 and row[2] else '',
-            'razaoSocialReceita': row[3] if len(row) > 3 and row[3] else '',
-            'ativo': row[4] if len(row) > 4 and row[4] else True,
+            'id': row[94] if len(row) > 94 and row[94] else '',  # CORRIGIDO: ID está na coluna 94
+            'nomeEmpresa': row[0] if len(row) > 0 and row[0] else '',
+            'razaoSocialReceita': row[1] if len(row) > 1 and row[1] else '',  # CORRIGIDO: Razão social na coluna 1
+            'nomeFantasiaReceita': row[2] if len(row) > 2 and row[2] else '',  # ADICIONADO: Nome fantasia na coluna 2
+            'cnpj': row[3] if len(row) > 3 and row[3] else '',  # CORRIGIDO: CNPJ na coluna 3
+            'ativo': bool_from_text(row[92] if len(row) > 92 and row[92] else 'SIM', True),  # CORRIGIDO: índice 92
+            
+            # CAMPOS ADICIONADOS PARA O DASHBOARD:
+            'perfil': row[4] if len(row) > 4 and row[4] else '',  # CORRIGIDO: Perfil na coluna 4
+            'inscEst': row[5] if len(row) > 5 and row[5] else '',  # ADICIONADO: Inscrição Estadual
+            'inscMun': row[6] if len(row) > 6 and row[6] else '',  # ADICIONADO: Inscrição Municipal
+            'tributacao': row[9] if len(row) > 9 and row[9] else '',  # ADICIONADO: Tributação (regime federal)
+            
+            # CAMPOS DE SERVIÇOS:
+            'ct': bool_from_text(row[13] if len(row) > 13 and row[13] else ''),  # ADICIONADO: Serviço CT
+            'fs': bool_from_text(row[14] if len(row) > 14 and row[14] else ''),  # ADICIONADO: Serviço FS
+            'dp': bool_from_text(row[15] if len(row) > 15 and row[15] else ''),  # ADICIONADO: Serviço DP
+            'bpoFinanceiro': bool_from_text(row[16] if len(row) > 16 and row[16] else ''),  # ADICIONADO: BPO Financeiro
             
             # Campos essenciais para dashboard
             'statusCliente': row[85] if len(row) > 85 and row[85] else 'ativo',
-            'sistemaOnvio': row[46] if len(row) > 46 and row[46] else False,
-            'sistemaOnvioContabil': row[47] if len(row) > 47 and row[47] else False,
-            'sistemaOnvioFiscal': row[48] if len(row) > 48 and row[48] else False,
-            'sistemaOnvioPessoal': row[49] if len(row) > 49 and row[49] else False,
+            'sistemaOnvio': bool_from_text(row[46] if len(row) > 46 and row[46] else ''),  # CORRIGIDO: bool
+            'sistemaOnvioContabil': bool_from_text(row[47] if len(row) > 47 and row[47] else ''),  # CORRIGIDO: bool
+            'sistemaOnvioFiscal': bool_from_text(row[48] if len(row) > 48 and row[48] else ''),  # CORRIGIDO: bool
+            'sistemaOnvioPessoal': bool_from_text(row[49] if len(row) > 49 and row[49] else ''),  # CORRIGIDO: bool
             
             # Outros campos importantes (carregar sob demanda)
-            'responsavelContabil': row[9] if len(row) > 9 and row[9] else '',
-            'telefone': row[13] if len(row) > 13 and row[13] else '',
-            'email': row[15] if len(row) > 15 and row[15] else '',
+            'responsavelContabil': row[35] if len(row) > 35 and row[35] else '',  # CORRIGIDO: responsável imediato
+            'telefone': row[30] if len(row) > 30 and row[30] else '',  # CORRIGIDO: telefone fixo
+            'email': row[33] if len(row) > 33 and row[33] else '',  # CORRIGIDO: email principal
         }
         
         return client

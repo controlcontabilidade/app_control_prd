@@ -8,12 +8,16 @@ from functools import wraps
 
 # Importar otimizador de memória
 try:
-    from memory_optimizer import MemoryOptimizer, MEMORY_OPTIMIZED_SETTINGS
+    from memory_optimizer import MemoryOptimizer, MEMORY_OPTIMIZED_SETTINGS, get_optimized_batch_size
     MEMORY_OPTIMIZER_AVAILABLE = True
     print("🧠 Memory Optimizer carregado")
 except ImportError:
     MEMORY_OPTIMIZER_AVAILABLE = False
     print("⚠️ Memory Optimizer não disponível")
+    
+    # Definir função fallback
+    def get_optimized_batch_size():
+        return 50
 
 from services.google_sheets_service import GoogleSheetsService
 from services.local_storage_service import LocalStorageService
@@ -326,10 +330,18 @@ def admin_required(f):
             flash('Você precisa fazer login para acessar esta página.', 'warning')
             return redirect(url_for('login'))
         
-        user = user_service.get_user_by_id(session['user_id'])
-        if not user or user.get('perfil', '').lower() != 'administrador':
-            flash('Acesso negado. Apenas administradores podem acessar esta página.', 'danger')
-            return redirect(url_for('index'))
+        # Usar get_user_service() em vez de user_service diretamente
+        current_user_service = get_user_service()
+        if current_user_service:
+            user = current_user_service.get_user_by_id(session['user_id'])
+            if not user or user.get('perfil', '').lower() != 'administrador':
+                flash('Acesso negado. Apenas administradores podem acessar esta página.', 'danger')
+                return redirect(url_for('index'))
+        else:
+            # Se não há user_service, verificar se é o admin de fallback
+            if session.get('user_id') != 'admin-fallback':
+                flash('Acesso negado. Sistema em modo de manutenção.', 'danger')
+                return redirect(url_for('index'))
         
         return f(*args, **kwargs)
     return decorated_function
@@ -386,8 +398,9 @@ def logout():
 @app.route('/users')
 @admin_required
 def users():
-    if user_service:
-        users_list = user_service.list_users()
+    current_user_service = get_user_service()
+    if current_user_service:
+        users_list = current_user_service.list_users()
         return render_template('users.html', users=users_list)
     else:
         flash('Serviço de usuários indisponível.', 'error')
@@ -396,14 +409,15 @@ def users():
 @app.route('/create_user', methods=['POST'])
 @admin_required
 def create_user():
-    if user_service:
+    current_user_service = get_user_service()
+    if current_user_service:
         nome = request.form['nome']
         email = request.form['email']
         usuario = request.form['usuario']
         senha = request.form['senha']
         perfil = request.form['perfil']
         
-        result = user_service.create_user(nome, email, usuario, senha, perfil)
+        result = current_user_service.create_user(nome, email, usuario, senha, perfil)
         
         if result['success']:
             flash(result['message'], 'success')
@@ -417,7 +431,8 @@ def create_user():
 @app.route('/edit_user', methods=['POST'])
 @admin_required
 def edit_user():
-    if user_service:
+    current_user_service = get_user_service()
+    if current_user_service:
         user_id = request.form['user_id']
         nome = request.form['nome']
         email = request.form['email']
@@ -429,7 +444,7 @@ def edit_user():
         # Se nova senha foi fornecida, usa ela, senão None
         senha_param = nova_senha if nova_senha else None
         
-        result = user_service.update_user(user_id, nome, email, usuario, perfil, ativo, senha_param)
+        result = current_user_service.update_user(user_id, nome, email, usuario, perfil, ativo, senha_param)
         
         if result['success']:
             flash(result['message'], 'success')
@@ -443,10 +458,11 @@ def edit_user():
 @app.route('/delete_user', methods=['POST'])
 @admin_required
 def delete_user():
-    if user_service:
+    current_user_service = get_user_service()
+    if current_user_service:
         user_id = request.form['user_id']
         
-        result = user_service.delete_user(user_id)
+        result = current_user_service.delete_user(user_id)
         
         if result['success']:
             flash(result['message'], 'success')
@@ -1248,7 +1264,9 @@ def view_client(client_id):
         print(f"🔍 [VIEW] ID solicitado: '{client_id}'")
         print(f"🔍 [VIEW] Tipo do ID: {type(client_id)}")
         
-        client = storage_service.get_client(client_id)
+        # CORREÇÃO: Usar get_storage_service() para lazy loading
+        storage = get_storage_service()
+        client = storage.get_client(client_id)
         print(f"🔍 [VIEW] Cliente carregado: {client is not None}")
         
         if client:
@@ -1278,7 +1296,9 @@ def edit_client(client_id):
         print(f"🔍 [EDIT] ===== CARREGANDO CLIENTE PARA EDIÇÃO =====")
         print(f"🔍 [EDIT] ID solicitado: '{client_id}'")
         
-        client = storage_service.get_client(client_id)
+        # CORREÇÃO: Usar get_storage_service() para lazy loading
+        storage = get_storage_service()
+        client = storage.get_client(client_id)
         print(f"🔍 [EDIT] Cliente carregado: {client is not None}")
         
         if client:
@@ -1527,7 +1547,9 @@ def save_client():
         print(f"🔍 Tipo de operação: {'EDIÇÃO' if client_data.get('id') else 'CRIAÇÃO'}")
         print("🔍 Verificando conexão com storage_service...")
         
-        if not storage_service:
+        # CORREÇÃO: Usar get_storage_service() para lazy loading
+        storage = get_storage_service()
+        if not storage:
             print("❌ storage_service não está disponível!")
             flash('Erro: Serviço de armazenamento não disponível', 'error')
             return redirect(url_for('index'))
@@ -1537,7 +1559,7 @@ def save_client():
         print(f"🔍 client_data['nomeEmpresa']: '{client_data.get('nomeEmpresa')}'")
         print(f"🔍 Dados essenciais: ID={client_data.get('id')}, Nome={client_data.get('nomeEmpresa')}")
         
-        success = storage_service.save_client(client_data)
+        success = storage.save_client(client_data)
         
         print(f"🔍 Resultado do salvamento: {success}")
         
@@ -1571,7 +1593,9 @@ def delete_client(client_id):
             flash('Acesso negado. Apenas administradores podem excluir clientes.', 'danger')
             return redirect(url_for('view_client', client_id=client_id))
         
-        success = storage_service.delete_client(client_id)
+        # CORREÇÃO: Usar get_storage_service() para lazy loading
+        storage = get_storage_service()
+        success = storage.delete_client(client_id)
         if success:
             flash('Cliente excluído com sucesso!', 'success')
         else:
