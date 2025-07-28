@@ -57,21 +57,43 @@ class GoogleSheetsServiceAccountService:
             raise
     
     def save_client(self, client: Dict) -> bool:
-        """Salva ou atualiza cliente no Google Sheets"""
+        """Salva ou atualiza cliente no Google Sheets - CORRIGIDO PARA EVITAR DUPLICAÇÃO"""
         try:
-            print(f"🔍 [SERVICE] Processando cliente '{client.get('nomeEmpresa')}'...")
-            print(f"🔍 [SERVICE] ID do cliente: {client.get('id')}")
+            print(f"🔍 [SERVICE] ===== PROCESSANDO CLIENTE =====")
+            print(f"🔍 [SERVICE] Cliente: '{client.get('nomeEmpresa')}'")
+            print(f"🔍 [SERVICE] ID do cliente: '{client.get('id')}'")
             print(f"🔍 [SERVICE] Dados recebidos: {list(client.keys())}")
             
-            # Se tem ID, é uma atualização
-            if client.get('id'):
-                print("🔍 [SERVICE] Tipo: ATUALIZAÇÃO")
-                return self.update_client(client)
+            client_id = client.get('id')
+            
+            # VALIDAÇÃO RIGOROSA: Verificar se o ID é válido
+            if client_id and str(client_id).strip() and str(client_id) != 'None':
+                print("🔍 [SERVICE] ===== OPERAÇÃO: ATUALIZAÇÃO =====")
+                print(f"🔍 [SERVICE] Verificando se cliente ID '{client_id}' existe...")
+                
+                # Buscar linha do cliente
+                row_index = self.find_client_row(client_id)
+                
+                if row_index > 0:
+                    print(f"✅ [SERVICE] Cliente existe na linha {row_index} - ATUALIZANDO")
+                    return self.update_client(client)
+                else:
+                    print(f"⚠️ [SERVICE] Cliente ID '{client_id}' NÃO encontrado!")
+                    print(f"⚠️ [SERVICE] Isso pode indicar:")
+                    print(f"   - ID inválido ou corrompido")
+                    print(f"   - Cliente foi deletado")
+                    print(f"   - Problemas na planilha")
+                    print(f"❌ [SERVICE] ABORTANDO operação para evitar duplicação")
+                    return False
             else:
-                print("🔍 [SERVICE] Tipo: NOVO CLIENTE")
-                # Gerar ID se não existir
-                client['id'] = str(int(datetime.now().timestamp()))
+                print("🔍 [SERVICE] ===== OPERAÇÃO: NOVO CLIENTE =====")
+                # Gerar ID único baseado em timestamp + random
+                import random
+                timestamp = int(datetime.now().timestamp())
+                random_suffix = random.randint(100, 999)
+                client['id'] = f"{timestamp}{random_suffix}"
                 client['criadoEm'] = datetime.now().isoformat()
+                print(f"🔍 [SERVICE] ID gerado: {client['id']}")
                 return self.add_new_client(client)
                 
         except Exception as e:
@@ -103,62 +125,69 @@ class GoogleSheetsServiceAccountService:
             return False
     
     def update_client(self, client: Dict) -> bool:
-        """Atualiza cliente existente na planilha"""
+        """Atualiza cliente existente na planilha - CORRIGIDO PARA EVITAR DUPLICAÇÃO"""
         try:
-            print(f"✏️ [SERVICE] Atualizando cliente ID: {client.get('id')}")
+            print(f"✏️ [SERVICE] ===== ATUALIZANDO CLIENTE =====")
+            print(f"✏️ [SERVICE] Cliente ID: {client.get('id')}")
+            print(f"✏️ [SERVICE] Nome: {client.get('nomeEmpresa')}")
             
-            # Validação básica
-            if not client.get('id'):
-                print("❌ [SERVICE] ID do cliente é obrigatório para atualização")
+            # Validação rigorosa
+            client_id = client.get('id')
+            if not client_id or str(client_id).strip() == '' or str(client_id) == 'None':
+                print("❌ [SERVICE] ID do cliente é inválido para atualização")
                 return False
                 
             if not client.get('nomeEmpresa'):
                 print("❌ [SERVICE] Nome da empresa é obrigatório")
                 return False
             
-            # Buscar a linha do cliente
-            print("🔍 [SERVICE] Buscando linha do cliente...")
-            row_index = self.find_client_row(client.get('id'))
-            print(f"🔍 [SERVICE] Linha encontrada: {row_index}")
+            # Buscar a linha do cliente (DEVE existir)
+            print("🔍 [SERVICE] Localizando cliente na planilha...")
+            row_index = self.find_client_row(client_id)
+            print(f"🔍 [SERVICE] Resultado da busca: {row_index}")
             
-            if row_index == -1:
-                print("⚠️ [SERVICE] Cliente não encontrado, adicionando como novo...")
-                return self.add_new_client(client)
+            if row_index <= 0:
+                print(f"❌ [SERVICE] ERRO CRÍTICO: Cliente ID '{client_id}' não encontrado!")
+                print("❌ [SERVICE] ABORTAR atualização para evitar duplicação")
+                return False
             
-            # Atualizar dados do cliente (manter criadoEm original se não existir)
+            # Manter dados originais importantes
             if not client.get('criadoEm'):
-                print("🔍 [SERVICE] Buscando criadoEm original...")
+                print("🔍 [SERVICE] Recuperando criadoEm original...")
                 try:
-                    existing_client = self.get_client(client.get('id'))
+                    existing_client = self.get_client(client_id)
                     if existing_client:
                         client['criadoEm'] = existing_client.get('criadoEm', datetime.now().isoformat())
-                        print(f"🔍 [SERVICE] CriadoEm encontrado: {client['criadoEm']}")
+                        print(f"✅ [SERVICE] CriadoEm recuperado: {client['criadoEm']}")
                     else:
                         client['criadoEm'] = datetime.now().isoformat()
-                        print(f"🔍 [SERVICE] Usando criadoEm atual: {client['criadoEm']}")
+                        print(f"⚠️ [SERVICE] CriadoEm não encontrado, usando atual")
                 except Exception as e:
-                    print(f"⚠️ [SERVICE] Erro ao buscar criadoEm original: {e}")
+                    print(f"⚠️ [SERVICE] Erro ao recuperar criadoEm: {e}")
                     client['criadoEm'] = datetime.now().isoformat()
             
+            # Garantir que está sendo uma atualização
+            client['ultimaAtualizacao'] = datetime.now().isoformat()
+            
             # Preparar dados para atualização
-            print("🔍 [SERVICE] Convertendo cliente para linha...")
+            print("� [SERVICE] Preparando dados para atualização...")
             try:
                 row_data = self.client_to_row(client)
-                print(f"🔍 [SERVICE] Linha preparada com {len(row_data)} colunas")
+                print(f"✅ [SERVICE] Linha preparada: {len(row_data)} colunas")
                 
-                if len(row_data) < 55:
+                if len(row_data) < 90:
                     print(f"⚠️ [SERVICE] Linha tem menos colunas que esperado: {len(row_data)}")
                     
             except Exception as e:
-                print(f"❌ [SERVICE] Erro ao converter cliente para linha: {e}")
+                print(f"❌ [SERVICE] Erro ao preparar dados: {e}")
                 return False
             
+            # Executar atualização
             range_name = f'Clientes!A{row_index}:CZ{row_index}'
-            print(f"🔍 [SERVICE] Range para atualização: {range_name}")
+            print(f"🔧 [SERVICE] Atualizando range: {range_name}")
             
             body = {'values': [row_data]}
             
-            print("🔍 [SERVICE] Enviando atualização para Google Sheets...")
             try:
                 result = self.service.spreadsheets().values().update(
                     spreadsheetId=self.spreadsheet_id,
@@ -167,14 +196,13 @@ class GoogleSheetsServiceAccountService:
                     body=body
                 ).execute()
                 
-                print(f"✅ [SERVICE] Cliente atualizado na linha {row_index}")
-                print(f"🔍 [SERVICE] Resultado: {result.get('updatedCells', 0)} células atualizadas")
+                updated_cells = result.get('updatedCells', 0)
+                print(f"✅ [SERVICE] Cliente atualizado com sucesso!")
+                print(f"✅ [SERVICE] Linha: {row_index}, Células: {updated_cells}")
                 return True
                 
             except Exception as api_error:
-                print(f"❌ [SERVICE] Erro na API do Google Sheets durante atualização: {api_error}")
-                if "RATE_LIMIT_EXCEEDED" in str(api_error):
-                    print("⚠️ Rate limit excedido durante atualização")
+                print(f"❌ [SERVICE] Erro na API durante atualização: {api_error}")
                 return False
             
         except Exception as e:
@@ -184,108 +212,131 @@ class GoogleSheetsServiceAccountService:
             return False
     
     def find_client_row(self, client_id: str) -> int:
-        """Encontra a linha do cliente na planilha - MÉTODO MELHORADO"""
+        """Encontra a linha do cliente na planilha - MÉTODO CORRIGIDO PARA EVITAR DUPLICAÇÃO"""
         try:
-            print(f"🔍 [SERVICE] Buscando linha para cliente ID: '{client_id}'")
+            print(f"🔍 [SERVICE] ===== BUSCANDO CLIENTE =====")
+            print(f"🔍 [SERVICE] ID do cliente recebido: '{client_id}' (tipo: {type(client_id)})")
             
-            if not client_id or str(client_id).strip() == '':
-                print("⚠️ [SERVICE] ID do cliente está vazio!")
+            if not client_id or str(client_id).strip() == '' or str(client_id) == 'None':
+                print("⚠️ [SERVICE] ID do cliente está vazio ou None!")
                 return -1
             
             # Normalizar o ID para busca
             search_id = str(client_id).strip()
             print(f"🔍 [SERVICE] ID normalizado para busca: '{search_id}'")
             
-            # Buscar todos os dados para ter mais controle
+            # ESTRATÉGIA OTIMIZADA: Buscar apenas a coluna ID primeiro
             try:
-                result = self.service.spreadsheets().values().get(
+                # Primeiro, identificar onde está a coluna ID
+                header_result = self.service.spreadsheets().values().get(
                     spreadsheetId=self.spreadsheet_id,
-                    range='Clientes!A1:CZ'  # Buscar todos os dados
+                    range='Clientes!1:1'  # Apenas cabeçalho
                 ).execute()
-            except Exception as api_error:
-                print(f"❌ [SERVICE] Erro na API do Google Sheets: {api_error}")
-                if "RATE_LIMIT_EXCEEDED" in str(api_error):
-                    print("⚠️ Rate limit excedido. Aguardando e tentando novamente...")
-                    import time
-                    time.sleep(2)  # Aguardar 2 segundos
-                    return self._find_client_fallback(client_id)
-                raise api_error
-            
-            values = result.get('values', [])
-            print(f"🔍 [SERVICE] Planilha tem {len(values)} linhas no total")
-            
-            if len(values) <= 1:  # Só header ou vazio
-                print("⚠️ [SERVICE] Planilha vazia ou só com cabeçalho")
+                
+                headers = header_result.get('values', [[]])[0]
+                id_column_index = -1
+                
+                # Encontrar posição da coluna ID
+                for i, header in enumerate(headers):
+                    if str(header).strip().upper() == 'ID':
+                        id_column_index = i
+                        print(f"🔍 [SERVICE] Coluna ID encontrada no índice {i}")
+                        break
+                
+                if id_column_index == -1:
+                    # Assumir posição padrão (coluna 90, índice 89)
+                    id_column_index = 89
+                    print(f"🔍 [SERVICE] Usando posição padrão ID: índice {id_column_index}")
+                
+                # Converter para notação de coluna (A1)
+                id_column_letter = self._index_to_column_letter(id_column_index)
+                print(f"🔍 [SERVICE] Coluna ID: {id_column_letter} (índice {id_column_index})")
+                
+                # Buscar apenas a coluna ID (mais eficiente)
+                id_range = f'Clientes!{id_column_letter}2:{id_column_letter}'
+                id_result = self.service.spreadsheets().values().get(
+                    spreadsheetId=self.spreadsheet_id,
+                    range=id_range
+                ).execute()
+                
+                id_values = id_result.get('values', [])
+                print(f"🔍 [SERVICE] Buscando em {len(id_values)} linhas da coluna ID")
+                
+                # Procurar o ID
+                for row_idx, row in enumerate(id_values):
+                    if row and len(row) > 0:
+                        row_id = str(row[0]).strip()
+                        actual_row_number = row_idx + 2  # +2 porque começamos da linha 2
+                        
+                        if row_id == search_id:
+                            print(f"✅ [SERVICE] ===== CLIENTE ENCONTRADO NA LINHA {actual_row_number} =====")
+                            return actual_row_number
+                        
+                        # Debug apenas primeiras 5 linhas
+                        if row_idx < 5:
+                            print(f"🔍 [SERVICE] Linha {actual_row_number}: ID '{row_id}' vs busca '{search_id}' - Match: {row_id == search_id}")
+                
+                print(f"⚠️ [SERVICE] ===== CLIENTE ID '{search_id}' NÃO ENCONTRADO =====")
+                print(f"🔍 [SERVICE] Total de linhas verificadas: {len(id_values)}")
                 return -1
-            
-            # Encontrar a coluna do ID - deve ser coluna 90 (índice 89)
-            headers = values[0] if values else []
-            id_column_index = -1
-            
-            # Procurar pela coluna 'ID' ou 'id'
-            for i, header in enumerate(headers):
-                if str(header).strip().upper() == 'ID':
-                    id_column_index = i
-                    print(f"🔍 [SERVICE] Coluna ID encontrada no índice {i}")
-                    break
-            
-            if id_column_index == -1:
-                # Assumir que é a última coluna (padrão SIGEC)
-                id_column_index = 89  # Posição padrão do ID no SIGEC
-                print(f"🔍 [SERVICE] Usando posição padrão do ID: índice {id_column_index}")
-            
-            # Percorrer as linhas procurando o ID
-            for row_num, row in enumerate(values[1:], start=2):  # Start from row 2 (skip header)
-                if len(row) > id_column_index:
-                    row_id = str(row[id_column_index]).strip()
-                    print(f"🔍 [SERVICE] Linha {row_num}: ID '{row_id}' vs busca '{search_id}'")
-                    
-                    if row_id == search_id:
-                        print(f"✅ [SERVICE] Cliente encontrado na linha {row_num}")
-                        return row_num
-                else:
-                    print(f"🔍 [SERVICE] Linha {row_num}: sem coluna ID (só {len(row)} colunas)")
-            
-            print(f"⚠️ [SERVICE] Cliente ID '{search_id}' não encontrado na planilha")
-            return -1  # Não encontrado
+                
+            except Exception as api_error:
+                print(f"❌ [SERVICE] Erro na API otimizada: {api_error}")
+                # Fallback para método tradicional
+                return self._find_client_fallback_traditional(client_id)
             
         except Exception as e:
             print(f"❌ [SERVICE] Erro ao buscar linha do cliente: {e}")
             import traceback
             print(f"❌ [SERVICE] Traceback: {traceback.format_exc()}")
             return -1
-            
-    def _find_client_fallback(self, client_id: str) -> int:
-        """Método alternativo para encontrar cliente em caso de problemas com a API"""
+    
+    def _index_to_column_letter(self, index: int) -> str:
+        """Converte índice numérico para letra da coluna (0->A, 25->Z, 26->AA, etc.)"""
+        result = ""
+        while index >= 0:
+            result = chr(index % 26 + ord('A')) + result
+            index = index // 26 - 1
+        return result
+    
+    def _find_client_fallback_traditional(self, client_id: str) -> int:
+        """Método de fallback usando busca tradicional (mais lento mas confiável)"""
         try:
-            print(f"🔍 [SERVICE] Usando busca alternativa para ID: {client_id}")
+            print(f"🔍 [SERVICE] Usando busca tradicional para ID: {client_id}")
             
-            # Buscar todos os dados da planilha (limitado)
+            # Buscar todos os dados
             result = self.service.spreadsheets().values().get(
                 spreadsheetId=self.spreadsheet_id,
-                range='Clientes!A1:CZ100'  # Limitando a 100 linhas para evitar rate limit
+                range='Clientes!A1:CZ'
             ).execute()
             
             values = result.get('values', [])
+            if len(values) <= 1:
+                return -1
             
-            for i, row in enumerate(values):
-                if i == 0:  # Pular cabeçalho
-                    continue
-                    
-                if len(row) >= 90:  # Garantir que tem a coluna ID (posição 89, 0-indexed)
-                    row_id = str(row[89]).strip() if len(row) > 89 else ''
-                    if row_id == str(client_id).strip():
-                        print(f"✅ [SERVICE] Cliente encontrado na linha {i + 1} (busca alternativa)")
-                        return i + 1
+            headers = values[0]
+            id_column_index = 89  # Posição padrão
             
-            print(f"⚠️ [SERVICE] Cliente não encontrado na busca alternativa")
+            # Procurar pela coluna ID
+            for i, header in enumerate(headers):
+                if str(header).strip().upper() == 'ID':
+                    id_column_index = i
+                    break
+            
+            search_id = str(client_id).strip()
+            
+            # Buscar nas linhas
+            for row_num, row in enumerate(values[1:], start=2):
+                if len(row) > id_column_index:
+                    row_id = str(row[id_column_index]).strip()
+                    if row_id == search_id:
+                        print(f"✅ [SERVICE] Cliente encontrado na linha {row_num} (busca tradicional)")
+                        return row_num
+            
             return -1
             
         except Exception as e:
-            print(f"❌ [SERVICE] Erro na busca alternativa: {e}")
-            return -1
-            import traceback
-            print(f"❌ [SERVICE] Traceback: {traceback.format_exc()}")
+            print(f"❌ [SERVICE] Erro na busca tradicional: {e}")
             return -1
     
     def get_clients(self) -> List[Dict]:
@@ -579,7 +630,15 @@ class GoogleSheetsServiceAccountService:
 
     def client_to_row(self, client: Dict) -> List:
         """Converte cliente para linha da planilha - SIGEC organizado por blocos"""
-        return [
+        
+        # DEBUG: Log do ID do cliente
+        client_id = client.get('id', '')
+        print(f"🔍 [SERVICE] ===== CLIENT_TO_ROW =====")
+        print(f"🔍 [SERVICE] Cliente: {client.get('nomeEmpresa')}")
+        print(f"🔍 [SERVICE] ID do cliente: '{client_id}' (tipo: {type(client_id)})")
+        print(f"🔍 [SERVICE] ID será colocado na posição 89 (coluna 90)")
+        
+        row_data = [
             # Bloco 1: Informações da Pessoa Jurídica (13 campos obrigatórios)
             client.get('nomeEmpresa', ''),                    # 1. NOME DA EMPRESA
             client.get('razaoSocialReceita', ''),             # 2. RAZÃO SOCIAL NA RECEITA
@@ -692,6 +751,12 @@ class GoogleSheetsServiceAccountService:
             'SIM' if client.get('ativo', True) else 'NÃO',    # 91. CLIENTE ATIVO
             client.get('criadoEm', datetime.now().isoformat()) # 92. DATA DE CRIAÇÃO
         ]
+        
+        # DEBUG: Verificar se o ID foi colocado corretamente
+        print(f"🔍 [SERVICE] ID na posição 89: '{row_data[89]}' (deve ser '{client_id}')")
+        print(f"🔍 [SERVICE] Total de colunas na linha: {len(row_data)}")
+        
+        return row_data
     
     def row_to_client(self, row: List) -> Dict:
         """Converte linha da planilha para dicionário do cliente - SIGEC organizado por blocos"""

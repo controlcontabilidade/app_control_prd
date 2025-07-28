@@ -43,12 +43,16 @@ if not os.path.exists(app.config['UPLOAD_FOLDER']):
 def allowed_file(filename):
     return '.' in filename and filename.rsplit('.', 1)[1].lower() in ALLOWED_EXTENSIONS
 
+# Carregar variáveis de ambiente (.env local / Render)
+from dotenv import load_dotenv
+load_dotenv()  # Carrega .env apenas localmente (Render usa variáveis nativas)
+
 # Carregar configurações (compatível com produção)
 USE_GOOGLE_SHEETS = True
 USE_OAUTH2 = False  # OAuth2 para autenticação manual  
 USE_SERVICE_ACCOUNT = True  # Service Account para aplicações server-side (RECOMENDADO)
-GOOGLE_SHEETS_API_KEY = os.environ.get('GOOGLE_SHEETS_API_KEY', 'AIzaSyA2HSqIGfYI51rzCa5p7duPJUMG5VtU3TA')
-GOOGLE_SHEETS_ID = os.environ.get('GOOGLE_SHEETS_ID', '1jEmEPlxhGsrB_VhP3Pa-69xGRXRSwSAKd1Ypx241M4s')
+GOOGLE_SHEETS_API_KEY = os.environ.get('GOOGLE_SHEETS_API_KEY')
+GOOGLE_SHEETS_ID = os.environ.get('GOOGLE_SHEETS_ID')
 GOOGLE_SHEETS_RANGE = 'Clientes!A:CZ'
 
 print(f"🔧 Configurações:")
