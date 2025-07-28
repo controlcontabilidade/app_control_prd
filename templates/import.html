@@ -1,4 +1,4 @@
-<!DOCTYPE html>
+﻿<!DOCTYPE html>
 <html lang="pt-BR">
 <head>
     <meta charset="UTF-8">
@@ -146,7 +146,7 @@
         <div class="step-indicator">
             <div class="step">
                 <div class="step-number">1</div>
-                <span>Baixar Template</span>
+                <span>baixar template</span>
             </div>
             <div class="step">
                 <div class="step-number">2</div>
@@ -154,7 +154,7 @@
             </div>
             <div class="step">
                 <div class="step-number">3</div>
-                <span>Importar Arquivo</span>
+                <span>importar arquivo</span>
             </div>
         </div>
 
@@ -165,14 +165,14 @@
                 <div class="mb-4">
                     <h5 class="card-title mb-3">
                         <i class="bi bi-download text-primary"></i>
-                        Passo 1: Baixar Template
+                        passo 1: baixar template
                     </h5>
                     <p class="text-secondary mb-3">
-                        Baixe o template Excel com as colunas corretas e um exemplo de preenchimento.
+                        Baixe o template excel com as colunas corretas e um exemplo de preenchimento.
                     </p>
                     <a href="{{ url_for('download_template') }}" class="btn btn-outline-primary">
                         <i class="bi bi-file-earmark-excel"></i>
-                        Baixar Template Excel
+                        baixar template excel
                     </a>
                 </div>
 
@@ -182,7 +182,7 @@
                 <div class="mb-4">
                     <h5 class="card-title mb-3">
                         <i class="bi bi-pencil text-primary"></i>
-                        Passo 2: Preencher Dados
+                        passo 2: preencher dados
                     </h5>
                     <div class="requirements">
                         <h6><i class="bi bi-info-circle"></i> Requisitos Importantes:</h6>
@@ -202,7 +202,7 @@
                 <div class="mb-4">
                     <h5 class="card-title mb-3">
                         <i class="bi bi-upload text-primary"></i>
-                        Passo 3: Importar Arquivo
+                        passo 3: importar arquivo
                     </h5>
                     
                     <form action="{{ url_for('upload_and_import') }}" method="POST" enctype="multipart/form-data" id="importForm">
@@ -220,7 +220,7 @@
                                    required>
                             <button type="button" class="btn btn-primary" onclick="document.getElementById('fileInput').click()">
                                 <i class="bi bi-folder2-open"></i>
-                                Selecionar Arquivo
+                                selecionar arquivo
                             </button>
                         </div>
                         
@@ -240,7 +240,7 @@
                         <div class="d-grid gap-2 mt-3">
                             <button type="submit" class="btn btn-success btn-lg" id="importBtn" disabled>
                                 <i class="bi bi-upload"></i>
-                                Iniciar Importação
+                                iniciar importação
                             </button>
                         </div>
                     </form>

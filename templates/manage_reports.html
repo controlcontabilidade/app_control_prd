@@ -1,4 +1,4 @@
-{% extends "base.html" %}
+﻿{% extends "base.html" %}
 
 {% block title %}Gerenciar Relatórios{% endblock %}
 
@@ -35,9 +35,9 @@
                         </div>
                         <div class="col-md-3">
                             <select class="form-select" id="statusFilter">
-                                <option value="">Todos os Status</option>
-                                <option value="ativo">Somente Ativos</option>
-                                <option value="inativo">Somente Inativos</option>
+                                <option value="">Todos os status</option>
+                                <option value="ativo">Somente ativos</option>
+                                <option value="inativo">Somente inativos</option>
                             </select>
                         </div>
                         <div class="col-md-3">
@@ -59,9 +59,9 @@
                             <thead class="table-light">
                                 <tr>
                                     <th class="border-0 py-3">Nome</th>
-                                    <th class="border-0 py-3">Descrição</th>
-                                    <th class="border-0 py-3">Status</th>
-                                    <th class="border-0 py-3">Ordem</th>
+                                    <th class="border-0 py-3">descrição</th>
+                                    <th class="border-0 py-3">status</th>
+                                    <th class="border-0 py-3">ordem</th>
                                     <th class="border-0 py-3">Criado Por</th>
                                     <th class="border-0 py-3">Data</th>
                                     <th class="border-0 py-3 text-center">Ações</th>
@@ -89,11 +89,11 @@
                                     <td class="py-3">
                                         {% if report.ativo %}
                                         <span class="badge bg-success-subtle text-success border border-success-subtle">
-                                            <i class="bi bi-check-circle me-1"></i>Ativo
+                                            <i class="bi bi-check-circle me-1"></i>ativo
                                         </span>
                                         {% else %}
                                         <span class="badge bg-danger-subtle text-danger border border-danger-subtle">
-                                            <i class="bi bi-x-circle me-1"></i>Inativo
+                                            <i class="bi bi-x-circle me-1"></i>inativo
                                         </span>
                                         {% endif %}
                                     </td>
@@ -162,7 +162,7 @@
     </div>
 </div>
 
-<!-- Modal Criar Relatório -->
+<!-- Modal criar relatório -->
 <div class="modal fade" id="createReportModal" tabindex="-1">
     <div class="modal-dialog modal-lg">
         <div class="modal-content">
@@ -178,21 +178,21 @@
                         <div class="col-md-8">
                             <div class="mb-3">
                                 <label for="nome" class="form-label">
-                                    Nome do Relatório <span class="text-danger">*</span>
+                                    nome do relatório <span class="text-danger">*</span>
                                 </label>
                                 <input type="text" class="form-control" id="nome" name="nome" required>
                             </div>
                         </div>
                         <div class="col-md-4">
                             <div class="mb-3">
-                                <label for="ordem" class="form-label">Ordem de Exibição</label>
+                                <label for="ordem" class="form-label">ordem de Exibição</label>
                                 <input type="number" class="form-control" id="ordem" name="ordem" value="0">
                             </div>
                         </div>
                     </div>
                     
                     <div class="mb-3">
-                        <label for="descricao" class="form-label">Descrição</label>
+                        <label for="descricao" class="form-label">descrição</label>
                         <textarea class="form-control" id="descricao" name="descricao" rows="3" placeholder="Descreva o conteúdo e objetivo do relatório..."></textarea>
                     </div>
                     
@@ -206,7 +206,7 @@
                     
                     <div class="mb-3">
                         <label for="usuarios_autorizados" class="form-label">
-                            <i class="bi bi-people me-2"></i>Usuários Autorizados
+                            <i class="bi bi-people me-2"></i>usuários autorizados
                         </label>
                         <select class="form-select" id="usuarios_autorizados" name="usuarios_autorizados_select" multiple>
                             <option value="todos" selected>🌐 Todos os usuários</option>
@@ -232,7 +232,7 @@
                 <div class="modal-footer">
                     <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
                     <button type="submit" class="btn btn-primary">
-                        <i class="bi bi-check me-2"></i>Criar Relatório
+                        <i class="bi bi-check me-2"></i>criar relatório
                     </button>
                 </div>
             </form>
@@ -240,13 +240,13 @@
     </div>
 </div>
 
-<!-- Modal Editar Relatório -->
+<!-- Modal editar relatório -->
 <div class="modal fade" id="editReportModal" tabindex="-1">
     <div class="modal-dialog modal-lg">
         <div class="modal-content">
             <div class="modal-header bg-warning text-dark">
                 <h5 class="modal-title">
-                    <i class="bi bi-pencil me-2"></i>Editar Relatório
+                    <i class="bi bi-pencil me-2"></i>editar relatório
                 </h5>
                 <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
             </div>
@@ -257,21 +257,21 @@
                         <div class="col-md-8">
                             <div class="mb-3">
                                 <label for="edit_nome" class="form-label">
-                                    Nome do Relatório <span class="text-danger">*</span>
+                                    nome do relatório <span class="text-danger">*</span>
                                 </label>
                                 <input type="text" class="form-control" id="edit_nome" name="nome" required>
                             </div>
                         </div>
                         <div class="col-md-4">
                             <div class="mb-3">
-                                <label for="edit_ordem" class="form-label">Ordem de Exibição</label>
+                                <label for="edit_ordem" class="form-label">ordem de Exibição</label>
                                 <input type="number" class="form-control" id="edit_ordem" name="ordem">
                             </div>
                         </div>
                     </div>
                     
                     <div class="mb-3">
-                        <label for="edit_descricao" class="form-label">Descrição</label>
+                        <label for="edit_descricao" class="form-label">descrição</label>
                         <textarea class="form-control" id="edit_descricao" name="descricao" rows="3"></textarea>
                     </div>
                     
@@ -284,7 +284,7 @@
                     
                     <div class="mb-3">
                         <label for="edit_usuarios_autorizados" class="form-label">
-                            <i class="bi bi-people me-2"></i>Usuários Autorizados
+                            <i class="bi bi-people me-2"></i>usuários autorizados
                         </label>
                         <select class="form-select" id="edit_usuarios_autorizados" name="usuarios_autorizados_select" multiple>
                             <option value="todos">🌐 Todos os usuários</option>
@@ -428,11 +428,11 @@ document.addEventListener('DOMContentLoaded', function() {
             const status = row.cells[2].textContent.toLowerCase();
             
             const matchesSearch = nome.includes(searchTerm) || descricao.includes(searchTerm);
-            const matchesStatus = !statusTerm || 
+            const matchesstatus = !statusTerm || 
                                 (statusTerm === 'ativo' && status.includes('ativo')) ||
                                 (statusTerm === 'inativo' && status.includes('inativo'));
             
-            if (matchesSearch && matchesStatus) {
+            if (matchesSearch && matchesstatus) {
                 row.style.display = '';
                 visibleCount++;
             } else {
