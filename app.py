@@ -158,7 +158,7 @@ report_service = None
 import_service = None
 
 def get_storage_service():
-    """Lazy loading do storage service"""
+    """Lazy loading do storage service com fallback robusto para Render"""
     global storage_service
     if storage_service is None:
         try:
@@ -180,10 +180,37 @@ def get_storage_service():
             else:
                 print("⚠️ Usando armazenamento local")
                 storage_service = LocalStorageService()
+                
         except Exception as e:
             print(f"❌ Erro ao inicializar storage service: {e}")
-            storage_service = LocalStorageService()
-            print("⚠️ Fallback para armazenamento local")
+            print(f"🔍 Tipo do erro: {type(e).__name__}")
+            
+            # Verificar se é erro de autenticação específico do Render
+            error_str = str(e).lower()
+            is_auth_error = any(keyword in error_str for keyword in [
+                'authentication', 'credential', 'unauthorized', 'forbidden',
+                'service account', 'google', 'api', 'quota', 'permission'
+            ])
+            
+            if is_auth_error and os.environ.get('FLASK_ENV') == 'production':
+                print("🚨 Erro de autenticação detectado no Render - ativando fallback")
+                try:
+                    from services.render_fallback_service import RenderFallbackService
+                    storage_service = RenderFallbackService()
+                    print("✅ Render Fallback Service ativado")
+                    
+                    # Adicionar mensagem global para mostrar na interface
+                    if not hasattr(get_storage_service, '_fallback_message_shown'):
+                        flash('⚠️ Sistema temporariamente usando dados locais. Verifique configurações do Google Sheets.', 'warning')
+                        get_storage_service._fallback_message_shown = True
+                        
+                except Exception as fallback_error:
+                    print(f"❌ Erro ao ativar fallback: {fallback_error}")
+                    storage_service = LocalStorageService()
+                    print("⚠️ Fallback final para armazenamento local")
+            else:
+                storage_service = LocalStorageService()
+                print("⚠️ Fallback para armazenamento local")
         
         # Limpeza de memória após inicialização
         if MEMORY_OPTIMIZER_AVAILABLE:
@@ -1020,6 +1047,66 @@ def memory_status():
             'timestamp': datetime.now().isoformat(),
             'alert': 'ERROR - Falha ao obter status de memória',
             'alert_level': 'danger'
+        }), 500
+
+@app.route('/api/auth-status')
+@admin_required
+def auth_status():
+    """API para diagnóstico de autenticação Google Sheets"""
+    try:
+        diagnosis = {
+            'timestamp': datetime.now().isoformat(),
+            'environment': os.environ.get('FLASK_ENV', 'development'),
+            'google_sheets_config': {
+                'use_google_sheets': USE_GOOGLE_SHEETS,
+                'use_service_account': USE_SERVICE_ACCOUNT,
+                'use_oauth2': USE_OAUTH2,
+                'sheets_id_configured': bool(GOOGLE_SHEETS_ID),
+                'api_key_configured': bool(GOOGLE_SHEETS_API_KEY),
+            }
+        }
+        
+        # Verificar variável de ambiente do Service Account
+        service_account_json = os.environ.get('GOOGLE_SERVICE_ACCOUNT_JSON')
+        diagnosis['service_account'] = {
+            'env_var_present': bool(service_account_json),
+            'env_var_length': len(service_account_json) if service_account_json else 0,
+            'is_valid_json': False,
+            'project_id': None,
+            'client_email': None
+        }
+        
+        if service_account_json:
+            try:
+                credentials_info = json.loads(service_account_json)
+                diagnosis['service_account'].update({
+                    'is_valid_json': True,
+                    'project_id': credentials_info.get('project_id'),
+                    'client_email': credentials_info.get('client_email'),
+                    'has_private_key': bool(credentials_info.get('private_key'))
+                })
+            except json.JSONDecodeError as e:
+                diagnosis['service_account']['json_error'] = str(e)
+        
+        # Verificar status do storage service
+        storage = get_storage_service()
+        diagnosis['storage_service'] = {
+            'type': type(storage).__name__,
+            'is_fallback': hasattr(storage, 'is_fallback') and storage.is_fallback,
+            'initialized': storage is not None
+        }
+        
+        # Se estiver usando fallback, incluir informações adicionais
+        if hasattr(storage, 'get_status_info'):
+            diagnosis['fallback_info'] = storage.get_status_info()
+        
+        return jsonify(diagnosis)
+        
+    except Exception as e:
+        return jsonify({
+            'error': str(e),
+            'timestamp': datetime.now().isoformat(),
+            'status': 'ERROR - Falha no diagnóstico de autenticação'
         }), 500
 
 @app.route('/')

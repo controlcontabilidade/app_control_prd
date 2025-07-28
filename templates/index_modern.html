@@ -3,6 +3,24 @@
 {% block title %}SIGEC - SISTEMA DE GESTÃO DE EMPRESAS CONTROL{% endblock %}
 
 {% block content %}
+<!-- Alerta de Status do Sistema (se necessário) -->
+<div id="system-status-alert" class="d-none">
+    <div class="alert alert-warning alert-dismissible fade show mb-4" role="alert">
+        <div class="d-flex align-items-center">
+            <i class="bi bi-exclamation-triangle-fill me-3 fs-4"></i>
+            <div>
+                <h6 class="alert-heading mb-1">🔧 Sistema em Modo de Manutenção</h6>
+                <p class="mb-0">
+                    O sistema está temporariamente usando dados locais devido a problemas de conectividade. 
+                    Os dados podem não estar totalmente atualizados.
+                    <a href="/api/auth-status" target="_blank" class="alert-link">Verificar Status Técnico</a>
+                </p>
+            </div>
+        </div>
+        <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+    </div>
+</div>
+
 <!-- Header da página com estatísticas -->
 <div class="page-header">
     <div class="row align-items-center">
@@ -10,6 +28,11 @@
             <h1>
                 <i class="bi bi-graph-up text-primary"></i>
                 SIGEC Dashboard
+                <span id="fallback-indicator" class="d-none">
+                    <span class="badge bg-warning text-dark ms-2">
+                        <i class="bi bi-exclamation-triangle"></i> MODO OFFLINE
+                    </span>
+                </span>
             </h1>
             <p class="mb-0">SISTEMA DE GESTÃO DE EMPRESAS CONTROL - CONTROLE COMPLETO DE CLIENTES E PROCESSOS</p>
         </div>
@@ -592,7 +615,40 @@ document.addEventListener('DOMContentLoaded', function() {
     } else {
         console.log('❌ onvioFilter não encontrado!');
     }
+    
+    // Verificar status do sistema automaticamente
+    checkSystemStatus();
 });
+
+// Função para verificar status do sistema
+async function checkSystemStatus() {
+    try {
+        const response = await fetch('/api/auth-status');
+        if (response.ok) {
+            const data = await response.json();
+            
+            // Verificar se está usando fallback
+            if (data.storage_service && data.storage_service.is_fallback) {
+                // Mostrar alerta de sistema
+                const alert = document.getElementById('system-status-alert');
+                const indicator = document.getElementById('fallback-indicator');
+                
+                if (alert) alert.classList.remove('d-none');
+                if (indicator) indicator.classList.remove('d-none');
+                
+                console.warn('🚨 Sistema em modo fallback:', data);
+            }
+            
+            // Log de diagnóstico
+            console.log('📊 Status de autenticação:', data);
+        }
+    } catch (error) {
+        console.error('❌ Erro ao verificar status do sistema:', error);
+    }
+}
+
+// Verificar status a cada 5 minutos
+setInterval(checkSystemStatus, 5 * 60 * 1000);
 
 // Fun��o para limpar filtros
 function clearFilters() {
