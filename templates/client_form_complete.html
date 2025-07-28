@@ -820,19 +820,12 @@
                         </div>
                         <div class="row">
                             <!-- tags/categorias -->
-                            <div class="col-md-6 mb-3">
+                            <div class="col-md-12 mb-3">
                                 <label for="tagsCliente" class="form-label">TAGS/CATEGORIAS</label>
                                 <input type="text" class="form-control" id="tagsCliente" name="tagsCliente" 
                                        value="{{ client.tagsCliente if client else '' }}" 
                                        placeholder="empresa_grande, complexo, especial">
                                 <div class="form-text">Separar tags por vírgula</div>
-                            </div>
-                            <!-- Data da última atualização -->
-                            <div class="col-md-6 mb-3">
-                                <label for="ultimaAtualizacao" class="form-label">Última atualização</label>
-                                <input type="datetime-local" class="form-control" id="ultimaAtualizacao" name="ultimaAtualizacao" 
-                                       value="{{ client.ultimaAtualizacao if client else '' }}" readonly>
-                                <div class="form-text">Atualizado automaticamente</div>
                             </div>
                         </div>
                     </div>

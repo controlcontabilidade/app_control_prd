@@ -358,32 +358,86 @@ class GoogleSheetsServiceAccountService:
             return -1
 
     def get_client(self, client_id: str) -> Optional[Dict]:
-        """Busca cliente específico"""
+        """Busca cliente específico - COM DEBUG AVANÇADO PARA PRODUÇÃO"""
         try:
-            print(f"🔍 [SERVICE] Buscando cliente específico: {client_id}")
-            row_index = self.find_client_row(client_id)
+            print(f"🔍 [GET_CLIENT] ===== BUSCANDO CLIENTE ESPECÍFICO (PRODUÇÃO) =====")
+            print(f"🔍 [GET_CLIENT] ID recebido: '{client_id}' (tipo: {type(client_id)})")
+            print(f"🔍 [GET_CLIENT] ID válido: {bool(client_id and str(client_id).strip())}")
+            
+            if not client_id or str(client_id).strip() == '' or str(client_id) == 'None':
+                print("❌ [GET_CLIENT] ID inválido!")
+                return None
+            
+            # Normalizar ID para busca
+            search_id = str(client_id).strip()
+            print(f"🔍 [GET_CLIENT] ID normalizado: '{search_id}'")
+            
+            print("🔍 [GET_CLIENT] Chamando find_client_row...")
+            row_index = self.find_client_row(search_id)
+            print(f"🔍 [GET_CLIENT] Resultado find_client_row: {row_index}")
+            
             if row_index <= 0:
-                print(f"❌ [SERVICE] Cliente {client_id} não encontrado")
+                print(f"❌ [GET_CLIENT] Cliente '{search_id}' não encontrado na planilha")
+                print("🔍 [GET_CLIENT] Tentando busca em todos os clientes como fallback...")
+                
+                # FALLBACK: Buscar em todos os clientes
+                all_clients = self.get_clients()
+                print(f"🔍 [GET_CLIENT] Total de clientes na planilha: {len(all_clients)}")
+                
+                for client in all_clients:
+                    client_existing_id = client.get('id', '')
+                    if str(client_existing_id).strip() == search_id:
+                        print(f"✅ [GET_CLIENT] Cliente encontrado via fallback!")
+                        print(f"✅ [GET_CLIENT] Nome: {client.get('nomeEmpresa')}")
+                        return client
+                
+                print(f"❌ [GET_CLIENT] Cliente '{search_id}' não encontrado nem via fallback")
                 return None
                 
             # Buscar os dados da linha específica
             range_name = f'Clientes!A{row_index}:CZ{row_index}'
+            print(f"🔍 [GET_CLIENT] Buscando dados do range: {range_name}")
+            
             result = self.service.spreadsheets().values().get(
                 spreadsheetId=self.spreadsheet_id,
                 range=range_name
             ).execute()
             
             values = result.get('values', [])
+            print(f"🔍 [GET_CLIENT] Dados recebidos: {len(values)} linha(s)")
+            
             if values and len(values[0]) > 0:
+                print(f"🔍 [GET_CLIENT] Primeira linha tem {len(values[0])} colunas")
+                
                 client = self.row_to_client(values[0])
                 client['_row_number'] = row_index
-                print(f"✅ [SERVICE] Cliente {client_id} encontrado na linha {row_index}")
+                
+                # Debug do cliente convertido
+                converted_id = client.get('id', '')
+                client_name = client.get('nomeEmpresa', 'N/A')
+                
+                print(f"✅ [GET_CLIENT] Cliente convertido com sucesso!")
+                print(f"✅ [GET_CLIENT] Nome: '{client_name}'")
+                print(f"✅ [GET_CLIENT] ID convertido: '{converted_id}'")
+                print(f"✅ [GET_CLIENT] Linha: {row_index}")
+                print(f"✅ [GET_CLIENT] Total de campos no cliente: {len(client.keys())}")
+                
+                # Verificar se os IDs coincidem
+                if str(converted_id).strip() != search_id:
+                    print(f"⚠️ [GET_CLIENT] AVISO: ID convertido '{converted_id}' != ID buscado '{search_id}'")
+                    print(f"⚠️ [GET_CLIENT] Forçando ID correto...")
+                    client['id'] = search_id
+                
                 return client
-            
-            return None
+            else:
+                print(f"❌ [GET_CLIENT] Dados vazios na linha {row_index}")
+                return None
             
         except Exception as e:
-            print(f"❌ [SERVICE] Erro ao buscar cliente {client_id}: {e}")
+            print(f"❌ [GET_CLIENT] Erro ao buscar cliente {client_id}: {e}")
+            print(f"❌ [GET_CLIENT] Tipo do erro: {type(e).__name__}")
+            import traceback
+            print(f"❌ [GET_CLIENT] Traceback completo: {traceback.format_exc()}")
             return None
     
     def get_clients(self) -> List[Dict]:
@@ -935,6 +989,25 @@ class GoogleSheetsServiceAccountService:
             'ativo': bool_from_text(safe_get(row, 90, 'SIM'), True), # 91. CLIENTE ATIVO
             'criadoEm': safe_get(row, 91, datetime.now().isoformat()) # 92. DATA DE CRIAÇÃO
         }
+        
+        # DEBUG e VALIDAÇÃO do ID
+        client_id = result.get('id', '')
+        nome_empresa = result.get('nomeEmpresa', 'N/A')
+        
+        # Se o ID estiver vazio, gerar um baseado no nome da empresa e timestamp
+        if not client_id or str(client_id).strip() == '':
+            print(f"⚠️ [ROW_TO_CLIENT] Cliente '{nome_empresa}' sem ID! Gerando ID temporário...")
+            
+            # Gerar ID baseado no nome da empresa (primeiros 3 chars + timestamp)
+            safe_name = ''.join(c for c in nome_empresa[:3] if c.isalnum()).upper()
+            timestamp_id = int(datetime.now().timestamp())
+            temp_id = f"{safe_name}{timestamp_id}"
+            result['id'] = temp_id
+            print(f"⚠️ [ROW_TO_CLIENT] ID temporário gerado: '{temp_id}'")
+        else:
+            print(f"✅ [ROW_TO_CLIENT] Cliente '{nome_empresa}' com ID válido: '{client_id}'")
+        
+        return result
     
     def worksheet_exists(self, worksheet_name: str) -> bool:
         """Verifica se uma aba (worksheet) existe na planilha"""
