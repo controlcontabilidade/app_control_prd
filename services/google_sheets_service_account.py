@@ -184,46 +184,69 @@ class GoogleSheetsServiceAccountService:
             return False
     
     def find_client_row(self, client_id: str) -> int:
-        """Encontra a linha do cliente na planilha"""
+        """Encontra a linha do cliente na planilha - MÉTODO MELHORADO"""
         try:
-            print(f"🔍 [SERVICE] Buscando linha para cliente ID: {client_id}")
+            print(f"🔍 [SERVICE] Buscando linha para cliente ID: '{client_id}'")
             
-            if not client_id:
+            if not client_id or str(client_id).strip() == '':
                 print("⚠️ [SERVICE] ID do cliente está vazio!")
                 return -1
             
-            # Buscar na coluna de ID (coluna 90 = CL)
+            # Normalizar o ID para busca
+            search_id = str(client_id).strip()
+            print(f"🔍 [SERVICE] ID normalizado para busca: '{search_id}'")
+            
+            # Buscar todos os dados para ter mais controle
             try:
                 result = self.service.spreadsheets().values().get(
                     spreadsheetId=self.spreadsheet_id,
-                    range='Clientes!CL:CL'  # Coluna ID está na posição 90 (CL)
+                    range='Clientes!A1:CZ'  # Buscar todos os dados
                 ).execute()
             except Exception as api_error:
                 print(f"❌ [SERVICE] Erro na API do Google Sheets: {api_error}")
                 if "RATE_LIMIT_EXCEEDED" in str(api_error):
-                    print("⚠️ Rate limit excedido. Tentando busca alternativa...")
-                    # Em caso de rate limit, vamos tentar uma busca mais simples
+                    print("⚠️ Rate limit excedido. Aguardando e tentando novamente...")
+                    import time
+                    time.sleep(2)  # Aguardar 2 segundos
                     return self._find_client_fallback(client_id)
                 raise api_error
             
             values = result.get('values', [])
-            print(f"🔍 [SERVICE] Encontradas {len(values)} linhas na coluna ID")
+            print(f"🔍 [SERVICE] Planilha tem {len(values)} linhas no total")
             
-            if not values:
-                print("⚠️ [SERVICE] Nenhuma linha encontrada na coluna ID")
+            if len(values) <= 1:  # Só header ou vazio
+                print("⚠️ [SERVICE] Planilha vazia ou só com cabeçalho")
                 return -1
             
-            for i, row in enumerate(values):
-                if len(row) > 0:
-                    row_id = str(row[0]).strip()
-                    search_id = str(client_id).strip()
-                    print(f"🔍 [SERVICE] Linha {i + 1}: comparando '{row_id}' com '{search_id}'")
+            # Encontrar a coluna do ID - deve ser coluna 90 (índice 89)
+            headers = values[0] if values else []
+            id_column_index = -1
+            
+            # Procurar pela coluna 'ID' ou 'id'
+            for i, header in enumerate(headers):
+                if str(header).strip().upper() == 'ID':
+                    id_column_index = i
+                    print(f"🔍 [SERVICE] Coluna ID encontrada no índice {i}")
+                    break
+            
+            if id_column_index == -1:
+                # Assumir que é a última coluna (padrão SIGEC)
+                id_column_index = 89  # Posição padrão do ID no SIGEC
+                print(f"🔍 [SERVICE] Usando posição padrão do ID: índice {id_column_index}")
+            
+            # Percorrer as linhas procurando o ID
+            for row_num, row in enumerate(values[1:], start=2):  # Start from row 2 (skip header)
+                if len(row) > id_column_index:
+                    row_id = str(row[id_column_index]).strip()
+                    print(f"🔍 [SERVICE] Linha {row_num}: ID '{row_id}' vs busca '{search_id}'")
                     
                     if row_id == search_id:
-                        print(f"✅ [SERVICE] Cliente encontrado na linha {i + 1}")
-                        return i + 1  # +1 porque sheets usa 1-based indexing
+                        print(f"✅ [SERVICE] Cliente encontrado na linha {row_num}")
+                        return row_num
+                else:
+                    print(f"🔍 [SERVICE] Linha {row_num}: sem coluna ID (só {len(row)} colunas)")
             
-            print(f"⚠️ [SERVICE] Cliente ID {client_id} não encontrado na planilha")
+            print(f"⚠️ [SERVICE] Cliente ID '{search_id}' não encontrado na planilha")
             return -1  # Não encontrado
             
         except Exception as e:

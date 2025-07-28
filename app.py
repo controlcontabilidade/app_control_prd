@@ -870,6 +870,12 @@ def save_client():
     print(f"🔍 Método da requisição: {request.method}")
     print(f"🔍 Dados do form: {dict(request.form)}")
     
+    # CORREÇÃO DUPLICAÇÃO: Verificar ID primeiro
+    client_id = request.form.get('id', '').strip()
+    print(f"🔍 ID do cliente (raw): '{request.form.get('id')}'")
+    print(f"🔍 ID do cliente (processed): '{client_id}'")
+    print(f"🔍 Operação: {'EDIÇÃO' if client_id else 'CRIAÇÃO'}")
+    
     try:
         # Validar dados obrigatórios do Bloco 1
         nome_empresa = request.form.get('nomeEmpresa', '').strip()
@@ -929,9 +935,10 @@ def save_client():
         
         print(f"🔍 Nome da empresa: {nome_empresa}")
         
+        # CORREÇÃO DUPLICAÇÃO: Garantir que o ID seja passado corretamente
         # Dados básicos obrigatórios - Bloco 1
         client_data = {
-            'id': request.form.get('id'),
+            'id': client_id if client_id else None,  # FIXADO: usar variável processada
             
             # Bloco 1: Informações da Pessoa Física / Jurídica
             'nomeEmpresa': nome_empresa,
@@ -1052,11 +1059,18 @@ def save_client():
                     if value:  # Só incluir se tiver valor
                         client_data[key] = value
         
-        if not client_data['id']:
+        # CORREÇÃO DUPLICAÇÃO: Melhor controle de criação vs edição
+        if not client_data.get('id'):
+            print("🔍 NOVO CLIENTE: Definindo criadoEm")
             client_data['criadoEm'] = datetime.now().isoformat()
+        else:
+            print(f"🔍 EDITANDO CLIENTE: ID = {client_data['id']}")
+            # Para edição, sempre manter o ultimaAtualizacao
+            client_data['ultimaAtualizacao'] = datetime.now().isoformat()
         
         print(f"🔍 Cliente preparado: {client_data.get('nomeEmpresa')}")
-        print(f"🔍 ID do cliente: {client_data.get('id')}")
+        print(f"🔍 ID final do cliente: {client_data.get('id')}")
+        print(f"🔍 Tipo de operação: {'EDIÇÃO' if client_data.get('id') else 'CRIAÇÃO'}")
         print("🔍 Verificando conexão com storage_service...")
         
         if not storage_service:
@@ -1071,8 +1085,12 @@ def save_client():
         print(f"🔍 Resultado do salvamento: {success}")
         
         if success:
-            flash('Cliente salvo com sucesso!', 'success')
-            print("✅ Flash message de sucesso adicionada")
+            if client_data.get('id'):
+                flash('Cliente atualizado com sucesso!', 'success')
+                print("✅ Flash message de atualização adicionada")
+            else:
+                flash('Cliente criado com sucesso!', 'success')
+                print("✅ Flash message de criação adicionada")
         else:
             flash('Erro ao salvar cliente', 'error')
             print("❌ Flash message de erro adicionada")
