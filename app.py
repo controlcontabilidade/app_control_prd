@@ -2,8 +2,19 @@
 from flask import Flask, render_template, request, jsonify, redirect, url_for, flash, session
 import json
 import os
+import gc  # Para otimização de memória
 from datetime import datetime
 from functools import wraps
+
+# Importar otimizador de memória
+try:
+    from memory_optimizer import MemoryOptimizer, MEMORY_OPTIMIZED_SETTINGS
+    MEMORY_OPTIMIZER_AVAILABLE = True
+    print("🧠 Memory Optimizer carregado")
+except ImportError:
+    MEMORY_OPTIMIZER_AVAILABLE = False
+    print("⚠️ Memory Optimizer não disponível")
+
 from services.google_sheets_service import GoogleSheetsService
 from services.local_storage_service import LocalStorageService
 from services.meeting_service import MeetingService
@@ -24,6 +35,11 @@ from werkzeug.utils import secure_filename
 
 app = Flask(__name__)
 app.secret_key = os.environ.get('SECRET_KEY', 'your-secret-key-here-change-in-production')
+
+# Aplicar otimizações de memória se disponível
+if MEMORY_OPTIMIZER_AVAILABLE:
+    MemoryOptimizer.setup_production_memory_settings()
+    MemoryOptimizer.optimize_flask_config(app)
 
 # Configurações de encoding UTF-8
 app.config['JSON_AS_ASCII'] = False
@@ -76,17 +92,29 @@ def format_datetime_filter(value):
     """Formata data e hora ISO para formato brasileiro"""
     return format_date_filter(value, '%d/%m/%Y %H:%M')
 
-# Configurações para upload de arquivos - OTIMIZADO PARA MEMÓRIA
-# Reduzido de 16MB para 8MB para economizar RAM no Render
-app.config['MAX_CONTENT_LENGTH'] = 8 * 1024 * 1024  # 8MB máximo (otimização Render)
+# Configurações para upload de arquivos - OTIMIZADO PARA MEMÓRIA RENDER 512MB
+# Reduzido drasticamente para economizar RAM no Render
+MAX_UPLOAD_SIZE = 4 * 1024 * 1024 if os.environ.get('FLASK_ENV') == 'production' else 8 * 1024 * 1024
+app.config['MAX_CONTENT_LENGTH'] = MAX_UPLOAD_SIZE  # 4MB produção, 8MB desenvolvimento
 app.config['UPLOAD_FOLDER'] = 'uploads'
 ALLOWED_EXTENSIONS = {'xlsx', 'xls'}
 
-# Configurações de produção para baixo consumo de memória
+print(f"📁 Upload configurado: {MAX_UPLOAD_SIZE / 1024 / 1024:.0f}MB máximo")
+
+# Configurações específicas para produção com baixo consumo de memória
 if os.environ.get('FLASK_ENV') == 'production':
-    import gc
-    gc.set_threshold(700, 10, 10)  # Garbage collection mais agressivo
-    app.config['SEND_FILE_MAX_AGE_DEFAULT'] = 300  # Cache de arquivos estáticos
+    # Garbage collection mais agressivo
+    gc.set_threshold(500, 5, 5)  # Mais agressivo que padrão
+    app.config['SEND_FILE_MAX_AGE_DEFAULT'] = 300  # Cache menor (5 min)
+    
+    # Configurações JSON otimizadas
+    app.config['JSON_SORT_KEYS'] = False
+    app.config['JSONIFY_PRETTYPRINT_REGULAR'] = False
+    
+    # Limitar threads e workers
+    os.environ.setdefault('WEB_CONCURRENCY', '1')  # 1 worker apenas
+    
+    print("🧠 Configurações de produção aplicadas para economia de memória")
 
 # Criar pasta de uploads se não existir
 if not os.path.exists(app.config['UPLOAD_FOLDER']):
@@ -94,6 +122,14 @@ if not os.path.exists(app.config['UPLOAD_FOLDER']):
 
 def allowed_file(filename):
     return '.' in filename and filename.rsplit('.', 1)[1].lower() in ALLOWED_EXTENSIONS
+
+# Hook para limpeza de memória após cada requisição
+@app.after_request
+def cleanup_memory_after_request(response):
+    """Limpa memória após cada requisição"""
+    if MEMORY_OPTIMIZER_AVAILABLE and os.environ.get('FLASK_ENV') == 'production':
+        MemoryOptimizer.cleanup_after_request()
+    return response
 
 # Carregar variáveis de ambiente (.env local / Render)
 from dotenv import load_dotenv
@@ -114,73 +150,106 @@ print(f"   USE_SERVICE_ACCOUNT: {USE_SERVICE_ACCOUNT}")
 print(f"   API_KEY: {GOOGLE_SHEETS_API_KEY[:10]}...")
 print(f"   SPREADSHEET_ID: {GOOGLE_SHEETS_ID}")
 
-# Inicializar serviços
-try:
-    if USE_GOOGLE_SHEETS and GOOGLE_SHEETS_ID:
-        if USE_SERVICE_ACCOUNT:
-            print("🔐 Tentando usar Google Sheets com Service Account...")
-            from services.google_sheets_service_account import GoogleSheetsServiceAccountService
-            storage_service = GoogleSheetsServiceAccountService(GOOGLE_SHEETS_ID, GOOGLE_SHEETS_RANGE)
+# Inicializar serviços COM LAZY LOADING - OTIMIZAÇÃO MEMÓRIA RENDER
+storage_service = None
+meeting_service = None
+user_service = None
+report_service = None
+import_service = None
+
+def get_storage_service():
+    """Lazy loading do storage service"""
+    global storage_service
+    if storage_service is None:
+        try:
+            if USE_GOOGLE_SHEETS and GOOGLE_SHEETS_ID:
+                if USE_SERVICE_ACCOUNT:
+                    print("🔐 Inicializando Google Sheets Service Account...")
+                    from services.google_sheets_service_account import GoogleSheetsServiceAccountService
+                    storage_service = GoogleSheetsServiceAccountService(GOOGLE_SHEETS_ID, GOOGLE_SHEETS_RANGE)
+                    print("✅ Storage service inicializado (Service Account)")
+                elif USE_OAUTH2:
+                    print("🔐 Inicializando Google Sheets OAuth2...")
+                    from services.google_sheets_oauth_service import GoogleSheetsOAuthService
+                    storage_service = GoogleSheetsOAuthService(GOOGLE_SHEETS_ID, GOOGLE_SHEETS_RANGE)
+                    print("✅ Storage service inicializado (OAuth2)")
+                else:
+                    print("📊 Inicializando Google Sheets híbrido...")
+                    storage_service = GoogleSheetsService(GOOGLE_SHEETS_API_KEY, GOOGLE_SHEETS_ID, GOOGLE_SHEETS_RANGE)
+                    print("✅ Storage service inicializado (Híbrido)")
+            else:
+                print("⚠️ Usando armazenamento local")
+                storage_service = LocalStorageService()
+        except Exception as e:
+            print(f"❌ Erro ao inicializar storage service: {e}")
+            storage_service = LocalStorageService()
+            print("⚠️ Fallback para armazenamento local")
+        
+        # Limpeza de memória após inicialização
+        if MEMORY_OPTIMIZER_AVAILABLE:
+            gc.collect()
+            print(f"💾 Memória após init storage: {MemoryOptimizer.get_memory_usage()}")
+    
+    return storage_service
+
+def get_meeting_service():
+    """Lazy loading do meeting service"""
+    global meeting_service
+    if meeting_service is None and GOOGLE_SHEETS_ID:
+        try:
             meeting_service = MeetingService(GOOGLE_SHEETS_ID)
-            print("✅ Google Sheets Service Account criado")
-            print("✅ Usando Google Sheets Service Account como armazenamento")
-        elif USE_OAUTH2:
-            print("🔐 Tentando usar Google Sheets com OAuth2...")
-            from services.google_sheets_oauth_service import GoogleSheetsOAuthService
-            storage_service = GoogleSheetsOAuthService(GOOGLE_SHEETS_ID, GOOGLE_SHEETS_RANGE)
-            meeting_service = None  # OAuth2 não suporta atas por enquanto
-            print("✅ Google Sheets OAuth2 service criado")
-            print("✅ Usando Google Sheets OAuth2 como armazenamento")
-        else:
-            print("📊 Tentando usar Google Sheets com método híbrido...")
-            storage_service = GoogleSheetsService(GOOGLE_SHEETS_API_KEY, GOOGLE_SHEETS_ID, GOOGLE_SHEETS_RANGE)
-            meeting_service = None  # Método híbrido não suporta atas por enquanto
-            print("✅ Google Sheets service criado")
-            print("✅ Usando Google Sheets híbrido como armazenamento")
-    else:
-        storage_service = LocalStorageService()
-        meeting_service = None  # Local storage não suporta atas por enquanto
-        print("⚠️ Usando armazenamento local")
-except Exception as e:
-    print(f"❌ Erro ao configurar Google Sheets: {e}")
-    storage_service = LocalStorageService()
-    meeting_service = None
-    print("⚠️ Fallback para armazenamento local")
+            print("✅ Meeting service inicializado")
+        except Exception as e:
+            print(f"❌ Erro ao inicializar meeting service: {e}")
+            meeting_service = None
+    return meeting_service
 
-# Inicializar serviço de importação - OTIMIZADO PARA MEMÓRIA
-try:
-    if storage_service and ImportService:
-        import_service = ImportService(storage_service)
-        print(f"✅ Serviço de importação inicializado ({IMPORT_SERVICE_TYPE})")
-    else:
-        import_service = None
-        print("⚠️ Serviço de importação não disponível (storage_service não inicializado ou ImportService não encontrado)")
-except Exception as e:
-    print(f"❌ Erro ao inicializar serviço de importação: {e}")
-    import_service = None
+def get_user_service():
+    """Lazy loading do user service"""
+    global user_service
+    if user_service is None and GOOGLE_SHEETS_ID:
+        try:
+            user_service = UserService(GOOGLE_SHEETS_ID)
+            print("✅ User service inicializado")
+        except Exception as e:
+            print(f"❌ Erro ao inicializar user service: {e}")
+            user_service = None
+    return user_service
 
-# Inicializar serviços adicionais apenas se necessário - OTIMIZAÇÃO MEMÓRIA
-try:
-    # Lazy loading: só inicializa se vai usar
-    user_service = UserService(GOOGLE_SHEETS_ID)
-    print("✅ Serviço de usuários inicializado")
-except Exception as e:
-    print(f"❌ Erro ao inicializar serviço de usuários: {e}")
-    user_service = None
+def get_report_service():
+    """Lazy loading do report service"""
+    global report_service
+    if report_service is None and GOOGLE_SHEETS_ID:
+        try:
+            report_service = ReportService(GOOGLE_SHEETS_ID)
+            print("✅ Report service inicializado")
+        except Exception as e:
+            print(f"❌ Erro ao inicializar report service: {e}")
+            report_service = None
+    return report_service
 
-try:
-    # Lazy loading: só inicializa se vai usar
-    report_service = ReportService(GOOGLE_SHEETS_ID)
-    print("✅ Serviço de relatórios inicializado")
-except Exception as e:
-    print(f"❌ Erro ao inicializar serviço de relatórios: {e}")
-    report_service = None
+def get_import_service():
+    """Lazy loading do import service"""
+    global import_service
+    if import_service is None and ImportService:
+        try:
+            storage = get_storage_service()
+            if storage:
+                import_service = ImportService(storage)
+                print(f"✅ Import service inicializado ({IMPORT_SERVICE_TYPE})")
+        except Exception as e:
+            print(f"❌ Erro ao inicializar import service: {e}")
+            import_service = None
+    return import_service
 
-# Garbage collection após inicialização para liberar memória
+# Inicialização básica - só o essencial
+print("🚀 Aplicação inicializada com lazy loading")
+print(f"💾 Memória inicial: {MemoryOptimizer.get_memory_usage() if MEMORY_OPTIMIZER_AVAILABLE else 'N/A'}")
+
+# Garbage collection inicial
 if os.environ.get('FLASK_ENV') == 'production':
-    import gc
     gc.collect()
-    print("🧠 Memory cleanup pós-inicialização completo")
+    print("🧠 Limpeza inicial de memória concluída")
 
 # Decorator para verificar autenticação
 def login_required(f):
@@ -797,52 +866,216 @@ def calculate_dashboard_stats(clients):
     
     return stats
 
+def calculate_dashboard_stats_optimized(clients):
+    """Versão otimizada para ambientes com pouca memória"""
+    if not clients:
+        return {
+            'total_clientes': 0, 'clientes_ativos': 0, 'empresas': 0, 
+            'domesticas': 0, 'mei': 0, 'simples_nacional': 0,
+            'lucro_presumido': 0, 'lucro_real': 0,
+            'ct': 0, 'fs': 0, 'dp': 0, 'bpo': 0
+        }
+    
+    # Inicializar contadores
+    stats = {
+        'total_clientes': len(clients),
+        'clientes_ativos': 0,
+        'empresas': 0,
+        'domesticas': 0,
+        'mei': 0,
+        'simples_nacional': 0,
+        'lucro_presumido': 0,
+        'lucro_real': 0,
+        'ct': 0,
+        'fs': 0,
+        'dp': 0,
+        'bpo': 0
+    }
+    
+    # Processar em lotes para economizar memória
+    batch_size = get_optimized_batch_size() if MEMORY_OPTIMIZER_AVAILABLE else 50
+    
+    for i in range(0, len(clients), batch_size):
+        batch = clients[i:i+batch_size]
+        
+        for client in batch:
+            # Contadores básicos (apenas campos essenciais)
+            if client.get('ativo', True):
+                stats['clientes_ativos'] += 1
+            
+            # Serviços básicos
+            if client.get('ct'):
+                stats['ct'] += 1
+            if client.get('fs'):
+                stats['fs'] += 1
+            if client.get('dp'):
+                stats['dp'] += 1
+            if client.get('bpoFinanceiro'):
+                stats['bpo'] += 1
+            
+            # Categorização simplificada (menos processamento de string)
+            regime = client.get('regimeFederal', '')
+            if regime:
+                regime_upper = regime.upper()
+                if 'MEI' in regime_upper:
+                    stats['mei'] += 1
+                elif 'SIMPLES' in regime_upper:
+                    stats['simples_nacional'] += 1
+                elif 'PRESUMIDO' in regime_upper:
+                    stats['lucro_presumido'] += 1
+                elif 'REAL' in regime_upper:
+                    stats['lucro_real'] += 1
+                else:
+                    stats['empresas'] += 1
+            else:
+                stats['empresas'] += 1
+        
+        # Limpeza de memória após cada lote
+        if os.environ.get('FLASK_ENV') == 'production':
+            gc.collect()
+    
+    return stats
+
 @app.route('/api/users')
 @admin_required
 def get_users():
     """API para obter lista de usuários disponíveis"""
-    if report_service:
-        users = report_service.get_available_users()
+    user_svc = get_user_service()
+    if user_svc:
+        users = user_svc.get_available_users()
         return jsonify({'users': users})
     else:
         return jsonify({'users': ['todos', 'admin', 'usuario']})
 
+@app.route('/api/memory-status')
+@admin_required  
+def memory_status():
+    """API para monitorar uso de memória em produção"""
+    try:
+        # Coletar informações de memória
+        memory_info = {
+            'timestamp': datetime.now().isoformat(),
+            'environment': os.environ.get('FLASK_ENV', 'development'),
+            'python_version': sys.version.split()[0],
+        }
+        
+        # Tentar obter info detalhada de memória
+        try:
+            import psutil
+            process = psutil.Process()
+            memory_info.update({
+                'memory_mb': round(process.memory_info().rss / 1024 / 1024, 1),
+                'memory_percent': round(process.memory_percent(), 1),
+                'cpu_percent': round(process.cpu_percent(), 1),
+                'threads': process.num_threads(),
+            })
+            
+            # Alertas baseados nos limites do Render (512MB)
+            memory_mb = memory_info['memory_mb']
+            if memory_mb > 450:
+                memory_info['alert'] = 'CRITICAL - Próximo do limite de 512MB'
+                memory_info['alert_level'] = 'danger'
+            elif memory_mb > 350:
+                memory_info['alert'] = 'WARNING - Uso de memória elevado'
+                memory_info['alert_level'] = 'warning'
+            else:
+                memory_info['alert'] = 'OK - Uso de memória normal'
+                memory_info['alert_level'] = 'success'
+                
+        except ImportError:
+            memory_info['memory_mb'] = 'N/A (psutil não disponível)'
+            memory_info['alert'] = 'Monitoramento limitado'
+            memory_info['alert_level'] = 'info'
+        
+        # Informações sobre garbage collection
+        memory_info['gc_counts'] = gc.get_count()
+        memory_info['gc_threshold'] = gc.get_threshold()
+        
+        # Informações sobre lazy loading
+        services_loaded = {
+            'storage_service': storage_service is not None,
+            'meeting_service': meeting_service is not None,
+            'user_service': user_service is not None,
+            'report_service': report_service is not None,
+            'import_service': import_service is not None
+        }
+        memory_info['services_loaded'] = services_loaded
+        memory_info['services_count'] = sum(services_loaded.values())
+        
+        # Configurações de otimização ativas
+        optimizations = {
+            'memory_optimizer_available': MEMORY_OPTIMIZER_AVAILABLE,
+            'max_content_length': app.config.get('MAX_CONTENT_LENGTH', 0) / 1024 / 1024,  # MB
+            'json_sort_keys': app.config.get('JSON_SORT_KEYS', True),
+            'web_concurrency': os.environ.get('WEB_CONCURRENCY', 'auto'),
+            'worker_connections': os.environ.get('WORKER_CONNECTIONS', 'auto'),
+        }
+        memory_info['optimizations'] = optimizations
+        
+        return jsonify(memory_info)
+        
+    except Exception as e:
+        return jsonify({
+            'error': str(e),
+            'timestamp': datetime.now().isoformat(),
+            'alert': 'ERROR - Falha ao obter status de memória',
+            'alert_level': 'danger'
+        }), 500
+
 @app.route('/')
 @login_required
 def index():
-    print("🔍 === ROTA INDEX CHAMADA ===")
+    print("🔍 === ROTA INDEX CHAMADA (MEMORY OPTIMIZED) ===")
     try:
-        print("📊 Tentando carregar clientes...")
+        print("📊 Carregando clientes com lazy loading...")
         
-        # OTIMIZAÇÃO MEMÓRIA: Carregamento lazy e limite de dados
-        clients = storage_service.get_clients()
+        # OTIMIZAÇÃO MEMÓRIA: Usar lazy loading e limite inteligente
+        storage = get_storage_service()
         
-        # Limitar quantidade de clientes carregados em produção para economizar RAM
-        if os.environ.get('FLASK_ENV') == 'production' and len(clients) > 100:
-            clients = clients[:100]  # Mostrar apenas primeiros 100 clientes
-            print(f"🧠 Limitado para 100 clientes (otimização memória)")
-            
-        print(f"✅ {len(clients)} clientes carregados")
-        
-        # OTIMIZAÇÃO MEMÓRIA: Calcular stats apenas se necessário
+        # Verificar se é possível usar serviço otimizado
         try:
-            stats = calculate_dashboard_stats(clients)
-            print(f"📈 Estatísticas calculadas")
+            from services.memory_optimized_sheets_service import MemoryOptimizedGoogleSheetsService
+            if hasattr(storage, 'spreadsheet_id'):
+                print("🧠 Usando serviço otimizado para memória")
+                optimized_service = MemoryOptimizedGoogleSheetsService(
+                    storage.spreadsheet_id, 
+                    storage.range_name
+                )
+                clients = optimized_service.get_clients()
+            else:
+                clients = storage.get_clients()
+        except ImportError:
+            clients = storage.get_clients()
+        
+        # Limite baseado na memória disponível
+        max_clients = MEMORY_OPTIMIZED_SETTINGS.get('MAX_ROWS_PER_REQUEST', 100) if MEMORY_OPTIMIZER_AVAILABLE else 100
+        
+        if os.environ.get('FLASK_ENV') == 'production' and len(clients) > max_clients:
+            clients = clients[:max_clients]
+            print(f"🧠 Limitado a {max_clients} clientes (otimização RAM)")
+        
+        print(f"✅ {len(clients)} clientes carregados")
+        print(f"💾 Memória atual: {MemoryOptimizer.get_memory_usage() if MEMORY_OPTIMIZER_AVAILABLE else 'N/A'}")
+        
+        # OTIMIZAÇÃO MEMÓRIA: Stats simplificadas
+        try:
+            stats = calculate_dashboard_stats_optimized(clients)
+            print(f"📈 Estatísticas otimizadas calculadas")
         except Exception as stats_error:
             print(f"⚠️ Erro ao calcular stats: {stats_error}")
             stats = {
-                'total_clientes': len(clients), 'clientes_ativos': len(clients), 
+                'total_clientes': len(clients), 
+                'clientes_ativos': sum(1 for c in clients if c.get('ativo', True)), 
                 'empresas': 0, 'domesticas': 0, 'mei': 0, 'simples_nacional': 0,
                 'lucro_presumido': 0, 'lucro_real': 0,
                 'ct': 0, 'fs': 0, 'dp': 0, 'bpo': 0
             }
         
-        # Garbage collection após processamento de dados
+        # Garbage collection após processamento
         if os.environ.get('FLASK_ENV') == 'production':
-            import gc
             gc.collect()
+            print(f"💾 Memória pós-GC: {MemoryOptimizer.get_memory_usage() if MEMORY_OPTIMIZER_AVAILABLE else 'N/A'}")
         
-        # Usar template moderno com estatísticas
         return render_template('index_modern.html', clients=clients, stats=stats)
         
     except Exception as e:
