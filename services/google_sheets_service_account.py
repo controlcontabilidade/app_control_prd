@@ -807,3 +807,226 @@ class GoogleSheetsServiceAccountService:
             'ativo': bool_from_text(safe_get(row, 90, 'SIM'), True), # 91. CLIENTE ATIVO
             'criadoEm': safe_get(row, 91, datetime.now().isoformat()) # 92. DATA DE CRIAÇÃO
         }
+    
+    def worksheet_exists(self, worksheet_name: str) -> bool:
+        """Verifica se uma aba (worksheet) existe na planilha"""
+        try:
+            # Obter metadados da planilha
+            spreadsheet = self.service.spreadsheets().get(
+                spreadsheetId=self.spreadsheet_id
+            ).execute()
+            
+            # Verificar se a aba existe
+            for sheet in spreadsheet.get('sheets', []):
+                sheet_title = sheet.get('properties', {}).get('title', '')
+                if sheet_title == worksheet_name:
+                    return True
+                    
+            return False
+            
+        except Exception as e:
+            print(f"❌ Erro ao verificar existência da aba '{worksheet_name}': {e}")
+            return False
+    
+    def create_worksheet(self, worksheet_name: str, headers: List[str] = None) -> bool:
+        """Cria uma nova aba (worksheet) na planilha"""
+        try:
+            print(f"📝 Criando aba '{worksheet_name}'...")
+            
+            # Criar a aba
+            requests = [{
+                'addSheet': {
+                    'properties': {
+                        'title': worksheet_name
+                    }
+                }
+            }]
+            
+            body = {'requests': requests}
+            
+            self.service.spreadsheets().batchUpdate(
+                spreadsheetId=self.spreadsheet_id,
+                body=body
+            ).execute()
+            
+            print(f"✅ Aba '{worksheet_name}' criada com sucesso!")
+            
+            # Se headers foram fornecidos, adiciona-los
+            if headers:
+                print(f"📝 Adicionando cabeçalhos à aba '{worksheet_name}'...")
+                body = {
+                    'values': [headers]
+                }
+                
+                self.service.spreadsheets().values().update(
+                    spreadsheetId=self.spreadsheet_id,
+                    range=f"{worksheet_name}!A1",
+                    valueInputOption='USER_ENTERED',
+                    body=body
+                ).execute()
+                
+                print(f"✅ Cabeçalhos adicionados à aba '{worksheet_name}'!")
+            
+            return True
+            
+        except Exception as e:
+            print(f"❌ Erro ao criar aba '{worksheet_name}': {e}")
+            return False
+    
+    def get_worksheet_data(self, worksheet_name: str, range_suffix: str = "A:Z") -> List[List]:
+        """Obtém dados de uma aba específica"""
+        try:
+            range_name = f"{worksheet_name}!{range_suffix}"
+            
+            result = self.service.spreadsheets().values().get(
+                spreadsheetId=self.spreadsheet_id,
+                range=range_name
+            ).execute()
+            
+            return result.get('values', [])
+            
+        except Exception as e:
+            print(f"❌ Erro ao obter dados da aba '{worksheet_name}': {e}")
+            return []
+    
+    def append_to_worksheet(self, worksheet_name: str, data: List[List]) -> bool:
+        """Adiciona dados ao final de uma aba"""
+        try:
+            range_name = f"{worksheet_name}!A:Z"
+            
+            body = {
+                'values': data
+            }
+            
+            result = self.service.spreadsheets().values().append(
+                spreadsheetId=self.spreadsheet_id,
+                range=range_name,
+                valueInputOption='USER_ENTERED',
+                body=body
+            ).execute()
+            
+            rows_added = result.get('updates', {}).get('updatedRows', 0)
+            print(f"✅ {rows_added} linha(s) adicionada(s) à aba '{worksheet_name}'")
+            
+            return True
+            
+        except Exception as e:
+            print(f"❌ Erro ao adicionar dados à aba '{worksheet_name}': {e}")
+            return False
+    
+    def get_worksheet(self, worksheet_name: str):
+        """Obtém referência para uma aba específica (compatibilidade com gspread)"""
+        # Este método é chamado por alguns serviços que esperam compatibilidade com gspread
+        # Como estamos usando Google API diretamente, retornamos um objeto simulado
+        class WorksheetShim:
+            def __init__(self, service, spreadsheet_id, worksheet_name):
+                self.service = service
+                self.spreadsheet_id = spreadsheet_id
+                self.worksheet_name = worksheet_name
+            
+            def get_all_values(self):
+                """Simula gspread.get_all_values()"""
+                try:
+                    result = self.service.spreadsheets().values().get(
+                        spreadsheetId=self.spreadsheet_id,
+                        range=f"{self.worksheet_name}!A:Z"
+                    ).execute()
+                    return result.get('values', [])
+                except Exception as e:
+                    print(f"❌ Erro ao obter valores da aba '{self.worksheet_name}': {e}")
+                    return []
+            
+            def append_row(self, row_data):
+                """Simula gspread.append_row()"""
+                try:
+                    body = {'values': [row_data]}
+                    result = self.service.spreadsheets().values().append(
+                        spreadsheetId=self.spreadsheet_id,
+                        range=f"{self.worksheet_name}!A:Z",
+                        valueInputOption='USER_ENTERED',
+                        body=body
+                    ).execute()
+                    return True
+                except Exception as e:
+                    print(f"❌ Erro ao adicionar linha à aba '{self.worksheet_name}': {e}")
+                    return False
+            
+            def row_values(self, row_number):
+                """Simula gspread.row_values()"""
+                try:
+                    range_name = f"{self.worksheet_name}!{row_number}:{row_number}"
+                    result = self.service.spreadsheets().values().get(
+                        spreadsheetId=self.spreadsheet_id,
+                        range=range_name
+                    ).execute()
+                    values = result.get('values', [])
+                    return values[0] if values else []
+                except Exception as e:
+                    print(f"❌ Erro ao obter linha {row_number} da aba '{self.worksheet_name}': {e}")
+                    return []
+            
+            @property
+            def row_count(self):
+                """Simula gspread.row_count"""
+                try:
+                    all_values = self.get_all_values()
+                    return len(all_values)
+                except Exception as e:
+                    print(f"❌ Erro ao contar linhas da aba '{self.worksheet_name}': {e}")
+                    return 0
+            
+            def insert_row(self, values, index=1):
+                """Simula gspread.insert_row()"""
+                try:
+                    # Para inserir uma linha no início, precisamos usar batchUpdate
+                    requests = [{
+                        'insertDimension': {
+                            'range': {
+                                'sheetId': self._get_sheet_id(),
+                                'dimension': 'ROWS',
+                                'startIndex': index - 1,
+                                'endIndex': index
+                            },
+                            'inheritFromBefore': False
+                        }
+                    }]
+                    
+                    body = {'requests': requests}
+                    self.service.spreadsheets().batchUpdate(
+                        spreadsheetId=self.spreadsheet_id,
+                        body=body
+                    ).execute()
+                    
+                    # Agora adiciona os valores na linha inserida
+                    range_name = f"{self.worksheet_name}!A{index}:Z{index}"
+                    body = {'values': [values]}
+                    
+                    self.service.spreadsheets().values().update(
+                        spreadsheetId=self.spreadsheet_id,
+                        range=range_name,
+                        valueInputOption='USER_ENTERED',
+                        body=body
+                    ).execute()
+                    
+                    return True
+                except Exception as e:
+                    print(f"❌ Erro ao inserir linha na aba '{self.worksheet_name}': {e}")
+                    return False
+            
+            def _get_sheet_id(self):
+                """Obtém o ID da aba para operações batch"""
+                try:
+                    spreadsheet = self.service.spreadsheets().get(
+                        spreadsheetId=self.spreadsheet_id
+                    ).execute()
+                    
+                    for sheet in spreadsheet.get('sheets', []):
+                        if sheet.get('properties', {}).get('title') == self.worksheet_name:
+                            return sheet.get('properties', {}).get('sheetId', 0)
+                    
+                    return 0
+                except Exception as e:
+                    print(f"❌ Erro ao obter ID da aba '{self.worksheet_name}': {e}")
+                    return 0
+        
+        return WorksheetShim(self.service, self.spreadsheet_id, worksheet_name)
