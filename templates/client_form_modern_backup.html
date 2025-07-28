@@ -184,10 +184,12 @@
                     </label>
                     <select class="form-select" id="regimeFederal" name="regimeFederal" required>
                         <option value="">Selecione o regime federal</option>
-                        <option value="SIMPLES" {% if client and client.regimeFederal == 'SIMPLES' %}selected{% endif %}>Simples Nacional</option>
-                        <option value="LUCRO_PRESUMIDO" {% if client and client.regimeFederal == 'LUCRO_PRESUMIDO' %}selected{% endif %}>Lucro Presumido</option>
-                        <option value="LUCRO_REAL" {% if client and client.regimeFederal == 'LUCRO_REAL' %}selected{% endif %}>Lucro Real</option>
                         <option value="MEI" {% if client and client.regimeFederal == 'MEI' %}selected{% endif %}>MEI</option>
+                        <option value="SIMPLES_NACIONAL" {% if client and client.regimeFederal == 'SIMPLES_NACIONAL' or client.regimeFederal == 'SIMPLES' %}selected{% endif %}>SIMPLES NACIONAL</option>
+                        <option value="LUCRO_PRESUMIDO" {% if client and client.regimeFederal == 'LUCRO_PRESUMIDO' %}selected{% endif %}>LUCRO PRESUMIDO</option>
+                        <option value="LUCRO_REAL" {% if client and client.regimeFederal == 'LUCRO_REAL' %}selected{% endif %}>LUCRO REAL</option>
+                        <option value="REGIME_ESPECIAL" {% if client and client.regimeFederal == 'REGIME_ESPECIAL' %}selected{% endif %}>REGIME ESPECIAL</option>
+                    </select>
                     </select>
                     <div class="invalid-feedback">
                         Por favor, selecione o regime federal.

@@ -316,7 +316,7 @@
             <div class="card-body">
                 {% if client.criadoEm %}
                 <p><strong>Criado em:</strong> 
-                    {{ client.criadoEm[:10] if client.criadoEm else 'Não informado' }}
+                    {{ client.criadoEm|format_date if client.criadoEm else 'Não informado' }}
                 </p>
                 {% endif %}
                 {% if client.mesAnoInicio %}
