@@ -313,6 +313,7 @@
                         <th style="min-width: 100px;"><i class="bi bi-geo me-1"></i>IM</th>
                         <th style="min-width: 120px;"><i class="bi bi-calculator me-1"></i>REGIME</th>
                         <th style="min-width: 100px;"><i class="bi bi-person-badge me-1"></i>PERFIL</th>
+                        <th style="min-width: 120px;"><i class="bi bi-briefcase me-1"></i>SERVIÇOS</th>
                         <th style="min-width: 80px;"><i class="bi bi-cloud me-1"></i>ONVIO</th>
                         <th style="min-width: 200px;"><i class="bi bi-gear me-1"></i>AÇÕES</th>
                     </tr>
@@ -321,23 +322,23 @@
                     {% for client in clients %}
                     <tr>
                         <td>
-                            <strong class="text-primary">{{ client.nomeFantasiaReceita or client.nomeEmpresa or '-' }}</strong>
+                            <strong class="text-primary">{{ client['nomeFantasiaReceita'] or client['nomeEmpresa'] or '-' }}</strong>
                         </td>
                         <td>
                             <div>
-                                {{ client.razaoSocialReceita or client.nomeEmpresa or '-' }}
-                                <br><small class="text-muted">#{{ client.id or 'N/A' }}</small>
+                                {{ client['razaoSocialReceita'] or client['nomeEmpresa'] or '-' }}
+                                <br><small class="text-muted">#{{ client['id'] or 'N/A' }}</small>
                             </div>
                         </td>
                         <td>
-                            {% if client.cnpj %}
-                                <code class="text-muted">{{ client.cnpj }}</code>
+                            {% if client['cnpj'] %}
+                                <code class="text-muted">{{ client['cnpj'] }}</code>
                             {% else %}
                                 <span class="text-muted">-</span>
                             {% endif %}
                         </td>
                         <td class="text-center">
-                            {% set status = (client.statusCliente or ('ativo' if client.ativo else 'inativo'))|lower %}
+                            {% set status = (client['statusCliente'] or ('ativo' if client['ativo'] else 'inativo'))|lower %}
                             {% if status == 'ativo' %}
                                 <span class="badge bg-success rounded-pill">
                                     <i class="bi bi-check-circle-fill me-1"></i>Ativo
@@ -361,45 +362,50 @@
                             {% endif %}
                         </td>
                         <td>
-                            {% if client.inscEst %}
-                                <small class="text-muted">{{ client.inscEst }}</small>
+                            {% if client['inscEst'] %}
+                                <small class="text-muted">{{ client['inscEst'] }}</small>
                             {% else %}
                                 <span class="text-muted">-</span>
                             {% endif %}
                         </td>
                         <td>
-                            {% if client.inscMun %}
-                                <small class="text-muted">{{ client.inscMun }}</small>
+                            {% if client['inscMun'] %}
+                                <small class="text-muted">{{ client['inscMun'] }}</small>
                             {% else %}
                                 <span class="text-muted">-</span>
                             {% endif %}
                         </td>
                         <td>
-                            <span class="badge {% if client.tributacao == 'SIMPLES' %}bg-success{% elif client.tributacao == 'LUCRO PRESUMIDO' %}bg-warning{% elif client.tributacao == 'LUCRO REAL' %}bg-danger{% elif client.tributacao == 'MEI' %}bg-info{% else %}bg-secondary{% endif %}">
-                                {{ client.tributacao or 'N/D' }}
+                            <span class="badge {% if client['tributacao'] == 'SIMPLES' %}bg-success{% elif client['tributacao'] == 'LUCRO PRESUMIDO' %}bg-warning{% elif client['tributacao'] == 'LUCRO REAL' %}bg-danger{% elif client['tributacao'] == 'MEI' %}bg-info{% else %}bg-secondary{% endif %}">
+                                {{ client['tributacao'] or 'N/D' }}
+                            </span>
+                        </td>
+                        <td>
+                            <span class="badge bg-info">
+                                {{ client['perfil'] or 'N/D' }}
                             </span>
                         </td>
                         <td>
                             <div class="d-flex gap-1 flex-wrap">
-                                {% if client.ct %}
+                                {% if client['ct'] %}
                                     <span class="badge bg-primary" title="Contábil">CT</span>
                                 {% endif %}
-                                {% if client.fs %}
+                                {% if client['fs'] %}
                                     <span class="badge bg-secondary" title="Fiscal">FS</span>
                                 {% endif %}
-                                {% if client.dp %}
+                                {% if client['dp'] %}
                                     <span class="badge bg-success" title="Pessoal">DP</span>
                                 {% endif %}
-                                {% if client.bpoFinanceiro %}
+                                {% if client['bpoFinanceiro'] %}
                                     <span class="badge bg-info" title="BPO Financeiro">BPO</span>
                                 {% endif %}
-                                {% if not client.ct and not client.fs and not client.dp and not client.bpoFinanceiro %}
+                                {% if not client['ct'] and not client['fs'] and not client['dp'] and not client['bpoFinanceiro'] %}
                                     <span class="text-muted">-</span>
                                 {% endif %}
                             </div>
                         </td>
                         <td class="text-center">
-                            {% set has_any_onvio = client.sistemaOnvio or client.sistemaOnvioContabil or client.sistemaOnvioFiscal or client.sistemaOnvioPessoal %}
+                            {% set has_any_onvio = client['sistemaOnvio'] or client['sistemaOnvioContabil'] or client['sistemaOnvioFiscal'] or client['sistemaOnvioPessoal'] %}
                             {% if has_any_onvio %}
                                 <span class="badge bg-success rounded-pill d-flex align-items-center justify-content-center" style="width: 60px; height: 28px;">
                                     <i class="bi bi-check-circle-fill me-1"></i>
@@ -414,17 +420,17 @@
                         </td>
                         <td>
                             <div class="d-flex gap-1 flex-wrap">
-                                <a href="{{ url_for('view_client', client_id=client.id) }}" 
+                                <a href="{{ url_for('view_client', client_id=client['id']) }}" 
                                    class="btn btn-outline-primary btn-sm" 
                                    title="Ver detalhes">
                                     <i class="bi bi-eye"></i>
                                 </a>
-                                <a href="{{ url_for('edit_client', client_id=client.id) }}" 
+                                <a href="{{ url_for('edit_client', client_id=client['id']) }}" 
                                    class="btn btn-outline-secondary btn-sm" 
                                    title="Editar">
                                     <i class="bi bi-pencil"></i>
                                 </a>
-                                <a href="{{ url_for('register_meeting', client_id=client.id) }}" 
+                                <a href="{{ url_for('register_meeting', client_id=client['id']) }}" 
                                    class="btn btn-outline-success btn-sm" 
                                    title="Registrar Ata de Reunião">
                                     <i class="bi bi-file-earmark-text"></i>
@@ -432,7 +438,7 @@
                                 {% if session.user_perfil and session.user_perfil.lower() == 'administrador' %}
                                 <button type="button" 
                                         class="btn btn-outline-danger btn-sm" 
-                                        onclick="confirmDelete('{{ client.id }}', '{{ client.nomeEmpresa or client.nomeFantasiaReceita }}')"
+                                        onclick="confirmDelete('{{ client['id'] }}', '{{ client['nomeEmpresa'] or client['nomeFantasiaReceita'] }}')"
                                         title="Excluir (Apenas Admin)">
                                     <i class="bi bi-trash"></i>
                                 </button>
