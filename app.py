@@ -857,13 +857,32 @@ def new_client():
 @login_required
 def edit_client(client_id):
     try:
+        print(f"🔍 [EDIT] ===== CARREGANDO CLIENTE PARA EDIÇÃO =====")
+        print(f"🔍 [EDIT] ID solicitado: '{client_id}'")
+        
         client = storage_service.get_client(client_id)
+        print(f"🔍 [EDIT] Cliente carregado: {client is not None}")
+        
         if client:
+            print(f"🔍 [EDIT] Nome do cliente: {client.get('nomeEmpresa')}")
+            print(f"🔍 [EDIT] ID do cliente retornado: '{client.get('id')}'")
+            print(f"🔍 [EDIT] Tipo do ID: {type(client.get('id'))}")
+            print(f"🔍 [EDIT] Dados principais: {list(client.keys())[:10]}")
+            
+            # Garantir que o ID está correto
+            if not client.get('id'):
+                print(f"⚠️ [EDIT] Cliente não tem ID! Forçando ID = {client_id}")
+                client['id'] = client_id
+            
             return render_template('client_form_modern.html', client=client)
         else:
+            print(f"❌ [EDIT] Cliente {client_id} não encontrado!")
             flash('Cliente não encontrado', 'error')
             return redirect(url_for('index'))
     except Exception as e:
+        print(f"❌ [EDIT] Erro ao carregar cliente: {str(e)}")
+        import traceback
+        print(f"❌ [EDIT] Traceback: {traceback.format_exc()}")
         flash(f'Erro ao carregar cliente: {str(e)}', 'error')
         return redirect(url_for('index'))
 

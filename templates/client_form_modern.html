@@ -29,9 +29,12 @@
 </div>
 
 <form method="POST" action="/client" class="needs-validation" novalidate id="clientForm">
-    {% if client %}
-        <input type="hidden" name="id" value="{{ client.id }}">
-    {% endif %}
+    <!-- DEBUG: Cliente e ID -->
+    <!-- Cliente existe: {{ client is defined and client }} -->
+    <!-- Cliente ID: {{ client.id if client else 'N/A' }} -->
+    
+    <!-- Campo ID sempre enviado - corrigido para evitar duplicação -->
+    <input type="hidden" name="id" value="{{ client.id if client and client.id else '' }}">
     
     <!-- Bloco 1: Informações da Pessoa Física / Jurídica -->
     <div class="card mb-4">

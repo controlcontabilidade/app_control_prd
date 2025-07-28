@@ -23,9 +23,8 @@
 </div>
 
 <form method="POST" action="/client" class="needs-validation" novalidate>
-    {% if client %}
-        <input type="hidden" name="id" value="{{ client.id }}">
-    {% endif %}
+    <!-- Campo ID sempre enviado - corrigido para evitar duplicação -->
+    <input type="hidden" name="id" value="{{ client.id if client and client.id else '' }}">
     
     <!-- Informações Básicas -->
     <div class="card mb-4">

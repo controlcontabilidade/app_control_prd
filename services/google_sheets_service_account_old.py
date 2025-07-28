@@ -39,7 +39,7 @@ class GoogleSheetsServiceAccountService:
                 # Fallback para arquivo local (desenvolvimento)
                 current_dir = os.path.dirname(os.path.dirname(__file__))
                 credentials_file = os.path.join(current_dir, 'service-account-key.json')
-                print(f"📁 Procurando credenciais em: {credentials_file}")
+                print(f"� Procurando credenciais em: {credentials_file}")
                 
                 if not os.path.exists(credentials_file):
                     raise FileNotFoundError(f"Arquivo de credenciais não encontrado: {credentials_file}")
@@ -170,7 +170,7 @@ class GoogleSheetsServiceAccountService:
             client['ultimaAtualizacao'] = datetime.now().isoformat()
             
             # Preparar dados para atualização
-            print("🔧 [SERVICE] Preparando dados para atualização...")
+            print("� [SERVICE] Preparando dados para atualização...")
             try:
                 row_data = self.client_to_row(client)
                 print(f"✅ [SERVICE] Linha preparada: {len(row_data)} colunas")
@@ -212,7 +212,7 @@ class GoogleSheetsServiceAccountService:
             return False
     
     def find_client_row(self, client_id: str) -> int:
-        """Encontra a linha do cliente na planilha - MÉTODO OTIMIZADO"""
+        """Encontra a linha do cliente na planilha - MÉTODO CORRIGIDO PARA EVITAR DUPLICAÇÃO"""
         try:
             print(f"🔍 [SERVICE] ===== BUSCANDO CLIENTE =====")
             print(f"🔍 [SERVICE] ID do cliente recebido: '{client_id}' (tipo: {type(client_id)})")
@@ -225,94 +225,119 @@ class GoogleSheetsServiceAccountService:
             search_id = str(client_id).strip()
             print(f"🔍 [SERVICE] ID normalizado para busca: '{search_id}'")
             
-            # Buscar dados da planilha
+            # ESTRATÉGIA OTIMIZADA: Buscar apenas a coluna ID primeiro
+            try:
+                # Primeiro, identificar onde está a coluna ID
+                header_result = self.service.spreadsheets().values().get(
+                    spreadsheetId=self.spreadsheet_id,
+                    range='Clientes!1:1'  # Apenas cabeçalho
+                ).execute()
+                
+                headers = header_result.get('values', [[]])[0]
+                id_column_index = -1
+                
+                # Encontrar posição da coluna ID
+                for i, header in enumerate(headers):
+                    if str(header).strip().upper() == 'ID':
+                        id_column_index = i
+                        print(f"🔍 [SERVICE] Coluna ID encontrada no índice {i}")
+                        break
+                
+                if id_column_index == -1:
+                    # Assumir posição padrão (coluna 90, índice 89)
+                    id_column_index = 89
+                    print(f"🔍 [SERVICE] Usando posição padrão ID: índice {id_column_index}")
+                
+                # Converter para notação de coluna (A1)
+                id_column_letter = self._index_to_column_letter(id_column_index)
+                print(f"🔍 [SERVICE] Coluna ID: {id_column_letter} (índice {id_column_index})")
+                
+                # Buscar apenas a coluna ID (mais eficiente)
+                id_range = f'Clientes!{id_column_letter}2:{id_column_letter}'
+                id_result = self.service.spreadsheets().values().get(
+                    spreadsheetId=self.spreadsheet_id,
+                    range=id_range
+                ).execute()
+                
+                id_values = id_result.get('values', [])
+                print(f"🔍 [SERVICE] Buscando em {len(id_values)} linhas da coluna ID")
+                
+                # Procurar o ID
+                for row_idx, row in enumerate(id_values):
+                    if row and len(row) > 0:
+                        row_id = str(row[0]).strip()
+                        actual_row_number = row_idx + 2  # +2 porque começamos da linha 2
+                        
+                        if row_id == search_id:
+                            print(f"✅ [SERVICE] ===== CLIENTE ENCONTRADO NA LINHA {actual_row_number} =====")
+                            return actual_row_number
+                        
+                        # Debug apenas primeiras 5 linhas
+                        if row_idx < 5:
+                            print(f"🔍 [SERVICE] Linha {actual_row_number}: ID '{row_id}' vs busca '{search_id}' - Match: {row_id == search_id}")
+                
+                print(f"⚠️ [SERVICE] ===== CLIENTE ID '{search_id}' NÃO ENCONTRADO =====")
+                print(f"🔍 [SERVICE] Total de linhas verificadas: {len(id_values)}")
+                return -1
+                
+            except Exception as api_error:
+                print(f"❌ [SERVICE] Erro na API otimizada: {api_error}")
+                # Fallback para método tradicional
+                return self._find_client_fallback_traditional(client_id)
+            
+        except Exception as e:
+            print(f"❌ [SERVICE] Erro ao buscar linha do cliente: {e}")
+            import traceback
+            print(f"❌ [SERVICE] Traceback: {traceback.format_exc()}")
+            return -1
+    
+    def _index_to_column_letter(self, index: int) -> str:
+        """Converte índice numérico para letra da coluna (0->A, 25->Z, 26->AA, etc.)"""
+        result = ""
+        while index >= 0:
+            result = chr(index % 26 + ord('A')) + result
+            index = index // 26 - 1
+        return result
+    
+    def _find_client_fallback_traditional(self, client_id: str) -> int:
+        """Método de fallback usando busca tradicional (mais lento mas confiável)"""
+        try:
+            print(f"🔍 [SERVICE] Usando busca tradicional para ID: {client_id}")
+            
+            # Buscar todos os dados
             result = self.service.spreadsheets().values().get(
                 spreadsheetId=self.spreadsheet_id,
-                range='Clientes!A:CZ'
+                range='Clientes!A1:CZ'
             ).execute()
             
             values = result.get('values', [])
-            if not values:
-                print("⚠️ [SERVICE] Planilha vazia")
+            if len(values) <= 1:
                 return -1
             
-            # Primeira linha são os cabeçalhos
-            headers = values[0] if values else []
-            print(f"🔍 [SERVICE] Planilha tem {len(values)} linhas no total")
-            print(f"🔍 [SERVICE] Cabeçalhos encontrados: {len(headers)} colunas")
+            headers = values[0]
+            id_column_index = 89  # Posição padrão
             
-            if len(headers) >= 10:
-                print(f"🔍 [SERVICE] Últimas 10 colunas: {headers[-10:]}")
-            
-            # Encontrar índice da coluna ID
-            id_column_index = -1
+            # Procurar pela coluna ID
             for i, header in enumerate(headers):
                 if str(header).strip().upper() == 'ID':
                     id_column_index = i
-                    print(f"🔍 [SERVICE] Coluna ID encontrada no índice {i} (header: '{header}')")
                     break
             
-            if id_column_index == -1:
-                print("❌ [SERVICE] Coluna ID não encontrada nos cabeçalhos!")
-                return -1
+            search_id = str(client_id).strip()
             
-            # Analisar primeiras linhas para debug
-            print(f"🔍 [SERVICE] ===== ANALISANDO PRIMEIRAS {min(3, len(values)-1)} LINHAS =====")
-            for row_idx in range(1, min(4, len(values))):  # Começar da linha 2 (índice 1)
-                row = values[row_idx]
-                print(f"🔍 [SERVICE] Linha {row_idx + 1}: {len(row)} colunas")
-                if id_column_index < len(row):
+            # Buscar nas linhas
+            for row_num, row in enumerate(values[1:], start=2):
+                if len(row) > id_column_index:
                     row_id = str(row[id_column_index]).strip()
-                    print(f"🔍 [SERVICE] Linha {row_idx + 1} - ID na posição {id_column_index}: '{row_id}'")
-            
-            # Buscar o ID específico
-            print(f"🔍 [SERVICE] ===== BUSCANDO ID '{search_id}' =====")
-            for row_idx in range(1, len(values)):  # Pular cabeçalho
-                row = values[row_idx]
-                if id_column_index < len(row):
-                    row_id = str(row[id_column_index]).strip()
-                    actual_row_number = row_idx + 1  # +1 porque é 1-indexed
-                    
-                    print(f"🔍 [SERVICE] Linha {actual_row_number}: ID '{row_id}' vs busca '{search_id}' - Match: {row_id == search_id}")
                     if row_id == search_id:
-                        print(f"✅ [SERVICE] ===== CLIENTE ENCONTRADO NA LINHA {actual_row_number} =====")
-                        return actual_row_number
+                        print(f"✅ [SERVICE] Cliente encontrado na linha {row_num} (busca tradicional)")
+                        return row_num
             
-            print(f"❌ [SERVICE] Cliente '{search_id}' não encontrado")
             return -1
             
         except Exception as e:
-            print(f"❌ Erro ao buscar cliente: {e}")
+            print(f"❌ [SERVICE] Erro na busca tradicional: {e}")
             return -1
-
-    def get_client(self, client_id: str) -> Optional[Dict]:
-        """Busca cliente específico"""
-        try:
-            print(f"🔍 [SERVICE] Buscando cliente específico: {client_id}")
-            row_index = self.find_client_row(client_id)
-            if row_index <= 0:
-                print(f"❌ [SERVICE] Cliente {client_id} não encontrado")
-                return None
-                
-            # Buscar os dados da linha específica
-            range_name = f'Clientes!A{row_index}:CZ{row_index}'
-            result = self.service.spreadsheets().values().get(
-                spreadsheetId=self.spreadsheet_id,
-                range=range_name
-            ).execute()
-            
-            values = result.get('values', [])
-            if values and len(values[0]) > 0:
-                client = self.row_to_client(values[0])
-                client['_row_number'] = row_index
-                print(f"✅ [SERVICE] Cliente {client_id} encontrado na linha {row_index}")
-                return client
-            
-            return None
-            
-        except Exception as e:
-            print(f"❌ [SERVICE] Erro ao buscar cliente {client_id}: {e}")
-            return None
     
     def get_clients(self) -> List[Dict]:
         """Busca clientes da planilha"""
@@ -330,7 +355,7 @@ class GoogleSheetsServiceAccountService:
             
             clients = []
             for i, row in enumerate(values[1:], 2):  # Skip header, start from row 2
-                if len(row) > 0 and row[0]:  # Check if first column has value
+                if len(row) > 0 and row[0]:  # Check if first column (ID) has value
                     client = self.row_to_client(row)
                     client['_row_number'] = i  # Store row number for updates/deletes
                     clients.append(client)
@@ -340,7 +365,42 @@ class GoogleSheetsServiceAccountService:
             
         except Exception as e:
             print(f"❌ Erro ao buscar clientes: {e}")
+            # Se é erro de rate limit, retorna lista vazia em vez de falhar
+            if "RATE_LIMIT_EXCEEDED" in str(e):
+                print("⚠️ Rate limit excedido. Aguarde 1 minuto antes de tentar novamente.")
             return []
+    
+    def get_client(self, client_id: str) -> Optional[Dict]:
+        """Busca cliente específico"""
+        try:
+            print(f"🔍 [SERVICE] Buscando cliente específico: {client_id}")
+            # Usar find_client_row diretamente em vez de carregar todos os clientes
+            row_index = self.find_client_row(client_id)
+            if row_index == -1:
+                print(f"⚠️ [SERVICE] Cliente {client_id} não encontrado")
+                return None
+            
+            # Buscar apenas a linha específica
+            range_name = f"Clientes!A{row_index}:BC{row_index}"
+            result = self.service.spreadsheets().values().get(
+                spreadsheetId=self.spreadsheet_id,
+                range=range_name
+            ).execute()
+            
+            values = result.get('values', [])
+            if values and len(values[0]) > 0:
+                client = self.row_to_client(values[0])
+                client['_row_number'] = row_index
+                print(f"✅ [SERVICE] Cliente {client_id} encontrado na linha {row_index}")
+                return client
+            
+            return None
+            
+        except Exception as e:
+            print(f"❌ [SERVICE] Erro ao buscar cliente {client_id}: {e}")
+            if "RATE_LIMIT_EXCEEDED" in str(e):
+                print("⚠️ Rate limit excedido. Operação cancelada.")
+            return None
     
     def delete_client(self, client_id: str) -> bool:
         """Remove cliente da planilha (exclusão real)"""
@@ -349,7 +409,7 @@ class GoogleSheetsServiceAccountService:
             
             # Buscar a linha do cliente
             row_index = self.find_client_row(client_id)
-            if row_index <= 0:
+            if row_index == -1:
                 print(f"⚠️ Cliente {client_id} não encontrado")
                 return False
             
@@ -380,114 +440,143 @@ class GoogleSheetsServiceAccountService:
         except Exception as e:
             print(f"❌ Erro ao deletar cliente: {e}")
             return False
-
+    
+    def update_client(self, client: Dict) -> bool:
+        """Atualiza cliente existente"""
+        try:
+            if not client.get('_row_number'):
+                # Se não tem número da linha, tenta encontrar pela ID
+                existing_client = self.get_client(client.get('id'))
+                if not existing_client:
+                    print(f"⚠️ [SERVICE] Cliente {client.get('id')} não encontrado para atualização")
+                    return False  # Retorna False em vez de criar loop infinito
+                client['_row_number'] = existing_client['_row_number']
+            
+            row_data = self.client_to_row(client)
+            range_name = f"Clientes!A{client['_row_number']}:BC{client['_row_number']}"
+            
+            body = {'values': [row_data]}
+            result = self.service.spreadsheets().values().update(
+                spreadsheetId=self.spreadsheet_id,
+                range=range_name,
+                valueInputOption='USER_ENTERED',
+                body=body
+            ).execute()
+            
+            print(f"✅ Cliente atualizado! Células atualizadas: {result.get('updatedCells', 0)}")
+            return True
+            
+        except Exception as e:
+            print(f"❌ Erro ao atualizar cliente: {e}")
+            return False
+    
     def get_headers(self) -> List[str]:
-        """Retorna lista completa de cabeçalhos organizados por blocos"""
+        """Retorna os cabeçalhos das colunas na ordem correta conforme SIGEC"""
         return [
-            # Bloco 1: Informações da Pessoa Física / Jurídica (13 campos obrigatórios)
-            'NOME DA EMPRESA',                   # 1. Nome da empresa/fantasia
-            'RAZÃO SOCIAL NA RECEITA',           # 2. Nome oficial na Receita Federal
-            'NOME FANTASIA NA RECEITA',          # 3. Nome fantasia na Receita Federal
-            'CNPJ',                              # 4. CNPJ (14 dígitos)
-            'PERFIL',                            # 5. Perfil tributário (A, B, C, etc.)
-            'INSCRIÇÃO ESTADUAL',                # 6. IE - Inscrição Estadual
-            'INSCRIÇÃO MUNICIPAL',               # 7. IM - Inscrição Municipal
-            'ESTADO',                            # 8. UF do Estado
-            'CIDADE',                            # 9. Município
-            'REGIME FEDERAL',                    # 10. Simples Nacional, Lucro Real, etc.
-            'REGIME ESTADUAL',                   # 11. Normal, Simples, etc.
-            'SEGMENTO',                          # 12. Indústria, Comércio, Serviços
-            'ATIVIDADE',                         # 13. Atividade principal do negócio
+            # Bloco 1: Informações da Pessoa Jurídica (13 campos obrigatórios)
+            'NOME DA EMPRESA',                    # 1. Obrigatório
+            'RAZÃO SOCIAL NA RECEITA',            # 2. Obrigatório
+            'NOME FANTASIA NA RECEITA',           # 3. Opcional
+            'CNPJ',                              # 4. Obrigatório
+            'PERFIL',                            # 5. Obrigatório (MEI, ME, EPP, NORMAL)
+            'INSCRIÇÃO ESTADUAL',                # 6. Opcional
+            'INSCRIÇÃO MUNICIPAL',               # 7. Opcional
+            'ESTADO',                            # 8. Obrigatório
+            'CIDADE',                            # 9. Obrigatório
+            'REGIME FEDERAL',                    # 10. Obrigatório (SIMPLES, PRESUMIDO, REAL)
+            'REGIME ESTADUAL',                   # 11. Opcional
+            'SEGMENTO',                          # 12. Obrigatório
+            'ATIVIDADE',                         # 13. Obrigatório
             
             # Bloco 2: Serviços Prestados pela Control
             'SERVIÇO CT',                        # 14. Contabilidade (SIM/NÃO)
             'SERVIÇO FS',                        # 15. Fiscal (SIM/NÃO)
             'SERVIÇO DP',                        # 16. Departamento Pessoal (SIM/NÃO)
             'SERVIÇO BPO FINANCEIRO',            # 17. BPO Financeiro (SIM/NÃO)
-            'RESPONSÁVEL PELOS SERVIÇOS',        # 18. Quem cuida do cliente
-            'DATA INÍCIO DOS SERVIÇOS',          # 19. Quando começou a prestação
+            'RESPONSÁVEL PELOS SERVIÇOS',        # 18. Nome do responsável
+            'DATA INÍCIO DOS SERVIÇOS',          # 19. Data de início
             
             # Códigos dos Sistemas (Bloco 2)
-            'CÓDIGO FORTES CT',                  # 20. Código no sistema Fortes Contábil
-            'CÓDIGO FORTES FS',                  # 21. Código no sistema Fortes Fiscal
-            'CÓDIGO FORTES PS',                  # 22. Código no sistema Fortes Pessoal
-            'CÓDIGO DOMÍNIO',                    # 23. Código no sistema Domínio
-            'SISTEMA UTILIZADO',                 # 24. Sistema principal em uso
-            'MÓDULO SPED TRIER',                 # 25. Módulo/versão do SPED Trier
+            'CÓDIGO FORTES CT',                  # 20. Código Fortes Contabilidade
+            'CÓDIGO FORTES FS',                  # 21. Código Fortes Fiscal
+            'CÓDIGO FORTES PS',                  # 22. Código Fortes Folha
+            'CÓDIGO DOMÍNIO',                    # 23. Código sistema Domínio
+            'SISTEMA UTILIZADO',                 # 24. Sistema principal
+            'MÓDULO SPED TRIER',                 # 25. Módulo SPED
             
             # Bloco 3: Quadro Societário (campos base + dinâmicos)
-            'SÓCIO 1 NOME',                      # 26. Nome completo do sócio 1
+            'SÓCIO 1 NOME',                      # 26. Nome do sócio 1
             'SÓCIO 1 CPF',                       # 27. CPF do sócio 1
             'SÓCIO 1 DATA NASCIMENTO',           # 28. Data nascimento sócio 1
             'SÓCIO 1 ADMINISTRADOR',             # 29. É administrador? (SIM/NÃO)
-            'SÓCIO 1 COTAS',                     # 30. Percentual de cotas
-            'SÓCIO 1 RESPONSÁVEL LEGAL',         # 31. Responsável legal? (SIM/NÃO)
+            'SÓCIO 1 COTAS',                     # 30. Quantidade de cotas
+            'SÓCIO 1 RESPONSÁVEL LEGAL',         # 31. É responsável legal? (SIM/NÃO)
             
             # Bloco 4: Contatos
-            'TELEFONE FIXO',                     # 32. Telefone comercial
-            'TELEFONE CELULAR',                  # 33. Celular principal
-            'WHATSAPP',                          # 34. Número do WhatsApp
-            'EMAIL PRINCIPAL',                   # 35. Email principal da empresa
-            'EMAIL SECUNDÁRIO',                  # 36. Email alternativo
-            'RESPONSÁVEL IMEDIATO',              # 37. Contato direto na empresa
-            'EMAILS DOS SÓCIOS',                 # 38. Emails dos sócios
-            'CONTATO CONTADOR',                  # 39. Nome do contador atual
+            'TELEFONE FIXO',                     # 32. Telefone fixo da empresa
+            'TELEFONE CELULAR',                  # 33. Telefone celular
+            'WHATSAPP',                          # 34. WhatsApp
+            'EMAIL PRINCIPAL',                   # 35. Email principal (obrigatório)
+            'EMAIL SECUNDÁRIO',                  # 36. Email secundário
+            'RESPONSÁVEL IMEDIATO',              # 37. Nome do responsável
+            'EMAILS DOS SÓCIOS',                 # 38. Lista de emails dos sócios
+            'CONTATO CONTADOR',                  # 39. Nome do contador responsável
             'TELEFONE CONTADOR',                 # 40. Telefone do contador
             'EMAIL CONTADOR',                    # 41. Email do contador
             
             # Bloco 5: Sistemas e Acessos
-            'SISTEMA PRINCIPAL',                 # 42. ERP/Sistema principal
-            'VERSÃO DO SISTEMA',                 # 43. Versão/release
-            'CÓDIGO ACESSO SIMPLES NACIONAL',    # 44. Código de acesso SN
-            'CPF/CNPJ PARA ACESSO',              # 45. CPF/CNPJ usado nos acessos
+            'SISTEMA PRINCIPAL',                 # 42. Sistema principal utilizado
+            'VERSÃO DO SISTEMA',                 # 43. Versão do sistema
+            'CÓDIGO ACESSO SIMPLES NACIONAL',    # 44. Código acesso SN
+            'CPF/CNPJ PARA ACESSO',             # 45. CPF/CNPJ usado nos acessos
             'PORTAL CLIENTE ATIVO',              # 46. Portal ativo? (SIM/NÃO)
-            'INTEGRAÇÃO DOMÍNIO',                # 47. Integrado Domínio? (SIM/NÃO)
+            'INTEGRAÇÃO DOMÍNIO',                # 47. Integrado? (SIM/NÃO)
             'SISTEMA ONVIO',                     # 48. Usa Onvio? (SIM/NÃO)
             
             # Bloco 6: Senhas e Credenciais
-            'ACESSO ISS',                        # 49. Login ISS municipal
-            'SENHA ISS',                         # 50. Senha ISS municipal
-            'ACESSO SEFIN',                      # 51. Login SEFIN estadual
-            'SENHA SEFIN',                       # 52. Senha SEFIN estadual
-            'ACESSO SEUMA',                      # 53. Login SEUMA ambiental
-            'SENHA SEUMA',                       # 54. Senha SEUMA ambiental
-            'ACESSO EMPWEB',                     # 55. Login eSocial/EmpWeb
-            'SENHA EMPWEB',                      # 56. Senha eSocial/EmpWeb
+            'ACESSO ISS',                        # 49. Login ISS
+            'SENHA ISS',                         # 50. Senha ISS
+            'ACESSO SEFIN',                      # 51. Login SEFIN
+            'SENHA SEFIN',                       # 52. Senha SEFIN
+            'ACESSO SEUMA',                      # 53. Login SEUMA
+            'SENHA SEUMA',                       # 54. Senha SEUMA
+            'ACESSO EMPWEB',                     # 55. Login EmpWeb
+            'SENHA EMPWEB',                      # 56. Senha EmpWeb
             'ACESSO FAP/INSS',                   # 57. Login FAP/INSS
             'SENHA FAP/INSS',                    # 58. Senha FAP/INSS
-            'ACESSO CRF',                        # 59. Login CRF (farmácias)
-            'SENHA CRF',                         # 60. Senha CRF (farmácias)
-            'EMAIL GESTOR',                      # 61. Email para gestão
-            'SENHA EMAIL GESTOR',                # 62. Senha email gestão
-            'ANVISA GESTOR',                     # 63. Login ANVISA gestor
-            'ANVISA EMPRESA',                    # 64. Login ANVISA empresa
+            'ACESSO CRF',                        # 59. Login CRF
+            'SENHA CRF',                         # 60. Senha CRF
+            'EMAIL GESTOR',                      # 61. Email do gestor
+            'SENHA EMAIL GESTOR',                # 62. Senha email gestor
+            'ANVISA GESTOR',                     # 63. Login ANVISA Gestor
+            'ANVISA EMPRESA',                    # 64. Login ANVISA Empresa
             'ACESSO IBAMA',                      # 65. Login IBAMA
             'SENHA IBAMA',                       # 66. Senha IBAMA
-            'ACESSO SEMACE',                     # 67. Login SEMACE estadual
-            'SENHA SEMACE',                      # 68. Senha SEMACE estadual
+            'ACESSO SEMACE',                     # 67. Login SEMACE
+            'SENHA SEMACE',                      # 68. Senha SEMACE
             
             # Bloco 7: Procurações
-            'PROCURAÇÃO RFB',                    # 69. Tem procuração RFB? (SIM/NÃO)
+            'PROCURAÇÃO RFB',                    # 69. Tem proc. RFB? (SIM/NÃO)
             'DATA PROCURAÇÃO RFB',               # 70. Data da procuração RFB
-            'PROCURAÇÃO RECEITA ESTADUAL',       # 71. Tem procuração RE? (SIM/NÃO)
+            'PROCURAÇÃO RECEITA ESTADUAL',       # 71. Tem proc. RC? (SIM/NÃO)
             'DATA PROCURAÇÃO RC',                # 72. Data da procuração RC
-            'PROCURAÇÃO CAIXA ECONÔMICA',        # 73. Tem procuração CEF? (SIM/NÃO)
+            'PROCURAÇÃO CAIXA ECONÔMICA',        # 73. Tem proc. CX? (SIM/NÃO)
             'DATA PROCURAÇÃO CX',                # 74. Data da procuração CX
-            'PROCURAÇÃO PREVIDÊNCIA SOCIAL',     # 75. Tem procuração INSS? (SIM/NÃO)
+            'PROCURAÇÃO PREVIDÊNCIA SOCIAL',     # 75. Tem proc. SW? (SIM/NÃO)
             'DATA PROCURAÇÃO SW',                # 76. Data da procuração SW
-            'PROCURAÇÃO MUNICIPAL',              # 77. Tem procuração municipal? (SIM/NÃO)
-            'DATA PROCURAÇÃO MUNICIPAL',         # 78. Data da procuração municipal
+            'PROCURAÇÃO MUNICIPAL',              # 77. Tem proc. Municipal? (SIM/NÃO)
+            'DATA PROCURAÇÃO MUNICIPAL',         # 78. Data da procuração Municipal
             'OUTRAS PROCURAÇÕES',                # 79. Outras procurações
-            'OBSERVAÇÕES PROCURAÇÕES',           # 80. Obs sobre procurações
+            'OBSERVAÇÕES PROCURAÇÕES',           # 80. Observações das procurações
             
             # Bloco 8: Observações e Dados Adicionais
-            'OBSERVAÇÕES GERAIS',                # 81. Observações livres
-            'TAREFAS VINCULADAS',                # 82. Número de tarefas pendentes
-            'DATA INÍCIO SERVIÇOS',              # 83. Data início (duplicate for compatibility)
-            'STATUS DO CLIENTE',                 # 84. ATIVO, INATIVO, SUSPENSO
-            'ÚLTIMA ATUALIZAÇÃO',                # 85. Timestamp última modificação
-            'RESPONSÁVEL ATUALIZAÇÃO',           # 86. Quem fez a última alteração
-            'PRIORIDADE',                        # 87. ALTA, NORMAL, BAIXA
+            'OBSERVAÇÕES GERAIS',                # 81. Observações gerais
+            'TAREFAS VINCULADAS',                # 82. Número de tarefas
+            'DATA INÍCIO SERVIÇOS',              # 83. Data início serviços
+            'STATUS DO CLIENTE',                 # 84. Status (ATIVO, INATIVO, etc.)
+            'ÚLTIMA ATUALIZAÇÃO',                # 85. Timestamp última atualização
+            'RESPONSÁVEL ATUALIZAÇÃO',           # 86. Usuário que atualizou
+            'PRIORIDADE',                        # 87. Prioridade (NORMAL, ALTA, etc.)
             'TAGS/CATEGORIAS',                   # 88. Tags do cliente
             'HISTÓRICO DE ALTERAÇÕES',           # 89. Log de alterações
             
@@ -531,7 +620,13 @@ class GoogleSheetsServiceAccountService:
                 print("✅ Cabeçalhos já estão corretos")
                 
         except Exception as e:
-            print(f"❌ Erro ao verificar/atualizar cabeçalhos: {e}")
+            if "RATE_LIMIT_EXCEEDED" in str(e):
+                print("⚠️ Rate limit excedido na verificação de cabeçalhos - Continuando mesmo assim")
+                # Não falhar por causa do rate limit na inicialização
+                return
+            else:
+                print(f"❌ Erro ao verificar/atualizar cabeçalhos: {e}")
+                # Não fazer raise para não quebrar a inicialização
 
     def client_to_row(self, client: Dict) -> List:
         """Converte cliente para linha da planilha - SIGEC organizado por blocos"""
@@ -807,3 +902,208 @@ class GoogleSheetsServiceAccountService:
             'ativo': bool_from_text(safe_get(row, 90, 'SIM'), True), # 91. CLIENTE ATIVO
             'criadoEm': safe_get(row, 91, datetime.now().isoformat()) # 92. DATA DE CRIAÇÃO
         }
+
+    def get_all_values(self):
+        """Retorna todos os valores da planilha no range especificado"""
+        try:
+            result = self.service.spreadsheets().values().get(
+                spreadsheetId=self.spreadsheet_id,
+                range=self.range_name
+            ).execute()
+            
+            return result.get('values', [])
+        except Exception as e:
+            print(f"❌ Erro ao buscar valores: {e}")
+            return []
+
+    def update_range(self, range_name: str, values: list):
+        """Atualiza um range específico na planilha"""
+        try:
+            body = {
+                'values': values
+            }
+            
+            result = self.service.spreadsheets().values().update(
+                spreadsheetId=self.spreadsheet_id,
+                range=range_name,
+                valueInputOption='RAW',
+                body=body
+            ).execute()
+            
+            return True
+        except Exception as e:
+            print(f"❌ Erro ao atualizar range: {e}")
+            return False
+
+    def append_row(self, values: list):
+        """Adiciona uma nova linha ao final da planilha"""
+        try:
+            body = {
+                'values': [values]
+            }
+            
+            result = self.service.spreadsheets().values().append(
+                spreadsheetId=self.spreadsheet_id,
+                range=self.range_name,
+                valueInputOption='RAW',
+                insertDataOption='INSERT_ROWS',
+                body=body
+            ).execute()
+            
+            return True
+        except Exception as e:
+            print(f"❌ Erro ao adicionar linha: {e}")
+            return False
+
+    def get_worksheet(self, worksheet_name: str):
+        """Retorna uma instância de worksheet para trabalhar com abas específicas"""
+        return GoogleSheetsWorksheet(self.service, self.spreadsheet_id, worksheet_name)
+    
+    def create_worksheet(self, worksheet_name: str, rows: int = 1000, cols: int = 26):
+        """Cria uma nova aba na planilha"""
+        try:
+            body = {
+                'requests': [{
+                    'addSheet': {
+                        'properties': {
+                            'title': worksheet_name,
+                            'gridProperties': {
+                                'rowCount': rows,
+                                'columnCount': cols
+                            }
+                        }
+                    }
+                }]
+            }
+            
+            result = self.service.spreadsheets().batchUpdate(
+                spreadsheetId=self.spreadsheet_id,
+                body=body
+            ).execute()
+            
+            print(f"✅ Aba '{worksheet_name}' criada com sucesso!")
+            return True
+            
+        except Exception as e:
+            if "already exists" in str(e).lower():
+                print(f"⚠️ Aba '{worksheet_name}' já existe")
+                return True
+            else:
+                print(f"❌ Erro ao criar aba '{worksheet_name}': {e}")
+                return False
+    
+    def worksheet_exists(self, worksheet_name: str) -> bool:
+        """Verifica se uma aba existe na planilha"""
+        try:
+            result = self.service.spreadsheets().get(
+                spreadsheetId=self.spreadsheet_id
+            ).execute()
+            
+            sheets = result.get('sheets', [])
+            for sheet in sheets:
+                if sheet['properties']['title'] == worksheet_name:
+                    return True
+            return False
+            
+        except Exception as e:
+            print(f"❌ Erro ao verificar aba '{worksheet_name}': {e}")
+            return False
+
+
+class GoogleSheetsWorksheet:
+    """Classe para trabalhar com uma aba específica do Google Sheets"""
+    
+    def __init__(self, service, spreadsheet_id: str, worksheet_name: str):
+        self.service = service
+        self.spreadsheet_id = spreadsheet_id
+        self.worksheet_name = worksheet_name
+        self.range_name = f"{worksheet_name}!A:Z"
+    
+    @property
+    def row_count(self):
+        """Retorna o número de linhas com dados"""
+        try:
+            result = self.service.spreadsheets().values().get(
+                spreadsheetId=self.spreadsheet_id,
+                range=self.range_name
+            ).execute()
+            
+            values = result.get('values', [])
+            return len(values)
+        except:
+            return 0
+    
+    def row_values(self, row_number: int):
+        """Retorna os valores de uma linha específica"""
+        try:
+            range_name = f"{self.worksheet_name}!{row_number}:{row_number}"
+            result = self.service.spreadsheets().values().get(
+                spreadsheetId=self.spreadsheet_id,
+                range=range_name
+            ).execute()
+            
+            values = result.get('values', [])
+            return values[0] if values else []
+        except:
+            return []
+    
+    def get_all_values(self):
+        """Retorna todos os valores da aba"""
+        try:
+            result = self.service.spreadsheets().values().get(
+                spreadsheetId=self.spreadsheet_id,
+                range=self.range_name
+            ).execute()
+            
+            return result.get('values', [])
+        except Exception as e:
+            print(f"❌ Erro ao buscar valores da aba '{self.worksheet_name}': {e}")
+            return []
+    
+    def insert_row(self, values, row_number=None):
+        """Insere uma linha na aba"""
+        try:
+            if row_number is None:
+                # Adiciona no final
+                current_rows = self.row_count
+                row_number = current_rows + 1
+            
+            range_name = f"{self.worksheet_name}!A{row_number}"
+            body = {
+                'values': [values]
+            }
+            
+            result = self.service.spreadsheets().values().update(
+                spreadsheetId=self.spreadsheet_id,
+                range=range_name,
+                valueInputOption='RAW',
+                body=body
+            ).execute()
+            
+            return True
+        except Exception as e:
+            print(f"❌ Erro ao inserir linha: {e}")
+            return False
+    
+    def update_cell(self, row, col, value):
+        """Atualiza uma célula específica"""
+        try:
+            # Converte número da coluna para letra
+            col_letter = chr(65 + col - 1)  # A=65
+            range_name = f"{self.worksheet_name}!{col_letter}{row}"
+            
+            body = {
+                'values': [[value]]
+            }
+            
+            result = self.service.spreadsheets().values().update(
+                spreadsheetId=self.spreadsheet_id,
+                range=range_name,
+                valueInputOption='RAW',
+                body=body
+            ).execute()
+            
+            return True
+        except Exception as e:
+            print(f"❌ Erro ao atualizar célula: {e}")
+            return False
