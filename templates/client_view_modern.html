@@ -22,7 +22,7 @@
                 {% if client.ativo %}
                     <span class="status-indicator">
                         <span class="status-dot active"></span>
-                        <strong class="text-success">CLIENTE ATIVO</strong>
+                        <strong class="text-success">Cliente Ativo</strong>
                     </span>
                 {% else %}
                     <span class="status-indicator">
@@ -32,7 +32,7 @@
                 {% endif %}
                 {% if client.cnpj %}
                     <span class="text-muted">•</span>
-                    <code class="text-muted">{{ client.cnpj }}</code>
+                    <code class="text-muted user-select-all">{{ client.cnpj | only_numbers }}</code>
                 {% endif %}
                 {% if client.cidade %}
                     <span class="text-muted">•</span>
@@ -67,29 +67,30 @@
             <div class="card-body">
                 <div class="row">
                     <div class="col-md-6 mb-3">
-                        <label class="form-label text-muted">NOME DA EMPRESA</label>
+                        <label class="form-label text-muted">nome da empresa</label>
                         <p class="mb-0"><strong>{{ client.nomeEmpresa or '-' }}</strong></p>
                     </div>
                     <div class="col-md-6 mb-3">
-                        <label class="form-label text-muted">RAZÃO SOCIAL (RECEITA)</label>
+                        <label class="form-label text-muted">razão social (receita)</label>
                         <p class="mb-0">{{ client.razaoSocialReceita or '-' }}</p>
                     </div>
                     <div class="col-md-6 mb-3">
-                        <label class="form-label text-muted">NOME FANTASIA (RECEITA)</label>
+                        <label class="form-label text-muted">Nome Fantasia (Receita)</label>
                         <p class="mb-0">{{ client.nomeFantasiaReceita or '-' }}</p>
                     </div>
                     <div class="col-md-6 mb-3">
                         <label class="form-label text-muted">cpf/cnpj</label>
                         <p class="mb-0">
                             {% if client.cpfCnpj or client.cnpj %}
-                                <code>{{ client.cpfCnpj or client.cnpj }}</code>
+                                <code class="user-select-all">{{ (client.cpfCnpj or client.cnpj) | only_numbers }}</code>
+                                <small class="text-muted d-block">Apenas números - fácil para copiar</small>
                             {% else %}
                                 -
                             {% endif %}
                         </p>
                     </div>
                     <div class="col-md-4 mb-3">
-                        <label class="form-label text-muted">PERFIL do Cliente</label>
+                        <label class="form-label text-muted">Perfil do Cliente</label>
                         <p class="mb-0">
                             {% if client.perfil %}
                                 <span class="badge bg-info">{{ client.perfil }}</span>
@@ -99,15 +100,15 @@
                         </p>
                     </div>
                     <div class="col-md-4 mb-3">
-                        <label class="form-label text-muted">INSCRIÇÃO ESTADUAL</label>
+                        <label class="form-label text-muted">Inscrição Estadual</label>
                         <p class="mb-0">{{ client.inscEst or '-' }}</p>
                     </div>
                     <div class="col-md-4 mb-3">
-                        <label class="form-label text-muted">INSCRIÇÃO MUNICIPAL</label>
+                        <label class="form-label text-muted">Inscrição Municipal</label>
                         <p class="mb-0">{{ client.inscMun or '-' }}</p>
                     </div>
                     <div class="col-md-4 mb-3">
-                        <label class="form-label text-muted">ESTADO</label>
+                        <label class="form-label text-muted">Estado</label>
                         <p class="mb-0">
                             {% if client.estado %}
                                 <span class="badge bg-primary">{{ client.estado }}</span>
@@ -117,11 +118,11 @@
                         </p>
                     </div>
                     <div class="col-md-4 mb-3">
-                        <label class="form-label text-muted">CIDADE</label>
+                        <label class="form-label text-muted">Cidade</label>
                         <p class="mb-0">{{ client.cidade or '-' }}</p>
                     </div>
                     <div class="col-md-4 mb-3">
-                        <label class="form-label text-muted">REGIME FEDERAL</label>
+                        <label class="form-label text-muted">Regime Federal</label>
                         <p class="mb-0">
                             {% if client.regimeFederal or client.tributacao %}
                                 <span class="badge bg-secondary">{{ client.regimeFederal or client.tributacao }}</span>
@@ -131,7 +132,7 @@
                         </p>
                     </div>
                     <div class="col-md-4 mb-3">
-                        <label class="form-label text-muted">REGIME ESTADUAL</label>
+                        <label class="form-label text-muted">Regime Estadual</label>
                         <p class="mb-0">
                             {% if client.regimeEstadual %}
                                 <span class="badge bg-secondary">{{ client.regimeEstadual }}</span>
@@ -141,11 +142,11 @@
                         </p>
                     </div>
                     <div class="col-md-6 mb-3">
-                        <label class="form-label text-muted">SEGMENTO</label>
+                        <label class="form-label text-muted">Segmento</label>
                         <p class="mb-0">{{ client.segmento or '-' }}</p>
                     </div>
                     <div class="col-md-6 mb-3">
-                        <label class="form-label text-muted">ATIVIDADE PRINCIPAL</label>
+                        <label class="form-label text-muted">Atividade Principal</label>
                         <p class="mb-0">{{ client.atividade or '-' }}</p>
                     </div>
                 </div>
@@ -192,11 +193,71 @@
                     </div>
 
                     <div class="col-md-6 mb-3">
-                        <label class="form-label text-muted">DATA DE INÍCIO DOS SERVIÇOS</label>
+                        <label class="form-label text-muted">Data de Início dos Serviços</label>
                         <p class="mb-0">
                             {% if client.dataInicioServicos or client.mesAnoInicio %}
                                 <i class="bi bi-calendar-event me-1"></i>
-                                {{ client.dataInicioServicos or client.mesAnoInicio }}
+                                {{ (client.dataInicioServicos or client.mesAnoInicio)|format_date }}
+                            {% else %}
+                                -
+                            {% endif %}
+                        </p>
+                    </div>
+
+                    <!-- Códigos dos Sistemas -->
+                    <div class="col-12 mb-3">
+                        <label class="form-label text-muted">Códigos dos Sistemas</label>
+                        <div class="row">
+                            <div class="col-md-3 mb-2">
+                                <small class="text-muted d-block">CÓD. DOMÍNIO</small>
+                                <p class="mb-0">
+                                    {% if client.codDominio %}
+                                        <code class="user-select-all">{{ client.codDominio }}</code>
+                                    {% else %}
+                                        <span class="text-muted">-</span>
+                                    {% endif %}
+                                </p>
+                            </div>
+                            <div class="col-md-3 mb-2">
+                                <small class="text-muted d-block">CÓD. FORTES CT</small>
+                                <p class="mb-0">
+                                    {% if client.codFortesCt %}
+                                        <code class="user-select-all">{{ client.codFortesCt }}</code>
+                                    {% else %}
+                                        <span class="text-muted">-</span>
+                                    {% endif %}
+                                </p>
+                            </div>
+                            <div class="col-md-3 mb-2">
+                                <small class="text-muted d-block">CÓD. FORTES FS</small>
+                                <p class="mb-0">
+                                    {% if client.codFortesFs %}
+                                        <code class="user-select-all">{{ client.codFortesFs }}</code>
+                                    {% else %}
+                                        <span class="text-muted">-</span>
+                                    {% endif %}
+                                </p>
+                            </div>
+                            <div class="col-md-3 mb-2">
+                                <small class="text-muted d-block">CÓD. FORTES PS</small>
+                                <p class="mb-0">
+                                    {% if client.codFortesPs %}
+                                        <code class="user-select-all">{{ client.codFortesPs }}</code>
+                                    {% else %}
+                                        <span class="text-muted">-</span>
+                                    {% endif %}
+                                </p>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Sistema e Módulos -->
+                    <div class="col-md-6 mb-3">
+                        <label class="form-label text-muted">Sistema Utilizado</label>
+                        <p class="mb-0">
+                            {% if client.sistemaUtilizado %}
+                                <i class="bi bi-pc-display me-1"></i>
+                                {{ client.sistemaUtilizado }}
                             {% else %}
                                 -
                             {% endif %}
@@ -204,11 +265,11 @@
                     </div>
 
                     <div class="col-md-6 mb-3">
-                        <label class="form-label text-muted">RESPONSÁVEL PELOS SERVIÇOS</label>
+                        <label class="form-label text-muted">Módulo SPED TRIER</label>
                         <p class="mb-0">
-                            {% if client.responsavelServicos or client.donoResp %}
-                                <i class="bi bi-person-badge me-1"></i>
-                                {{ client.responsavelServicos or client.donoResp }}
+                            {% if client.moduloSpedTrier %}
+                                <i class="bi bi-puzzle me-1"></i>
+                                {{ client.moduloSpedTrier }}
                             {% else %}
                                 -
                             {% endif %}
@@ -259,7 +320,7 @@
                                 <p class="mb-0">{{ client.get('socio' + i|string + '_dataNascimento') or '-' }}</p>
                             </div>
                             <div class="col-md-4 mb-2">
-                                <label class="form-label text-muted">ADMINISTRADOR</label>
+                                <label class="form-label text-muted">Administrador</label>
                                 <p class="mb-0">
                                     {% set socio_admin = client.get('socio' + i|string + '_administrador') %}
                                     {% if socio_admin %}
@@ -297,7 +358,7 @@
             <div class="card-body">
                 <div class="row">
                     <div class="col-md-4 mb-3">
-                        <label class="form-label text-muted">TELEFONE FIXO</label>
+                        <label class="form-label text-muted">telefone fixo</label>
                         <p class="mb-0">
                             {% if client.telefoneFixo %}
                                 <i class="bi bi-telephone me-1"></i>{{ client.telefoneFixo }}
@@ -307,7 +368,7 @@
                         </p>
                     </div>
                     <div class="col-md-4 mb-3">
-                        <label class="form-label text-muted">TELEFONE CELULAR</label>
+                        <label class="form-label text-muted">telefone celular</label>
                         <p class="mb-0">
                             {% if client.telefoneCelular %}
                                 <i class="bi bi-phone me-1"></i>{{ client.telefoneCelular }}
@@ -317,7 +378,7 @@
                         </p>
                     </div>
                     <div class="col-md-4 mb-3">
-                        <label class="form-label text-muted">WHATSAPP</label>
+                        <label class="form-label text-muted">WhatsApp</label>
                         <p class="mb-0">
                             {% if client.whatsapp %}
                                 <i class="bi bi-whatsapp me-1"></i>{{ client.whatsapp }}
@@ -327,7 +388,7 @@
                         </p>
                     </div>
                     <div class="col-md-6 mb-3">
-                        <label class="form-label text-muted">E-MAIL PRINCIPAL</label>
+                        <label class="form-label text-muted">e-mail principal</label>
                         <p class="mb-0">
                             {% if client.emailPrincipal %}
                                 <i class="bi bi-envelope me-1"></i>{{ client.emailPrincipal }}
@@ -337,7 +398,7 @@
                         </p>
                     </div>
                     <div class="col-md-6 mb-3">
-                        <label class="form-label text-muted">E-MAIL SECUNDÁRIO</label>
+                        <label class="form-label text-muted">e-mail secundário</label>
                         <p class="mb-0">
                             {% if client.emailSecundario %}
                                 <i class="bi bi-envelope me-1"></i>{{ client.emailSecundario }}
@@ -347,7 +408,7 @@
                         </p>
                     </div>
                     <div class="col-md-12 mb-3">
-                        <label class="form-label text-muted">RESPONSÁVEL IMEDIATO</label>
+                        <label class="form-label text-muted">Responsável Imediato</label>
                         <p class="mb-0">
                             {% if client.responsavelImediato %}
                                 <i class="bi bi-person-badge me-1"></i>{{ client.responsavelImediato }}
@@ -371,7 +432,7 @@
             <div class="card-body">
                 <div class="row">
                     <div class="col-md-6 mb-3">
-                        <label class="form-label text-muted">SISTEMA PRINCIPAL</label>
+                        <label class="form-label text-muted">Sistema Principal</label>
                         <p class="mb-0">
                             {% if client.sistemaPrincipal or client.sistemaUtilizado %}
                                 <span class="badge bg-info">{{ client.sistemaPrincipal or client.sistemaUtilizado }}</span>
@@ -485,7 +546,7 @@
                 {% if client.outrasProc %}
                     <div class="row mt-3">
                         <div class="col-12">
-                            <label class="form-label text-muted">OUTRAS PROCURAÇÕES</label>
+                            <label class="form-label text-muted">Outras Procurações</label>
                             <p class="mb-0">{{ client.outrasProc }}</p>
                         </div>
                     </div>
@@ -513,14 +574,14 @@
                 {% if client.observacoesGerais %}
                     <div class="row mb-3">
                         <div class="col-12">
-                            <label class="form-label text-muted">OBSERVAÇÕES GERAIS</label>
+                            <label class="form-label text-muted">Observações Gerais</label>
                             <p class="mb-0">{{ client.observacoesGerais }}</p>
                         </div>
                     </div>
                 {% endif %}
                 <div class="row">
                     <div class="col-md-6 mb-3">
-                        <label class="form-label text-muted">STATUS DO CLIENTE</label>
+                        <label class="form-label text-muted">Status do Cliente</label>
                         <p class="mb-0">
                             {% if client.ativo %}
                                 <span class="badge bg-success">
@@ -537,7 +598,7 @@
                         <label class="form-label text-muted">Última Atualização</label>
                         <p class="mb-0">
                             {% if client.ultimaAtualizacao %}
-                                <i class="fas fa-clock me-1"></i>{{ client.ultimaAtualizacao[:10] }}
+                                <i class="fas fa-clock me-1"></i>{{ client.ultimaAtualizacao|format_datetime }}
                             {% else %}
                                 -
                             {% endif %}
@@ -561,7 +622,7 @@
             <div class="card-body">
                 <div class="quick-info">
                     <div class="info-item d-flex justify-content-between align-items-center mb-3">
-                        <span class="text-muted">CLIENTE ATIVO:</span>
+                        <span class="text-muted">Cliente Ativo:</span>
                         <strong class="text-{{ 'success' if client.ativo else 'danger' }}">
                             {{ 'SIM' if client.ativo else 'NÃO' }}
                         </strong>
@@ -571,7 +632,7 @@
                         <span class="text-muted">Cliente desde:</span>
                         <strong>
                             {% if client.dataInicioServicos or client.mesAnoInicio %}
-                                {{ client.dataInicioServicos or client.mesAnoInicio }}
+                                {{ (client.dataInicioServicos or client.mesAnoInicio)|format_date }}
                             {% else %}
                                 -
                             {% endif %}
@@ -579,7 +640,7 @@
                     </div>
                     
                     <div class="info-item d-flex justify-content-between align-items-center mb-3">
-                        <span class="text-muted">PERFIL:</span>
+                        <span class="text-muted">Perfil:</span>
                         <strong class="text-info">{{ client.perfil or '-' }}</strong>
                     </div>
                     
@@ -777,6 +838,22 @@
 
 .service-badges .badge {
     font-size: 0.9rem;
+}
+
+/* Facilitador de cópia - CPF/CNPJ */
+.user-select-all {
+    user-select: all;
+    cursor: pointer;
+    border: 1px solid transparent;
+    padding: 2px 4px;
+    border-radius: 3px;
+    transition: all 0.2s ease;
+}
+
+.user-select-all:hover {
+    background-color: #e3f2fd;
+    border-color: #2196f3;
+}
     display: flex;
     align-items: center;
     justify-content: center;

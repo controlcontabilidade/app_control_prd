@@ -35,6 +35,47 @@ if hasattr(sys, 'setdefaultencoding'):
 # Forçar encoding UTF-8 para templates Jinja2
 app.jinja_env.charset = 'utf-8'
 
+# Filtro customizado para remover formatação de CPF/CNPJ
+@app.template_filter('only_numbers')
+def only_numbers_filter(value):
+    """Remove toda formatação, deixando apenas números"""
+    if not value:
+        return ''
+    import re
+    return re.sub(r'\D', '', str(value))
+
+# Filtro customizado para formatação de datas
+@app.template_filter('format_date')
+def format_date_filter(value, format='%d/%m/%Y'):
+    """Formata data ISO para formato brasileiro"""
+    if not value:
+        return '-'
+    try:
+        # Se já for string no formato ISO
+        if isinstance(value, str):
+            # Remove microsegundos se existirem
+            if '.' in value:
+                value = value.split('.')[0]
+            # Tenta parsing ISO
+            if 'T' in value:
+                dt = datetime.fromisoformat(value.replace('T', ' '))
+            else:
+                dt = datetime.strptime(value, '%Y-%m-%d')
+        elif isinstance(value, datetime):
+            dt = value
+        else:
+            return str(value)
+        
+        return dt.strftime(format)
+    except (ValueError, AttributeError):
+        return str(value)
+
+# Filtro customizado para formatação de data e hora
+@app.template_filter('format_datetime')
+def format_datetime_filter(value):
+    """Formata data e hora ISO para formato brasileiro"""
+    return format_date_filter(value, '%d/%m/%Y %H:%M')
+
 # Configurações para upload de arquivos - OTIMIZADO PARA MEMÓRIA
 # Reduzido de 16MB para 8MB para economizar RAM no Render
 app.config['MAX_CONTENT_LENGTH'] = 8 * 1024 * 1024  # 8MB máximo (otimização Render)
@@ -874,7 +915,7 @@ def view_client(client_id):
 @app.route('/client/new')
 @login_required
 def new_client():
-    return render_template('client_form_complete.html')
+    return render_template('client_form_complete.html', client=None)
 
 @app.route('/client/<client_id>/edit')
 @login_required
@@ -1009,7 +1050,6 @@ def save_client():
             'fs': request.form.get('fs') == 'on',
             'dp': request.form.get('dp') == 'on',
             'dataInicioServicos': request.form.get('dataInicioServicos', ''),
-            'responsavelServicos': request.form.get('responsavelServicos', ''),
             
             # Códigos dos Sistemas (Bloco 2)
             'codFortesCt': request.form.get('codFortesCt', ''),
@@ -1109,7 +1149,6 @@ def save_client():
             'historicoAlteracoes': request.form.get('historicoAlteracoes', ''),
             
             # Campos de compatibilidade (manter existentes)
-            'donoResp': request.form.get('responsavelServicos', ''),
             'mesAnoInicio': request.form.get('dataInicioServicos', ''),
             
             # Status e configurações

@@ -67,7 +67,7 @@
             <div class="card-body">
                 <div class="row">
                     <div class="col-md-6 mb-3">
-                        <label class="form-label text-muted">NOME DA EMPRESA</label>
+                        <label class="form-label text-muted">Nome da Empresa</label>
                         <p class="mb-0"><strong>{{ client.nomeEmpresa or '-' }}</strong></p>
                     </div>
                     <div class="col-md-6 mb-3">
@@ -89,7 +89,7 @@
                         </p>
                     </div>
                     <div class="col-md-4 mb-3">
-                        <label class="form-label text-muted">PERFIL DO CLIENTE</label>
+                        <label class="form-label text-muted">Perfil do Cliente</label>
                         <p class="mb-0">
                             {% if client.perfil %}
                                 <span class="badge bg-info">{{ client.perfil }}</span>
@@ -107,7 +107,7 @@
                         <p class="mb-0">{{ client.inscMun or '-' }}</p>
                     </div>
                     <div class="col-md-4 mb-3">
-                        <label class="form-label text-muted">ESTADO</label>
+                        <label class="form-label text-muted">Estado</label>
                         <p class="mb-0">
                             {% if client.estado %}
                                 <span class="badge bg-primary">{{ client.estado }}</span>
@@ -117,11 +117,11 @@
                         </p>
                     </div>
                     <div class="col-md-4 mb-3">
-                        <label class="form-label text-muted">CIDADE</label>
+                        <label class="form-label text-muted">Cidade</label>
                         <p class="mb-0">{{ client.cidade or '-' }}</p>
                     </div>
                     <div class="col-md-4 mb-3">
-                        <label class="form-label text-muted">REGIME FEDERAL</label>
+                        <label class="form-label text-muted">Regime Federal</label>
                         <p class="mb-0">
                             {% if client.regimeFederal or client.tributacao %}
                                 <span class="badge bg-secondary">{{ client.regimeFederal or client.tributacao }}</span>
@@ -131,7 +131,7 @@
                         </p>
                     </div>
                     <div class="col-md-4 mb-3">
-                        <label class="form-label text-muted">REGIME ESTADUAL</label>
+                        <label class="form-label text-muted">Regime Estadual</label>
                         <p class="mb-0">
                             {% if client.regimeEstadual %}
                                 <span class="badge bg-secondary">{{ client.regimeEstadual }}</span>
@@ -141,11 +141,11 @@
                         </p>
                     </div>
                     <div class="col-md-6 mb-3">
-                        <label class="form-label text-muted">SEGMENTO</label>
+                        <label class="form-label text-muted">Segmento</label>
                         <p class="mb-0">{{ client.segmento or '-' }}</p>
                     </div>
                     <div class="col-md-6 mb-3">
-                        <label class="form-label text-muted">ATIVIDADE PRINCIPAL</label>
+                        <label class="form-label text-muted">Atividade Principal</label>
                         <p class="mb-0">{{ client.atividade or '-' }}</p>
                     </div>
                 </div>
@@ -196,7 +196,7 @@
                         <p class="mb-0">
                             {% if client.dataInicioServicos or client.mesAnoInicio %}
                                 <i class="bi bi-calendar-event me-1"></i>
-                                {{ client.dataInicioServicos or client.mesAnoInicio }}
+                                {{ (client.dataInicioServicos or client.mesAnoInicio)|format_date }}
                             {% else %}
                                 -
                             {% endif %}
@@ -240,7 +240,7 @@
                                 </h6>
                             </div>
                             <div class="col-md-6 mb-2">
-                                <label class="form-label text-muted">NOME</label>
+                                <label class="form-label text-muted">Nome</label>
                                 <p class="mb-0"><strong>{{ socio_nome }}</strong></p>
                             </div>
                             <div class="col-md-6 mb-2">
@@ -420,12 +420,27 @@
                     ] %}
                     {% for nome, acesso in credenciais %}
                         {% if acesso %}
-                            <div class="col-md-6 mb-2">
+                            <div class="col-md-6 mb-3">
                                 <label class="form-label text-muted">{{ nome }}</label>
-                                <p class="mb-0">
-                                    <i class="fas fa-user me-1"></i>{{ acesso }}
-                                    <i class="fas fa-eye-slash ms-2 text-muted" title="Senha oculta por segurança"></i>
-                                </p>
+                                <div class="credential-field">
+                                    <div class="input-group">
+                                        <span class="input-group-text">
+                                            <i class="fas fa-user"></i>
+                                        </span>
+                                        <input type="password" 
+                                               class="form-control credential-input" 
+                                               value="{{ acesso }}" 
+                                               readonly 
+                                               id="credential-{{ loop.index }}"
+                                               style="background-color: #f8f9fa; cursor: text;">
+                                        <button class="btn btn-outline-secondary toggle-password-btn" 
+                                                type="button" 
+                                                onclick="toggleCredentialVisibility('credential-{{ loop.index }}', this)"
+                                                title="Mostrar/Ocultar senha">
+                                            <i class="fas fa-eye"></i>
+                                        </button>
+                                    </div>
+                                </div>
                             </div>
                         {% endif %}
                     {% endfor %}
@@ -537,7 +552,7 @@
                         <label class="form-label text-muted">Última Atualização</label>
                         <p class="mb-0">
                             {% if client.ultimaAtualizacao %}
-                                <i class="fas fa-clock me-1"></i>{{ client.ultimaAtualizacao[:10] }}
+                                <i class="fas fa-clock me-1"></i>{{ client.ultimaAtualizacao|format_datetime }}
                             {% else %}
                                 -
                             {% endif %}
@@ -571,7 +586,7 @@
                         <span class="text-muted">Cliente desde:</span>
                         <strong>
                             {% if client.dataInicioServicos or client.mesAnoInicio %}
-                                {{ client.dataInicioServicos or client.mesAnoInicio }}
+                                {{ (client.dataInicioServicos or client.mesAnoInicio)|format_date }}
                             {% else %}
                                 -
                             {% endif %}
@@ -782,11 +797,47 @@
     justify-content: center;
 }
 
+.credential-field .input-group {
+    max-width: 100%;
+}
+
+.credential-input {
+    font-family: 'Courier New', monospace;
+    font-size: 0.9rem;
+}
+
+.toggle-password-btn {
+    border-left: none;
+}
+
+.toggle-password-btn:hover {
+    background-color: #e9ecef;
+}
+
 @media (max-width: 991px) {
     .col-lg-4 {
         margin-top: 2rem;
     }
 }
 </style>
+
+<script>
+function toggleCredentialVisibility(inputId, button) {
+    const input = document.getElementById(inputId);
+    const icon = button.querySelector('i');
+    
+    if (input.type === 'password') {
+        input.type = 'text';
+        icon.classList.remove('fa-eye');
+        icon.classList.add('fa-eye-slash');
+        button.title = 'Ocultar senha';
+    } else {
+        input.type = 'password';
+        icon.classList.remove('fa-eye-slash');
+        icon.classList.add('fa-eye');
+        button.title = 'Mostrar senha';
+    }
+}
+</script>
 
 {% endblock %}

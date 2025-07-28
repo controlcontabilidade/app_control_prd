@@ -157,5 +157,37 @@
 <script>
 // Script básico de teste
 console.log("Template de teste carregado com sucesso!");
+
+// Formatação inteligente de CPF/CNPJ
+document.getElementById('cpfCnpj').addEventListener('input', function(e) {
+    let value = e.target.value.replace(/\D/g, ''); // Remove tudo que não é dígito
+    
+    if (value.length <= 11) {
+        // Formato CPF: 999.999.999-99
+        value = value.replace(/(\d{3})(\d)/, '$1.$2');
+        value = value.replace(/(\d{3})(\d)/, '$1.$2');
+        value = value.replace(/(\d{3})(\d{1,2})$/, '$1-$2');
+    } else if (value.length <= 14) {
+        // Formato CNPJ: 99.999.999/9999-99
+        value = value.replace(/^(\d{2})(\d)/, '$1.$2');
+        value = value.replace(/^(\d{2})\.(\d{3})(\d)/, '$1.$2.$3');
+        value = value.replace(/\.(\d{3})(\d)/, '.$1/$2');
+        value = value.replace(/(\d{4})(\d)/, '$1-$2');
+    }
+    
+    e.target.value = value;
+    
+    // Feedback visual para o usuário
+    const label = document.querySelector('label[for="cpfCnpj"]');
+    const cleanValue = value.replace(/\D/g, '');
+    
+    if (cleanValue.length === 11) {
+        label.innerHTML = '<i class="bi bi-person me-1"></i>CPF <span class="text-danger">*</span>';
+    } else if (cleanValue.length === 14) {
+        label.innerHTML = '<i class="bi bi-building me-1"></i>CNPJ <span class="text-danger">*</span>';
+    } else {
+        label.innerHTML = '<i class="bi bi-card-text me-1"></i>CPF/CNPJ <span class="text-danger">*</span>';
+    }
+});
 </script>
 {% endblock %}

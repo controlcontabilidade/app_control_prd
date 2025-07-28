@@ -43,6 +43,21 @@
     font-size: 0.75rem;
     padding: 0.25rem 0.5rem;
 }
+
+/* Estilos para os botões de visualização de senha */
+.toggle-password-btn {
+    border-left: none;
+}
+
+.toggle-password-btn:hover {
+    background-color: #e9ecef;
+    border-color: #ced4da;
+}
+
+.toggle-password-btn:focus {
+    box-shadow: none;
+    border-color: #80bdff;
+}
 </style>
 {% endblock %}
 
@@ -122,10 +137,10 @@
                                 </label>
                                 <select class="form-select" id="perfil" name="perfil" required>
                                     <option value="">Selecione um perfil</option>
-                                    <option value="A" {% if client and client.perfil == 'A' %}selected{% endif %}>Escolha A</option>
-                                    <option value="B" {% if client and client.perfil == 'B' %}selected{% endif %}>Escolha B</option>
-                                    <option value="C" {% if client and client.perfil == 'C' %}selected{% endif %}>Escolha C</option>
-                                    <option value="D" {% if client and client.perfil == 'D' %}selected{% endif %}>Escolha D</option>
+                                    <option value="A" {% if client and client.perfil == 'A' %}selected{% endif %}>A</option>
+                                    <option value="B" {% if client and client.perfil == 'B' %}selected{% endif %}>B</option>
+                                    <option value="C" {% if client and client.perfil == 'C' %}selected{% endif %}>C</option>
+                                    <option value="D" {% if client and client.perfil == 'D' %}selected{% endif %}>D</option>
                                 </select>
                                 <div class="invalid-feedback">
                                     Por favor, selecione um perfil.
@@ -214,10 +229,11 @@
                                 </label>
                                 <select class="form-select" id="regimeFederal" name="regimeFederal" required>
                                     <option value="">Selecione o regime federal</option>
-                                    <option value="SIMPLES" {% if client and client.regimeFederal == 'SIMPLES' %}selected{% endif %}>Simples Nacional</option>
-                                    <option value="LUCRO_PRESUMIDO" {% if client and client.regimeFederal == 'LUCRO_PRESUMIDO' %}selected{% endif %}>Lucro Presumido</option>
-                                    <option value="LUCRO_REAL" {% if client and client.regimeFederal == 'LUCRO_REAL' %}selected{% endif %}>Lucro Real</option>
                                     <option value="MEI" {% if client and client.regimeFederal == 'MEI' %}selected{% endif %}>MEI</option>
+                                    <option value="SIMPLES_NACIONAL" {% if client and client.regimeFederal == 'SIMPLES_NACIONAL' or client.regimeFederal == 'SIMPLES' %}selected{% endif %}>SIMPLES NACIONAL</option>
+                                    <option value="LUCRO_PRESUMIDO" {% if client and client.regimeFederal == 'LUCRO_PRESUMIDO' %}selected{% endif %}>LUCRO PRESUMIDO</option>
+                                    <option value="LUCRO_REAL" {% if client and client.regimeFederal == 'LUCRO_REAL' %}selected{% endif %}>LUCRO REAL</option>
+                                    <option value="REGIME_ESPECIAL" {% if client and client.regimeFederal == 'REGIME_ESPECIAL' %}selected{% endif %}>REGIME ESPECIAL</option>
                                 </select>
                                 <div class="invalid-feedback">
                                     Por favor, selecione o regime federal.
@@ -328,23 +344,86 @@
                             <div class="col-md-6 mb-3">
                                 <label for="dataInicioServicos" class="form-label">
                                     <i class="bi bi-calendar-event me-1"></i>
-                                    Data de início dos serviços
+                                    DATA DE INÍCIO DOS SERVIÇOS
                                 </label>
-                                <input type="month" class="form-control" id="dataInicioServicos" name="dataInicioServicos" 
-                                       value="{{ client.dataInicioServicos or client.mesAnoInicio if client else '' }}">
+                                <input type="date" class="form-control" id="dataInicioServicos" name="dataInicioServicos" 
+                                       value="{{ client.dataInicioServicos if client else '' }}">
                                 <div class="form-text">
-                                    Formato: Mês/Ano (Ex: 2024-01)
+                                    Selecione a data de início dos serviços
                                 </div>
                             </div>
-                            <!-- Responsável pelos Serviços -->
-                            <div class="col-md-6 mb-3">
-                                <label for="responsavelServicos" class="form-label">
-                                    <i class="bi bi-person-badge me-1"></i>
-                                    Responsável pelos serviços
+                        </div>
+
+                        <!-- Códigos dos Sistemas -->
+                        <div class="row mt-4">
+                            <div class="col-12">
+                                <h6 class="text-muted mb-3">
+                                    <i class="fas fa-code me-2"></i>
+                                    Códigos dos Sistemas
+                                </h6>
+                            </div>
+
+                            <div class="col-md-3 mb-3">
+                                <label for="codDominio" class="form-label">
+                                    <i class="bi bi-hash me-1"></i>
+                                    CÓD. DOMÍNIO
                                 </label>
-                                <input type="text" class="form-control" id="responsavelServicos" name="responsavelServicos" 
-                                       value="{{ client.responsavelServicos if client else '' }}"
-                                       placeholder="NOME DO RESPONSÁVEL">
+                                <input type="text" class="form-control" id="codDominio" name="codDominio" 
+                                       value="{{ client.codDominio if client else '' }}"
+                                       placeholder="Código Domínio">
+                            </div>
+
+                            <div class="col-md-3 mb-3">
+                                <label for="codFortesCt" class="form-label">
+                                    <i class="bi bi-hash me-1"></i>
+                                    CÓD. FORTES CT
+                                </label>
+                                <input type="text" class="form-control" id="codFortesCt" name="codFortesCt" 
+                                       value="{{ client.codFortesCt if client else '' }}"
+                                       placeholder="Código CT">
+                            </div>
+
+                            <div class="col-md-3 mb-3">
+                                <label for="codFortesFs" class="form-label">
+                                    <i class="bi bi-hash me-1"></i>
+                                    CÓD. FORTES FS
+                                </label>
+                                <input type="text" class="form-control" id="codFortesFs" name="codFortesFs" 
+                                       value="{{ client.codFortesFs if client else '' }}"
+                                       placeholder="Código FS">
+                            </div>
+
+                            <div class="col-md-3 mb-3">
+                                <label for="codFortesPs" class="form-label">
+                                    <i class="bi bi-hash me-1"></i>
+                                    CÓD. FORTES PS
+                                </label>
+                                <input type="text" class="form-control" id="codFortesPs" name="codFortesPs" 
+                                       value="{{ client.codFortesPs if client else '' }}"
+                                       placeholder="Código PS">
+                            </div>
+                        </div>
+
+                        <!-- Sistema e Módulos -->
+                        <div class="row">
+                            <div class="col-md-6 mb-3">
+                                <label for="sistemaUtilizado" class="form-label">
+                                    <i class="bi bi-pc-display me-1"></i>
+                                    SISTEMA UTILIZADO
+                                </label>
+                                <input type="text" class="form-control" id="sistemaUtilizado" name="sistemaUtilizado" 
+                                       value="{{ client.sistemaUtilizado if client else '' }}"
+                                       placeholder="Nome do sistema principal">
+                            </div>
+
+                            <div class="col-md-6 mb-3">
+                                <label for="moduloSpedTrier" class="form-label">
+                                    <i class="bi bi-puzzle me-1"></i>
+                                    MÓDULO SPED TRIER
+                                </label>
+                                <input type="text" class="form-control" id="moduloSpedTrier" name="moduloSpedTrier" 
+                                       value="{{ client.moduloSpedTrier if client else '' }}"
+                                       placeholder="Módulo específico do SPED">
                             </div>
                         </div>
                     </div>
@@ -580,8 +659,16 @@
                             <!-- SENHA ISS -->
                             <div class="col-md-6 mb-3">
                                 <label for="senhaIss" class="form-label">SENHA ISS</label>
-                                <input type="password" class="form-control" id="senhaIss" name="senhaIss" 
-                                       value="{{ client.senhaIss if client else '' }}">
+                                <div class="input-group">
+                                    <input type="password" class="form-control" id="senhaIss" name="senhaIss" 
+                                           value="{{ client.senhaIss if client else '' }}">
+                                    <button class="btn btn-outline-secondary toggle-password-btn" 
+                                            type="button" 
+                                            onclick="togglePasswordVisibility('senhaIss', this)"
+                                            title="Mostrar/Ocultar senha">
+                                        <i class="fas fa-eye"></i>
+                                    </button>
+                                </div>
                             </div>
                         </div>
                         <div class="row">
@@ -595,8 +682,16 @@
                             <!-- SENHA SEFIN -->
                             <div class="col-md-6 mb-3">
                                 <label for="senhaSefin" class="form-label">SENHA SEFIN</label>
-                                <input type="password" class="form-control" id="senhaSefin" name="senhaSefin" 
-                                       value="{{ client.senhaSefin if client else '' }}">
+                                <div class="input-group">
+                                    <input type="password" class="form-control" id="senhaSefin" name="senhaSefin" 
+                                           value="{{ client.senhaSefin if client else '' }}">
+                                    <button class="btn btn-outline-secondary toggle-password-btn" 
+                                            type="button" 
+                                            onclick="togglePasswordVisibility('senhaSefin', this)"
+                                            title="Mostrar/Ocultar senha">
+                                        <i class="fas fa-eye"></i>
+                                    </button>
+                                </div>
                             </div>
                         </div>
                         <div class="row">
@@ -610,8 +705,16 @@
                             <!-- SENHA SEUMA -->
                             <div class="col-md-6 mb-3">
                                 <label for="senhaSeuma" class="form-label">SENHA SEUMA</label>
-                                <input type="password" class="form-control" id="senhaSeuma" name="senhaSeuma" 
-                                       value="{{ client.senhaSeuma if client else '' }}">
+                                <div class="input-group">
+                                    <input type="password" class="form-control" id="senhaSeuma" name="senhaSeuma" 
+                                           value="{{ client.senhaSeuma if client else '' }}">
+                                    <button class="btn btn-outline-secondary toggle-password-btn" 
+                                            type="button" 
+                                            onclick="togglePasswordVisibility('senhaSeuma', this)"
+                                            title="Mostrar/Ocultar senha">
+                                        <i class="fas fa-eye"></i>
+                                    </button>
+                                </div>
                             </div>
                         </div>
                         <div class="row">
@@ -625,8 +728,16 @@
                             <!-- SENHA EMPWEB -->
                             <div class="col-md-6 mb-3">
                                 <label for="senhaEmpWeb" class="form-label">SENHA EMPWEB</label>
-                                <input type="password" class="form-control" id="senhaEmpWeb" name="senhaEmpWeb" 
-                                       value="{{ client.senhaEmpWeb if client else '' }}">
+                                <div class="input-group">
+                                    <input type="password" class="form-control" id="senhaEmpWeb" name="senhaEmpWeb" 
+                                           value="{{ client.senhaEmpWeb if client else '' }}">
+                                    <button class="btn btn-outline-secondary toggle-password-btn" 
+                                            type="button" 
+                                            onclick="togglePasswordVisibility('senhaEmpWeb', this)"
+                                            title="Mostrar/Ocultar senha">
+                                        <i class="fas fa-eye"></i>
+                                    </button>
+                                </div>
                             </div>
                         </div>
                         <div class="row">
@@ -639,8 +750,16 @@
                             </div>
                             <div class="col-md-6 mb-3">
                                 <label for="senhaEmailGestor" class="form-label">SENHA E-MAIL GESTOR</label>
-                                <input type="password" class="form-control" id="senhaEmailGestor" name="senhaEmailGestor" 
-                                       value="{{ client.senhaEmailGestor if client else '' }}">
+                                <div class="input-group">
+                                    <input type="password" class="form-control" id="senhaEmailGestor" name="senhaEmailGestor" 
+                                           value="{{ client.senhaEmailGestor if client else '' }}">
+                                    <button class="btn btn-outline-secondary toggle-password-btn" 
+                                            type="button" 
+                                            onclick="togglePasswordVisibility('senhaEmailGestor', this)"
+                                            title="Mostrar/Ocultar senha">
+                                        <i class="fas fa-eye"></i>
+                                    </button>
+                                </div>
                             </div>
                         </div>
                     </div>
@@ -814,7 +933,7 @@
                             <div class="col-md-6 mb-3">
                                 <label for="ultimaAtualizacao" class="form-label">Última atualização</label>
                                 <input type="datetime-local" class="form-control" id="ultimaAtualizacao" name="ultimaAtualizacao" 
-                                       value="{{ client.ultimaAtualizacao if client else '' }}" readonly>
+                                       value="{{ client.ultimaAtualizacao[:19] if client and client.ultimaAtualizacao else '' }}" readonly>
                                 <div class="form-text">Atualizado automaticamente</div>
                             </div>
                         </div>
@@ -907,16 +1026,36 @@
     }, false);
 })();
 
-// Formatação de CNPJ
+// Formatação inteligente de CPF/CNPJ
 document.getElementById('cpfCnpj').addEventListener('input', function(e) {
-    let value = e.target.value.replace(/\D/g, '');
-    if (value.length <= 14) {
+    let value = e.target.value.replace(/\D/g, ''); // Remove tudo que não é dígito
+    
+    if (value.length <= 11) {
+        // Formato CPF: 999.999.999-99
+        value = value.replace(/(\d{3})(\d)/, '$1.$2');
+        value = value.replace(/(\d{3})(\d)/, '$1.$2');
+        value = value.replace(/(\d{3})(\d{1,2})$/, '$1-$2');
+    } else if (value.length <= 14) {
+        // Formato CNPJ: 99.999.999/9999-99
         value = value.replace(/^(\d{2})(\d)/, '$1.$2');
         value = value.replace(/^(\d{2})\.(\d{3})(\d)/, '$1.$2.$3');
         value = value.replace(/\.(\d{3})(\d)/, '.$1/$2');
         value = value.replace(/(\d{4})(\d)/, '$1-$2');
     }
+    
     e.target.value = value;
+    
+    // Feedback visual para o usuário
+    const label = document.querySelector('label[for="cpfCnpj"]');
+    const cleanValue = value.replace(/\D/g, '');
+    
+    if (cleanValue.length === 11) {
+        label.innerHTML = '<i class="bi bi-person me-1"></i>CPF <span class="text-danger">*</span>';
+    } else if (cleanValue.length === 14) {
+        label.innerHTML = '<i class="bi bi-building me-1"></i>CNPJ <span class="text-danger">*</span>';
+    } else {
+        label.innerHTML = '<i class="bi bi-card-text me-1"></i>CPF/CNPJ <span class="text-danger">*</span>';
+    }
 });
 
 // Formatação de telefones
@@ -1103,5 +1242,23 @@ document.addEventListener('DOMContentLoaded', function() {
     carregarSocios(dadosCliente);
 });
 {% endif %}
+
+// Função para alternar a visibilidade das senhas
+function togglePasswordVisibility(inputId, button) {
+    const input = document.getElementById(inputId);
+    const icon = button.querySelector('i');
+    
+    if (input.type === 'password') {
+        input.type = 'text';
+        icon.classList.remove('fa-eye');
+        icon.classList.add('fa-eye-slash');
+        button.title = 'Ocultar senha';
+    } else {
+        input.type = 'password';
+        icon.classList.remove('fa-eye-slash');
+        icon.classList.add('fa-eye');
+        button.title = 'Mostrar senha';
+    }
+}
 </script>
 {% endblock %}
