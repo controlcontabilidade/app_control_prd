@@ -1,0 +1,161 @@
+{% extends "base.html" %}
+
+{% block title %}Registrar Ata de Reunião - {{ client.nomeEmpresa }} - SIGEC{% endblock %}
+
+{% block content %}
+<!-- Header da página -->
+<div class="page-header">
+    <div class="row align-items-center">
+        <div class="col-md-8">
+            <h1>
+                <i class="bi bi-file-earmark-text text-success"></i>
+                Registrar Ata de Reunião
+            </h1>
+            <p class="mb-0">
+                Cliente: <strong>{{ client.nomeFantasiaReceita or client.nomeEmpresa }}</strong>
+                {% if client.cnpj %} - CNPJ: {{ client.cnpj }}{% endif %}
+            </p>
+        </div>
+        <div class="col-md-4 text-end">
+            <a href="/" class="btn btn-secondary">
+                <i class="bi bi-arrow-left"></i>
+                Voltar ao Dashboard
+            </a>
+        </div>
+    </div>
+</div>
+
+<form method="POST" action="{{ url_for('save_meeting', client_id=client.id) }}" class="needs-validation" novalidate>
+    <input type="hidden" name="client_name" value="{{ client.nomeFantasiaReceita or client.nomeEmpresa }}">
+    
+    <!-- Informações da Reunião -->
+    <div class="card mb-4">
+        <div class="card-header">
+            <h5 class="mb-0">
+                <i class="bi bi-calendar-event me-2 text-primary"></i>
+                Dados da Reunião
+            </h5>
+        </div>
+        <div class="card-body">
+            <div class="row">
+                <div class="col-md-3 mb-3">
+                    <label for="meeting_date" class="form-label">
+                        <i class="bi bi-calendar me-1"></i>Data da Reunião *
+                    </label>
+                    <input type="date" class="form-control" id="meeting_date" name="meeting_date" required>
+                    <div class="invalid-feedback">
+                        Por favor, selecione a data da reunião.
+                    </div>
+                </div>
+                
+                <div class="col-md-3 mb-3">
+                    <label for="meeting_time" class="form-label">
+                        <i class="bi bi-clock me-1"></i>Horário
+                    </label>
+                    <input type="time" class="form-control" id="meeting_time" name="meeting_time">
+                </div>
+                
+                <div class="col-md-6 mb-3">
+                    <label for="participants" class="form-label">
+                        <i class="bi bi-people me-1"></i>Participantes *
+                    </label>
+                    <textarea class="form-control" id="participants" name="participants" rows="3" 
+                              placeholder="Liste todos os participantes da reunião..." required></textarea>
+                    <div class="invalid-feedback">
+                        Por favor, informe os participantes da reunião.
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Conteúdo da Reunião -->
+    <div class="card mb-4">
+        <div class="card-header">
+            <h5 class="mb-0">
+                <i class="bi bi-chat-dots me-2 text-info"></i>
+                Conteúdo da Reunião
+            </h5>
+        </div>
+        <div class="card-body">
+            <div class="row">
+                <div class="col-12 mb-4">
+                    <label for="topics" class="form-label">
+                        <i class="bi bi-list-ul me-1"></i>Tópicos Discutidos *
+                    </label>
+                    <textarea class="form-control" id="topics" name="topics" rows="5" 
+                              placeholder="Descreva os principais tópicos e assuntos discutidos na reunião..." required></textarea>
+                    <div class="invalid-feedback">
+                        Por favor, descreva os tópicos discutidos.
+                    </div>
+                </div>
+                
+                <div class="col-12 mb-4">
+                    <label for="decisions" class="form-label">
+                        <i class="bi bi-check2-square me-1"></i>Decisões Tomadas
+                    </label>
+                    <textarea class="form-control" id="decisions" name="decisions" rows="4" 
+                              placeholder="Liste as principais decisões tomadas durante a reunião..."></textarea>
+                </div>
+                
+                <div class="col-12 mb-3">
+                    <label for="next_steps" class="form-label">
+                        <i class="bi bi-arrow-right-circle me-1"></i>Próximos Passos
+                    </label>
+                    <textarea class="form-control" id="next_steps" name="next_steps" rows="4" 
+                              placeholder="Defina os próximos passos, responsáveis e prazos..."></textarea>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Botões de ação -->
+    <div class="card">
+        <div class="card-body">
+            <div class="row">
+                <div class="col-md-6">
+                    <p class="text-muted mb-0">
+                        <i class="bi bi-info-circle me-1"></i>
+                        * Campos obrigatórios
+                    </p>
+                </div>
+                <div class="col-md-6 text-end">
+                    <a href="/" class="btn btn-secondary me-2">
+                        <i class="bi bi-x-lg"></i>
+                        Cancelar
+                    </a>
+                    <button type="submit" class="btn btn-success">
+                        <i class="bi bi-check-lg"></i>
+                        Registrar Ata
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+</form>
+
+<script>
+// Validação do formulário
+(function() {
+    'use strict';
+    
+    // Set data atual como padrão
+    document.getElementById('meeting_date').valueAsDate = new Date();
+    
+    // Validação Bootstrap
+    var forms = document.querySelectorAll('.needs-validation');
+    
+    Array.prototype.slice.call(forms).forEach(function(form) {
+        form.addEventListener('submit', function(event) {
+            if (!form.checkValidity()) {
+                event.preventDefault();
+                event.stopPropagation();
+            }
+            
+            form.classList.add('was-validated');
+        }, false);
+    });
+})();
+</script>
+
+{% endblock %}

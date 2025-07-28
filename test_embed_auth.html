@@ -1,0 +1,210 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Teste Power BI com Autenticação</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.0/font/bootstrap-icons.css" rel="stylesheet">
+</head>
+<body>
+    <div class="container mt-5">
+        <div class="row justify-content-center">
+            <div class="col-md-10">
+                <div class="card">
+                    <div class="card-header bg-primary text-white">
+                        <h4 class="mb-0">🧪 Teste: Power BI com Autenticação</h4>
+                    </div>
+                    <div class="card-body">
+                        <div class="alert alert-info">
+                            <i class="bi bi-info-circle me-2"></i>
+                            <strong>Testando link com autenticação:</strong><br>
+                            <code>https://app.powerbi.com/reportEmbed?reportId=ef9c9663-7cec-4c9a-8b57-c1a6c895057a&autoAuth=true&ctid=0b754a09-0568-48fd-a100-8621a0bbd7ab</code>
+                        </div>
+                        
+                        <div class="mb-3">
+                            <button id="testDirectEmbed" class="btn btn-primary me-2">
+                                <i class="bi bi-play-fill me-1"></i>Testar Iframe Direto
+                            </button>
+                            <button id="testSmartLoader" class="btn btn-success me-2">
+                                <i class="bi bi-cpu me-1"></i>Testar Smart Loader
+                            </button>
+                            <button id="clearTest" class="btn btn-outline-secondary">
+                                <i class="bi bi-x-circle me-1"></i>Limpar
+                            </button>
+                        </div>
+                        
+                        <div id="testResults" class="border rounded p-3" style="min-height: 400px; background: #f8f9fa;">
+                            <div class="text-center text-muted py-5">
+                                <i class="bi bi-play-circle" style="font-size: 3rem;"></i>
+                                <p class="mt-2">Clique em um botão para iniciar o teste</p>
+                            </div>
+                        </div>
+                        
+                        <div class="mt-3">
+                            <div id="debugLog" class="bg-dark text-light p-3 rounded small" style="max-height: 200px; overflow-y: auto;">
+                                <strong>📋 Log de Debug:</strong><br>
+                                Aguardando teste...
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal para Smart Loader -->
+    <div class="modal fade" id="reportModal" tabindex="-1" data-bs-backdrop="static">
+        <div class="modal-dialog modal-fullscreen">
+            <div class="modal-content">
+                <div class="modal-header bg-primary text-white">
+                    <h5 class="modal-title">
+                        <i class="bi bi-bar-chart me-2"></i>Dashboard Financeiro
+                    </h5>
+                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body p-0 position-relative">
+                    <div id="reportLoading" class="d-flex justify-content-center align-items-center position-absolute w-100 h-100 bg-white" style="z-index: 10;">
+                        <div class="text-center">
+                            <div class="spinner-border text-primary mb-3" style="width: 3rem; height: 3rem;"></div>
+                            <h5 class="text-primary">Carregando Dashboard Financeiro...</h5>
+                            <p class="text-muted">Verificando autenticação do Power BI</p>
+                        </div>
+                    </div>
+                    <iframe id="reportFrame" class="w-100 h-100 border-0" style="min-height: 80vh; display: none;"></iframe>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="/static/js/powerbi-smart-loader.js"></script>
+    <script>
+        const authLink = 'https://app.powerbi.com/reportEmbed?reportId=ef9c9663-7cec-4c9a-8b57-c1a6c895057a&autoAuth=true&ctid=0b754a09-0568-48fd-a100-8621a0bbd7ab';
+        
+        function log(message) {
+            const debugLog = document.getElementById('debugLog');
+            const timestamp = new Date().toLocaleTimeString();
+            debugLog.innerHTML += `<br>[${timestamp}] ${message}`;
+            debugLog.scrollTop = debugLog.scrollHeight;
+            console.log(message);
+        }
+        
+        document.getElementById('testDirectEmbed').addEventListener('click', function() {
+            log('🚀 INICIANDO: Teste de iframe direto');
+            const container = document.getElementById('testResults');
+            
+            container.innerHTML = `
+                <div class="text-center mb-3">
+                    <h6 class="text-primary">📊 Iframe Direto com Autenticação</h6>
+                    <div class="spinner-border text-primary mb-2"></div>
+                    <p class="text-muted">Carregando dashboard...</p>
+                </div>
+                <iframe 
+                    src="${authLink}"
+                    width="100%" 
+                    height="350"
+                    frameborder="0" 
+                    allowfullscreen="true"
+                    allow="microphone; camera; fullscreen; display-capture; autoplay; encrypted-media"
+                    class="border rounded">
+                </iframe>
+            `;
+            
+            log('📡 Iframe criado com link de autenticação');
+            
+            // Monitora carregamento
+            const iframe = container.querySelector('iframe');
+            let loadStartTime = Date.now();
+            
+            iframe.onload = function() {
+                const loadTime = Date.now() - loadStartTime;
+                log(`✅ Iframe onload disparado (${loadTime}ms)`);
+                
+                setTimeout(() => {
+                    try {
+                        const rect = iframe.getBoundingClientRect();
+                        log(`📏 Dimensões do iframe: ${rect.width}x${rect.height}`);
+                        
+                        // Tenta verificar se carregou conteúdo
+                        if (rect.height > 100) {
+                            log('✅ SUCESSO: Iframe parece ter carregado conteúdo!');
+                            container.querySelector('.spinner-border')?.remove();
+                            container.querySelector('.text-muted').textContent = '✅ Dashboard carregado com sucesso!';
+                        } else {
+                            log('⚠️ AVISO: Iframe com dimensões pequenas');
+                        }
+                    } catch (error) {
+                        log(`❌ Erro ao verificar iframe: ${error.message}`);
+                    }
+                }, 2000);
+            };
+            
+            iframe.onerror = function() {
+                log('❌ ERRO: Iframe onerror disparado');
+                container.innerHTML += '<div class="alert alert-danger mt-2">❌ Erro ao carregar iframe</div>';
+            };
+            
+            // Timeout de segurança
+            setTimeout(() => {
+                if (container.querySelector('.spinner-border')) {
+                    log('⏰ TIMEOUT: Iframe não carregou em 10 segundos');
+                    container.querySelector('.text-muted').textContent = '⏰ Timeout - iframe pode não ter carregado';
+                }
+            }, 10000);
+        });
+        
+        document.getElementById('testSmartLoader').addEventListener('click', function() {
+            log('🧠 INICIANDO: Teste do Smart Loader');
+            
+            if (typeof loadReportSmart === 'function') {
+                const modal = new bootstrap.Modal(document.getElementById('reportModal'));
+                modal.show();
+                
+                log('📱 Modal aberto, chamando loadReportSmart');
+                loadReportSmart(authLink);
+                
+                // Monitora o comportamento do smart loader
+                setTimeout(() => {
+                    const reportFrame = document.getElementById('reportFrame');
+                    const reportLoading = document.getElementById('reportLoading');
+                    
+                    if (reportFrame.style.display !== 'none') {
+                        log('✅ Smart Loader: Iframe visível');
+                    } else if (document.querySelector('.powerbi-alternative')) {
+                        log('🔄 Smart Loader: Mostrando alternativas');
+                    } else {
+                        log('🔄 Smart Loader: Ainda processando...');
+                    }
+                }, 5000);
+                
+            } else {
+                log('❌ ERRO: Smart Loader não encontrado');
+                alert('Smart Loader não carregado!');
+            }
+        });
+        
+        document.getElementById('clearTest').addEventListener('click', function() {
+            document.getElementById('testResults').innerHTML = `
+                <div class="text-center text-muted py-5">
+                    <i class="bi bi-play-circle" style="font-size: 3rem;"></i>
+                    <p class="mt-2">Clique em um botão para iniciar o teste</p>
+                </div>
+            `;
+            document.getElementById('debugLog').innerHTML = '<strong>📋 Log de Debug:</strong><br>Log limpo...';
+            log('🧹 Teste limpo');
+        });
+        
+        // Intercepta logs do console para mostrar no debug
+        const originalLog = console.log;
+        console.log = function(...args) {
+            originalLog.apply(console, args);
+            if (args[0] && typeof args[0] === 'string' && args[0].includes('🚀') || args[0].includes('✅') || args[0].includes('❌')) {
+                log(args.join(' '));
+            }
+        };
+        
+        log('🎯 Página de teste carregada - pronta para testar links com autenticação');
+    </script>
+</body>
+</html>

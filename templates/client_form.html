@@ -1,0 +1,499 @@
+{% extends "base.html" %}
+
+{% block title %}{% if client %}Editar Cliente{% else %}Novo Cliente{% endif %}{% endblock %}
+
+{% block content %}
+<div class="page-header d-flex justify-content-between align-items-center">
+    <div>
+        <h1>
+            <i class="bi bi-{% if client %}pencil-square{% else %}person-plus{% endif %} me-3"></i>
+            {% if client %}Editar Cliente{% else %}Novo Cliente{% endif %}
+        </h1>
+        <p class="text-muted mb-0">
+            {% if client %}
+                Atualize as informações do cliente
+            {% else %}
+                Preencha os dados para cadastrar um novo cliente
+            {% endif %}
+        </p>
+    </div>
+    <a href="/" class="btn btn-secondary">
+        <i class="bi bi-arrow-left me-2"></i>Voltar à Lista
+    </a>
+</div>
+
+<form method="POST" action="/client" class="needs-validation" novalidate>
+    {% if client %}
+        <input type="hidden" name="id" value="{{ client.id }}">
+    {% endif %}
+    
+    <!-- Informações Básicas -->
+    <div class="card mb-4">
+        <div class="card-header">
+            <h5 class="mb-0">
+                <i class="bi bi-building me-2 text-primary"></i>
+                Informações Básicas
+            </h5>
+        </div>
+        <div class="card-body">
+            <div class="row">
+                <div class="col-md-6 mb-3">
+                    <label for="nomeEmpresa" class="form-label">
+                        <i class="bi bi-building me-1"></i>Nome da Empresa 
+                        <span class="text-danger">*</span>
+                    </label>
+                    <input type="text" class="form-control" id="nomeEmpresa" name="nomeEmpresa" 
+                           value="{{ client.nomeEmpresa if client else '' }}" required>
+                    <div class="invalid-feedback">
+                        Por favor, informe o nome da empresa.
+                    </div>
+                </div>
+                <div class="col-md-6 mb-3">
+                    <label for="razaoSocialReceita" class="form-label">
+                        <i class="bi bi-file-text me-1"></i>Razão Social (Receita)
+                    </label>
+                    <input type="text" class="form-control" id="razaoSocialReceita" name="razaoSocialReceita" 
+                           value="{{ client.razaoSocialReceita if client else '' }}">
+                </div>
+                <div class="col-md-6 mb-3">
+                    <label for="nomeFantasiaReceita" class="form-label">
+                        <i class="bi bi-shop me-1"></i>Nome Fantasia (Receita)
+                    </label>
+                    <input type="text" class="form-control" id="nomeFantasiaReceita" name="nomeFantasiaReceita" 
+                           value="{{ client.nomeFantasiaReceita if client else '' }}">
+                </div>
+                <div class="col-md-6 mb-3">
+                    <label for="cnpj" class="form-label">
+                        <i class="bi bi-card-text me-1"></i>CNPJ
+                    </label>
+                    <input type="text" class="form-control" id="cnpj" name="cnpj" 
+                           value="{{ client.cnpj if client else '' }}" 
+                           placeholder="00.000.000/0000-00"
+                           pattern="\d{2}\.\d{3}\.\d{3}/\d{4}-\d{2}">
+                </div>
+                <div class="col-md-4 mb-3">
+                    <label for="inscEst" class="form-label">
+                        <i class="bi bi-file-earmark-text me-1"></i>Inscrição Estadual
+                    </label>
+                    <input type="text" class="form-control" id="inscEst" name="inscEst" 
+                           value="{{ client.inscEst if client else '' }}">
+                </div>
+                <div class="col-md-4 mb-3">
+                    <label for="inscMun" class="form-label">
+                        <i class="bi bi-file-earmark-text me-1"></i>Inscrição Municipal
+                    </label>
+                    <input type="text" class="form-control" id="inscMun" name="inscMun" 
+                           value="{{ client.inscMun if client else '' }}">
+                </div>
+                <div class="col-md-4 mb-3">
+                    <label for="cidade" class="form-label">
+                        <i class="bi bi-geo-alt me-1"></i>Cidade
+                    </label>
+                    <input type="text" class="form-control" id="cidade" name="cidade" 
+                           value="{{ client.cidade if client else '' }}">
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Serviços -->
+    <div class="card mb-4">
+        <div class="card-header">
+            <h5 class="mb-0">
+                <i class="bi bi-tags me-2 text-primary"></i>
+                Serviços Contratados
+            </h5>
+        </div>
+        <div class="card-body">
+            <div class="row">
+                <div class="col-md-4 mb-3">
+                    <div class="form-check form-switch form-check-lg">
+                        <input class="form-check-input" type="checkbox" id="ct" name="ct" 
+                               {% if client and client.ct %}checked{% endif %}>
+                        <label class="form-check-label fw-medium" for="ct">
+                            <i class="bi bi-calculator-fill me-2 text-success"></i>
+                            CT (Contábil)
+                        </label>
+                    </div>
+                </div>
+                <div class="col-md-4 mb-3">
+                    <div class="form-check form-switch form-check-lg">
+                        <input class="form-check-input" type="checkbox" id="fs" name="fs" 
+                               {% if client and client.fs %}checked{% endif %}>
+                        <label class="form-check-label fw-medium" for="fs">
+                            <i class="bi bi-file-earmark-text-fill me-2 text-info"></i>
+                            FS (Fiscal)
+                        </label>
+                    </div>
+                </div>
+                <div class="col-md-4 mb-3">
+                    <div class="form-check form-switch form-check-lg">
+                        <input class="form-check-input" type="checkbox" id="dp" name="dp" 
+                               {% if client and client.dp %}checked{% endif %}>
+                        <label class="form-check-label fw-medium" for="dp">
+                            <i class="bi bi-people-fill me-2 text-warning"></i>
+                            DP (Departamento Pessoal)
+                        </label>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Códigos e Sistemas -->
+    <div class="card mb-4">
+        <div class="card-header">
+            <h5 class="mb-0">Códigos e Sistemas</h5>
+        </div>
+        <div class="card-body">
+            <div class="row">
+                <div class="col-md-4 mb-3">
+                    <label for="codFortesCt" class="form-label">Código Fortes CT</label>
+                    <input type="text" class="form-control" id="codFortesCt" name="codFortesCt" 
+                           value="{{ client.codFortesCt if client else '' }}">
+                </div>
+                <div class="col-md-4 mb-3">
+                    <label for="codFortesFs" class="form-label">Código Fortes FS</label>
+                    <input type="text" class="form-control" id="codFortesFs" name="codFortesFs" 
+                           value="{{ client.codFortesFs if client else '' }}">
+                </div>
+                <div class="col-md-4 mb-3">
+                    <label for="codFortesPs" class="form-label">Código Fortes PS</label>
+                    <input type="text" class="form-control" id="codFortesPs" name="codFortesPs" 
+                           value="{{ client.codFortesPs if client else '' }}">
+                </div>
+                <div class="col-md-4 mb-3">
+                    <label for="codDominio" class="form-label">Código Domínio</label>
+                    <input type="text" class="form-control" id="codDominio" name="codDominio" 
+                           value="{{ client.codDominio if client else '' }}">
+                </div>
+                <div class="col-md-4 mb-3">
+                    <label for="sistemaUtilizado" class="form-label">Sistema Utilizado</label>
+                    <input type="text" class="form-control" id="sistemaUtilizado" name="sistemaUtilizado" 
+                           value="{{ client.sistemaUtilizado if client else '' }}">
+                </div>
+                <div class="col-md-4 mb-3">
+                    <label for="moduloSpedTrier" class="form-label">Módulo SPED Trier</label>
+                    <input type="text" class="form-control" id="moduloSpedTrier" name="moduloSpedTrier" 
+                           value="{{ client.moduloSpedTrier if client else '' }}">
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Classificação -->
+    <div class="card mb-4">
+        <div class="card-header">
+            <h5 class="mb-0">Classificação da Empresa</h5>
+        </div>
+        <div class="card-body">
+            <div class="row">
+                <div class="col-md-4 mb-3">
+                    <label for="segmento" class="form-label">Segmento</label>
+                    <input type="text" class="form-control" id="segmento" name="segmento" 
+                           value="{{ client.segmento if client else '' }}">
+                </div>
+                <div class="col-md-4 mb-3">
+                    <label for="atividade" class="form-label">Atividade</label>
+                    <input type="text" class="form-control" id="atividade" name="atividade" 
+                           value="{{ client.atividade if client else '' }}">
+                </div>
+                <div class="col-md-4 mb-3">
+                    <label for="tributacao" class="form-label">Tributação</label>
+                    <select class="form-control" id="tributacao" name="tributacao">
+                        <option value="SIMPLES" {% if not client or client.tributacao == 'SIMPLES' %}selected{% endif %}>Simples Nacional</option>
+                        <option value="PRESUMIDO" {% if client and client.tributacao == 'PRESUMIDO' %}selected{% endif %}>Lucro Presumido</option>
+                        <option value="REAL" {% if client and client.tributacao == 'REAL' %}selected{% endif %}>Lucro Real</option>
+                        <option value="MEI" {% if client and client.tributacao == 'MEI' %}selected{% endif %}>MEI</option>
+                    </select>
+                </div>
+                <div class="col-md-6 mb-3">
+                    <label for="donoResp" class="form-label">Dono/Responsável</label>
+                    <input type="text" class="form-control" id="donoResp" name="donoResp" 
+                           value="{{ client.donoResp if client else '' }}">
+                </div>
+                <div class="col-md-6 mb-3">
+                    <label for="responsavelImediato" class="form-label">Responsável Imediato</label>
+                    <input type="text" class="form-control" id="responsavelImediato" name="responsavelImediato" 
+                           value="{{ client.responsavelImediato if client else '' }}">
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Acessos e Senhas -->
+    <div class="card mb-4">
+        <div class="card-header">
+            <h5 class="mb-0">Acessos e Senhas</h5>
+        </div>
+        <div class="card-body">
+            <div class="row">
+                <div class="col-md-6 mb-3">
+                    <label for="codAcessoSimples" class="form-label">Código Acesso Simples</label>
+                    <input type="text" class="form-control" id="codAcessoSimples" name="codAcessoSimples" 
+                           value="{{ client.codAcessoSimples if client else '' }}">
+                </div>
+                <div class="col-md-6 mb-3">
+                    <label for="cpfOuCnpj" class="form-label">CPF ou CNPJ (Acesso)</label>
+                    <input type="text" class="form-control" id="cpfOuCnpj" name="cpfOuCnpj" 
+                           value="{{ client.cpfOuCnpj if client else '' }}">
+                </div>
+                <div class="col-md-4 mb-3">
+                    <label for="acessoIss" class="form-label">Acesso ISS</label>
+                    <input type="text" class="form-control" id="acessoIss" name="acessoIss" 
+                           value="{{ client.acessoIss if client else '' }}">
+                </div>
+                <div class="col-md-4 mb-3">
+                    <label for="acessoSefin" class="form-label">Acesso SEFIN</label>
+                    <input type="text" class="form-control" id="acessoSefin" name="acessoSefin" 
+                           value="{{ client.acessoSefin if client else '' }}">
+                </div>
+                <div class="col-md-4 mb-3">
+                    <label for="acessoSeuma" class="form-label">Acesso SEUMA</label>
+                    <input type="text" class="form-control" id="acessoSeuma" name="acessoSeuma" 
+                           value="{{ client.acessoSeuma if client else '' }}">
+                </div>
+                <div class="col-md-6 mb-3">
+                    <label for="acessoEmpWeb" class="form-label">Acesso EmpWeb</label>
+                    <input type="text" class="form-control" id="acessoEmpWeb" name="acessoEmpWeb" 
+                           value="{{ client.acessoEmpWeb if client else '' }}">
+                </div>
+                <div class="col-md-6 mb-3">
+                    <label for="senhaEmpWeb" class="form-label">Senha EmpWeb</label>
+                    <input type="password" class="form-control" id="senhaEmpWeb" name="senhaEmpWeb" 
+                           value="{{ client.senhaEmpWeb if client else '' }}">
+                </div>
+                <div class="col-md-4 mb-3">
+                    <label for="acessoFapInss" class="form-label">Acesso FAP/INSS</label>
+                    <input type="text" class="form-control" id="acessoFapInss" name="acessoFapInss" 
+                           value="{{ client.acessoFapInss if client else '' }}">
+                </div>
+                <div class="col-md-4 mb-3">
+                    <label for="acessoCrf" class="form-label">Acesso CRF</label>
+                    <input type="text" class="form-control" id="acessoCrf" name="acessoCrf" 
+                           value="{{ client.acessoCrf if client else '' }}">
+                </div>
+                <div class="col-md-4 mb-3">
+                    <label for="acessoIbama" class="form-label">Acesso IBAMA</label>
+                    <input type="text" class="form-control" id="acessoIbama" name="acessoIbama" 
+                           value="{{ client.acessoIbama if client else '' }}">
+                </div>
+                <div class="col-md-6 mb-3">
+                    <label for="acessoSemace" class="form-label">Acesso SEMACE</label>
+                    <input type="text" class="form-control" id="acessoSemace" name="acessoSemace" 
+                           value="{{ client.acessoSemace if client else '' }}">
+                </div>
+                <div class="col-md-6 mb-3">
+                    <label for="senhaSemace" class="form-label">Senha SEMACE</label>
+                    <input type="password" class="form-control" id="senhaSemace" name="senhaSemace" 
+                           value="{{ client.senhaSemace if client else '' }}">
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Contatos -->
+    <div class="card mb-4">
+        <div class="card-header">
+            <h5 class="mb-0">Contatos</h5>
+        </div>
+        <div class="card-body">
+            <div class="row">
+                <div class="col-md-6 mb-3">
+                    <label for="telefoneFixo" class="form-label">Telefone Fixo</label>
+                    <input type="tel" class="form-control" id="telefoneFixo" name="telefoneFixo" 
+                           value="{{ client.telefoneFixo if client else '' }}" placeholder="(85) 3000-0000">
+                </div>
+                <div class="col-md-6 mb-3">
+                    <label for="telefoneCelular" class="form-label">Telefone Celular</label>
+                    <input type="tel" class="form-control" id="telefoneCelular" name="telefoneCelular" 
+                           value="{{ client.telefoneCelular if client else '' }}" placeholder="(85) 90000-0000">
+                </div>
+                <div class="col-md-6 mb-3">
+                    <label for="emailGestor" class="form-label">E-mail do Gestor</label>
+                    <input type="email" class="form-control" id="emailGestor" name="emailGestor" 
+                           value="{{ client.emailGestor if client else '' }}">
+                </div>
+                <div class="col-md-6 mb-3">
+                    <label for="emailsSocio" class="form-label">E-mails dos Sócios</label>
+                    <input type="text" class="form-control" id="emailsSocio" name="emailsSocio" 
+                           value="{{ client.emailsSocio if client else '' }}" placeholder="Separados por vírgula">
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Sócios -->
+    <div class="card mb-4">
+        <div class="card-header">
+            <h5 class="mb-0">Sócios</h5>
+        </div>
+        <div class="card-body">
+            <div class="row">
+                <div class="col-md-4 mb-3">
+                    <label for="socio1" class="form-label">Sócio 1</label>
+                    <input type="text" class="form-control" id="socio1" name="socio1" 
+                           value="{{ client.socio1 if client else '' }}">
+                </div>
+                <div class="col-md-4 mb-3">
+                    <label for="socio2" class="form-label">Sócio 2</label>
+                    <input type="text" class="form-control" id="socio2" name="socio2" 
+                           value="{{ client.socio2 if client else '' }}">
+                </div>
+                <div class="col-md-4 mb-3">
+                    <label for="socio3" class="form-label">Sócio 3</label>
+                    <input type="text" class="form-control" id="socio3" name="socio3" 
+                           value="{{ client.socio3 if client else '' }}">
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Órgãos Reguladores -->
+    <div class="card mb-4">
+        <div class="card-header">
+            <h5 class="mb-0">Órgãos Reguladores</h5>
+        </div>
+        <div class="card-body">
+            <div class="row">
+                <div class="col-md-6 mb-3">
+                    <label for="anvisaGestor" class="form-label">ANVISA Gestor</label>
+                    <input type="text" class="form-control" id="anvisaGestor" name="anvisaGestor" 
+                           value="{{ client.anvisaGestor if client else '' }}">
+                </div>
+                <div class="col-md-6 mb-3">
+                    <label for="anvisaEmpresa" class="form-label">ANVISA Empresa</label>
+                    <input type="text" class="form-control" id="anvisaEmpresa" name="anvisaEmpresa" 
+                           value="{{ client.anvisaEmpresa if client else '' }}">
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Procurações -->
+    <div class="card mb-4">
+        <div class="card-header">
+            <h5 class="mb-0">Procurações</h5>
+        </div>
+        <div class="card-body">
+            <div class="row">
+                <div class="col-md-4 mb-3">
+                    <label for="procRc" class="form-label">Procuração RC</label>
+                    <input type="text" class="form-control" id="procRc" name="procRc" 
+                           value="{{ client.procRc if client else '' }}">
+                </div>
+                <div class="col-md-4 mb-3">
+                    <label for="procCx" class="form-label">Procuração CX</label>
+                    <input type="text" class="form-control" id="procCx" name="procCx" 
+                           value="{{ client.procCx if client else '' }}">
+                </div>
+                <div class="col-md-4 mb-3">
+                    <label for="procSw" class="form-label">Procuração SW</label>
+                    <input type="text" class="form-control" id="procSw" name="procSw" 
+                           value="{{ client.procSw if client else '' }}">
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Configurações -->
+    <div class="card mb-4">
+        <div class="card-header">
+            <h5 class="mb-0">Configurações</h5>
+        </div>
+        <div class="card-body">
+            <div class="row">
+                <div class="col-md-6 mb-3">
+                    <label for="mesAnoInicio" class="form-label">Mês/Ano de Início</label>
+                    <input type="month" class="form-control" id="mesAnoInicio" name="mesAnoInicio" 
+                           value="{{ client.mesAnoInicio if client else '' }}">
+                </div>
+                <div class="col-md-6 mb-3">
+                    <label for="tarefasVinculadas" class="form-label">Tarefas Vinculadas</label>
+                    <input type="number" class="form-control" id="tarefasVinculadas" name="tarefasVinculadas" 
+                           value="{{ client.tarefasVinculadas if client else '0' }}" min="0">
+                </div>
+                <div class="col-md-4 mb-3">
+                    <div class="form-check form-switch">
+                        <input class="form-check-input" type="checkbox" id="ativo" name="ativo" 
+                               {% if not client or client.ativo %}checked{% endif %}>
+                        <label class="form-check-label" for="ativo">Cliente Ativo</label>
+                    </div>
+                </div>
+                <div class="col-md-4 mb-3">
+                    <div class="form-check form-switch">
+                        <input class="form-check-input" type="checkbox" id="integradoDominio" name="integradoDominio" 
+                               {% if client and client.integradoDominio %}checked{% endif %}>
+                        <label class="form-check-label" for="integradoDominio">Integrado Domínio</label>
+                    </div>
+                </div>
+                <div class="col-md-4 mb-3">
+                    <div class="form-check form-switch">
+                        <input class="form-check-input" type="checkbox" id="portalCliente" name="portalCliente" 
+                               {% if client and client.portalCliente %}checked{% endif %}>
+                        <label class="form-check-label" for="portalCliente">Portal do Cliente</label>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <div class="d-flex gap-3 mb-5 justify-content-center">
+        <button type="submit" class="btn btn-success btn-lg px-5">
+            <i class="bi bi-{% if client %}arrow-repeat{% else %}check-lg{% endif %} me-2"></i>
+            {% if client %}Atualizar Cliente{% else %}Salvar Cliente{% endif %}
+        </button>
+        <a href="/" class="btn btn-secondary btn-lg px-4">
+            <i class="bi bi-x-lg me-2"></i>Cancelar
+        </a>
+    </div>
+</form>
+
+<script>
+// Validação do formulário
+(function() {
+    'use strict';
+    window.addEventListener('load', function() {
+        var forms = document.getElementsByClassName('needs-validation');
+        var validation = Array.prototype.filter.call(forms, function(form) {
+            form.addEventListener('submit', function(event) {
+                if (form.checkValidity() === false) {
+                    event.preventDefault();
+                    event.stopPropagation();
+                }
+                form.classList.add('was-validated');
+            }, false);
+        });
+    }, false);
+})();
+
+// Máscara para CNPJ
+document.getElementById('cnpj').addEventListener('input', function(e) {
+    let value = e.target.value.replace(/\D/g, '');
+    if (value.length <= 14) {
+        value = value.replace(/^(\d{2})(\d{3})(\d{3})(\d{4})(\d{2})$/, '$1.$2.$3/$4-$5');
+        e.target.value = value;
+    }
+});
+
+// Máscara para telefones
+function maskPhone(input) {
+    input.addEventListener('input', function(e) {
+        let value = e.target.value.replace(/\D/g, '');
+        if (value.length <= 11) {
+            if (value.length <= 10) {
+                value = value.replace(/^(\d{2})(\d{4})(\d{4})$/, '($1) $2-$3');
+            } else {
+                value = value.replace(/^(\d{2})(\d{5})(\d{4})$/, '($1) $2-$3');
+            }
+            e.target.value = value;
+        }
+    });
+}
+
+const telefoneFixo = document.getElementById('telefoneFixo');
+const telefoneCelular = document.getElementById('telefoneCelular');
+if (telefoneFixo) maskPhone(telefoneFixo);
+if (telefoneCelular) maskPhone(telefoneCelular);
+</script>
+{% endblock %}
