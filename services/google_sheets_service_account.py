@@ -1,5 +1,7 @@
 import os
 import json
+import random
+import traceback
 from google.oauth2.service_account import Credentials
 from googleapiclient.discovery import build
 from datetime import datetime
@@ -31,12 +33,29 @@ class GoogleSheetsServiceAccountService:
             
             if service_account_json:
                 print("🔐 Usando credenciais da variável de ambiente (produção)")
-                credentials_info = json.loads(service_account_json)
-                credentials = Credentials.from_service_account_info(
-                    credentials_info, scopes=self.scopes
-                )
+                print(f"🔍 Tamanho da variável: {len(service_account_json)} caracteres")
+                print(f"🔍 Primeiros 50 caracteres: {service_account_json[:50]}...")
+                
+                try:
+                    credentials_info = json.loads(service_account_json)
+                    print(f"✅ JSON parseado com sucesso!")
+                    print(f"🔍 Chaves do JSON: {list(credentials_info.keys())}")
+                    print(f"🔍 Project ID: {credentials_info.get('project_id', 'N/A')}")
+                    print(f"🔍 Client Email: {credentials_info.get('client_email', 'N/A')}")
+                    
+                    credentials = Credentials.from_service_account_info(
+                        credentials_info, scopes=self.scopes
+                    )
+                    print("✅ Credenciais Service Account criadas da variável de ambiente!")
+                    
+                except json.JSONDecodeError as json_error:
+                    print(f"❌ Erro ao fazer parse do JSON da variável de ambiente: {json_error}")
+                    print(f"❌ Conteúdo da variável (primeiros 200 chars): {service_account_json[:200]}")
+                    raise
+                    
             else:
                 # Fallback para arquivo local (desenvolvimento)
+                print("🔐 Variável de ambiente não encontrada, tentando arquivo local...")
                 current_dir = os.path.dirname(os.path.dirname(__file__))
                 credentials_file = os.path.join(current_dir, 'service-account-key.json')
                 print(f"📁 Procurando credenciais em: {credentials_file}")
@@ -44,16 +63,41 @@ class GoogleSheetsServiceAccountService:
                 if not os.path.exists(credentials_file):
                     raise FileNotFoundError(f"Arquivo de credenciais não encontrado: {credentials_file}")
                     
+                print("✅ Arquivo de credenciais encontrado!")
                 credentials = Credentials.from_service_account_file(
                     credentials_file, scopes=self.scopes
                 )
+                print("✅ Credenciais Service Account criadas do arquivo local!")
             
             print("🔐 Autenticando com Service Account...")
+            print(f"🔍 Scopes solicitados: {self.scopes}")
+            
             self.service = build('sheets', 'v4', credentials=credentials)
             print("✅ Autenticação Service Account concluída!")
             
+            # Testar a conexão fazendo uma requisição simples
+            print("🔍 Testando conexão com Google Sheets...")
+            try:
+                # Tentar obter metadados da planilha
+                spreadsheet = self.service.spreadsheets().get(
+                    spreadsheetId=self.spreadsheet_id
+                ).execute()
+                
+                sheet_title = spreadsheet.get('properties', {}).get('title', 'N/A')
+                sheet_count = len(spreadsheet.get('sheets', []))
+                print(f"✅ Conexão testada com sucesso!")
+                print(f"📊 Planilha: '{sheet_title}' com {sheet_count} aba(s)")
+                
+            except Exception as test_error:
+                print(f"❌ Erro ao testar conexão: {test_error}")
+                print(f"❌ Spreadsheet ID usado: {self.spreadsheet_id}")
+                raise
+            
         except Exception as e:
             print(f"❌ Erro na autenticação Service Account: {e}")
+            print(f"❌ Tipo do erro: {type(e).__name__}")
+            import traceback
+            print(f"❌ Traceback completo: {traceback.format_exc()}")
             raise
     
     def save_client(self, client: Dict) -> bool:
@@ -212,10 +256,12 @@ class GoogleSheetsServiceAccountService:
             return False
     
     def find_client_row(self, client_id: str) -> int:
-        """Encontra a linha do cliente na planilha - MÉTODO OTIMIZADO"""
+        """Encontra a linha do cliente na planilha - MÉTODO OTIMIZADO COM DEBUG PRODUÇÃO"""
         try:
-            print(f"🔍 [SERVICE] ===== BUSCANDO CLIENTE =====")
+            print(f"🔍 [SERVICE] ===== BUSCANDO CLIENTE (PRODUÇÃO) =====")
             print(f"🔍 [SERVICE] ID do cliente recebido: '{client_id}' (tipo: {type(client_id)})")
+            print(f"🔍 [SERVICE] Spreadsheet ID: {self.spreadsheet_id}")
+            print(f"🔍 [SERVICE] Range: {self.range_name}")
             
             if not client_id or str(client_id).strip() == '' or str(client_id) == 'None':
                 print("⚠️ [SERVICE] ID do cliente está vazio ou None!")
@@ -225,15 +271,23 @@ class GoogleSheetsServiceAccountService:
             search_id = str(client_id).strip()
             print(f"🔍 [SERVICE] ID normalizado para busca: '{search_id}'")
             
+            # Verificar se o serviço está autenticado
+            if not self.service:
+                print("❌ [SERVICE] Serviço Google Sheets não está autenticado!")
+                return -1
+            
             # Buscar dados da planilha
+            print("🔍 [SERVICE] Fazendo requisição para Google Sheets...")
             result = self.service.spreadsheets().values().get(
                 spreadsheetId=self.spreadsheet_id,
                 range='Clientes!A:CZ'
             ).execute()
             
             values = result.get('values', [])
+            print(f"🔍 [SERVICE] Resposta da API recebida: {len(values)} linhas")
+            
             if not values:
-                print("⚠️ [SERVICE] Planilha vazia")
+                print("⚠️ [SERVICE] Planilha vazia ou sem dados")
                 return -1
             
             # Primeira linha são os cabeçalhos
@@ -241,8 +295,11 @@ class GoogleSheetsServiceAccountService:
             print(f"🔍 [SERVICE] Planilha tem {len(values)} linhas no total")
             print(f"🔍 [SERVICE] Cabeçalhos encontrados: {len(headers)} colunas")
             
-            if len(headers) >= 10:
-                print(f"🔍 [SERVICE] Últimas 10 colunas: {headers[-10:]}")
+            # Debug dos primeiros cabeçalhos
+            if len(headers) >= 5:
+                print(f"🔍 [SERVICE] Primeiros 5 cabeçalhos: {headers[:5]}")
+            if len(headers) >= 90:
+                print(f"🔍 [SERVICE] Cabeçalho da coluna 90 (ID): '{headers[89]}'")
             
             # Encontrar índice da coluna ID
             id_column_index = -1
@@ -254,24 +311,33 @@ class GoogleSheetsServiceAccountService:
             
             if id_column_index == -1:
                 print("❌ [SERVICE] Coluna ID não encontrada nos cabeçalhos!")
+                print(f"❌ [SERVICE] Cabeçalhos disponíveis: {[h for h in headers if h]}")
                 return -1
             
             # Analisar primeiras linhas para debug
-            print(f"🔍 [SERVICE] ===== ANALISANDO PRIMEIRAS {min(3, len(values)-1)} LINHAS =====")
-            for row_idx in range(1, min(4, len(values))):  # Começar da linha 2 (índice 1)
+            print(f"🔍 [SERVICE] ===== ANALISANDO PRIMEIRAS {min(5, len(values)-1)} LINHAS =====")
+            for row_idx in range(1, min(6, len(values))):  # Começar da linha 2 (índice 1)
                 row = values[row_idx]
                 print(f"🔍 [SERVICE] Linha {row_idx + 1}: {len(row)} colunas")
                 if id_column_index < len(row):
                     row_id = str(row[id_column_index]).strip()
                     print(f"🔍 [SERVICE] Linha {row_idx + 1} - ID na posição {id_column_index}: '{row_id}'")
+                else:
+                    print(f"🔍 [SERVICE] Linha {row_idx + 1} - Coluna ID não existe (linha tem {len(row)} colunas)")
             
             # Buscar o ID específico
             print(f"🔍 [SERVICE] ===== BUSCANDO ID '{search_id}' =====")
+            found_ids = []  # Para debug - coletar todos os IDs encontrados
+            
             for row_idx in range(1, len(values)):  # Pular cabeçalho
                 row = values[row_idx]
                 if id_column_index < len(row):
                     row_id = str(row[id_column_index]).strip()
                     actual_row_number = row_idx + 1  # +1 porque é 1-indexed
+                    
+                    # Coletar para debug
+                    if row_id:  # Só adicionar IDs não vazios
+                        found_ids.append(row_id)
                     
                     print(f"🔍 [SERVICE] Linha {actual_row_number}: ID '{row_id}' vs busca '{search_id}' - Match: {row_id == search_id}")
                     if row_id == search_id:
@@ -279,10 +345,16 @@ class GoogleSheetsServiceAccountService:
                         return actual_row_number
             
             print(f"❌ [SERVICE] Cliente '{search_id}' não encontrado")
+            print(f"🔍 [SERVICE] Total de IDs encontrados na planilha: {len(found_ids)}")
+            print(f"🔍 [SERVICE] Primeiros 10 IDs encontrados: {found_ids[:10]}")
+            
             return -1
             
         except Exception as e:
-            print(f"❌ Erro ao buscar cliente: {e}")
+            print(f"❌ [SERVICE] Erro ao buscar cliente: {e}")
+            print(f"❌ [SERVICE] Tipo do erro: {type(e).__name__}")
+            import traceback
+            print(f"❌ [SERVICE] Traceback completo: {traceback.format_exc()}")
             return -1
 
     def get_client(self, client_id: str) -> Optional[Dict]:
@@ -315,31 +387,78 @@ class GoogleSheetsServiceAccountService:
             return None
     
     def get_clients(self) -> List[Dict]:
-        """Busca clientes da planilha"""
+        """Busca clientes da planilha - COM DEBUG PARA PRODUÇÃO"""
         try:
-            print("📊 Buscando clientes do Google Sheets...")
+            print("📊 ===== BUSCANDO CLIENTES (PRODUÇÃO) =====")
+            print(f"📊 Spreadsheet ID: {self.spreadsheet_id}")
+            print(f"📊 Range: {self.range_name}")
+            
+            if not self.service:
+                print("❌ Serviço Google Sheets não está autenticado!")
+                return []
+            
+            print("📊 Fazendo requisição para Google Sheets...")
             result = self.service.spreadsheets().values().get(
                 spreadsheetId=self.spreadsheet_id,
                 range=self.range_name
             ).execute()
             
             values = result.get('values', [])
+            print(f"📊 Resposta da API: {len(values)} linhas recebidas")
+            
             if not values:
                 print("📝 Nenhum cliente encontrado na planilha")
                 return []
             
+            # Debug dos cabeçalhos
+            headers = values[0] if values else []
+            print(f"📊 Cabeçalhos: {len(headers)} colunas")
+            
+            # Encontrar coluna ID para debug
+            id_column_index = -1
+            for i, header in enumerate(headers):
+                if str(header).strip().upper() == 'ID':
+                    id_column_index = i
+                    break
+            
+            print(f"📊 Coluna ID encontrada no índice: {id_column_index}")
+            
             clients = []
+            rows_processed = 0
+            rows_with_data = 0
+            rows_with_valid_id = 0
+            
             for i, row in enumerate(values[1:], 2):  # Skip header, start from row 2
+                rows_processed += 1
+                
                 if len(row) > 0 and row[0]:  # Check if first column has value
+                    rows_with_data += 1
+                    
                     client = self.row_to_client(row)
                     client['_row_number'] = i  # Store row number for updates/deletes
+                    
+                    # Debug do ID do cliente
+                    client_id = client.get('id', '')
+                    if client_id and str(client_id).strip():
+                        rows_with_valid_id += 1
+                        if len(clients) < 5:  # Debug apenas dos primeiros 5
+                            print(f"📊 Cliente {len(clients)+1}: '{client.get('nomeEmpresa')}' - ID: '{client_id}' - Linha: {i}")
+                    
                     clients.append(client)
             
-            print(f"📊 {len(clients)} clientes carregados do Google Sheets")
+            print(f"📊 ===== RESUMO DA BUSCA =====")
+            print(f"📊 Linhas processadas: {rows_processed}")
+            print(f"📊 Linhas com dados: {rows_with_data}")
+            print(f"📊 Linhas com ID válido: {rows_with_valid_id}")
+            print(f"📊 Total de clientes carregados: {len(clients)}")
+            
             return clients
             
         except Exception as e:
             print(f"❌ Erro ao buscar clientes: {e}")
+            print(f"❌ Tipo do erro: {type(e).__name__}")
+            import traceback
+            print(f"❌ Traceback completo: {traceback.format_exc()}")
             return []
     
     def delete_client(self, client_id: str) -> bool:
