@@ -232,15 +232,41 @@ def get_meeting_service():
     return meeting_service
 
 def get_user_service():
-    """Lazy loading do user service"""
+    """Lazy loading do user service com fallback"""
     global user_service
-    if user_service is None and GOOGLE_SHEETS_ID:
-        try:
-            user_service = UserService(GOOGLE_SHEETS_ID)
-            print("✅ User service inicializado")
-        except Exception as e:
-            print(f"❌ Erro ao inicializar user service: {e}")
-            user_service = None
+    if user_service is None:
+        if GOOGLE_SHEETS_ID:
+            try:
+                print(f"🔄 Tentando inicializar UserService com SHEETS_ID: {GOOGLE_SHEETS_ID}")
+                user_service = UserService(GOOGLE_SHEETS_ID)
+                print("✅ User service inicializado com sucesso")
+            except Exception as e:
+                print(f"❌ Erro ao inicializar user service: {e}")
+                print(f"🔍 Tipo do erro: {type(e).__name__}")
+                print("🔄 Tentando fallback de usuários...")
+                
+                # Usar serviço de fallback
+                try:
+                    from services.fallback_user_service import FallbackUserService
+                    user_service = FallbackUserService()
+                    print("✅ Fallback user service inicializado")
+                except Exception as fallback_error:
+                    print(f"❌ Erro no fallback user service: {fallback_error}")
+                    user_service = None
+        else:
+            print("❌ GOOGLE_SHEETS_ID não disponível para UserService")
+            print("🔄 Inicializando fallback user service...")
+            
+            # Usar serviço de fallback quando não há SHEETS_ID
+            try:
+                from services.fallback_user_service import FallbackUserService
+                user_service = FallbackUserService()
+                print("✅ Fallback user service inicializado (sem SHEETS_ID)")
+            except Exception as fallback_error:
+                print(f"❌ Erro no fallback user service: {fallback_error}")
+                user_service = None
+    else:
+        print("♻️ User service já inicializado")
     return user_service
 
 def get_report_service():
@@ -317,11 +343,19 @@ def login():
         password = request.form['password']
         
         print(f"🔐 LOGIN: Tentativa de login para usuário: {username}")
-        print(f"🔐 LOGIN: user_service disponível: {user_service is not None}")
         
-        if user_service:
+        # Debug das variáveis de ambiente críticas
+        print(f"🔍 DEBUG: GOOGLE_SHEETS_ID = {GOOGLE_SHEETS_ID}")
+        print(f"🔍 DEBUG: USE_GOOGLE_SHEETS = {USE_GOOGLE_SHEETS}")
+        print(f"🔍 DEBUG: USE_SERVICE_ACCOUNT = {USE_SERVICE_ACCOUNT}")
+        
+        # Tentar inicializar o user_service
+        current_user_service = get_user_service()
+        print(f"🔐 LOGIN: user_service disponível: {current_user_service is not None}")
+        
+        if current_user_service:
             print("🔐 LOGIN: Chamando authenticate_user...")
-            user = user_service.authenticate_user(username, password)
+            user = current_user_service.authenticate_user(username, password)
             print(f"🔐 LOGIN: Resultado da autenticação: {user}")
             
             if user:
@@ -337,7 +371,7 @@ def login():
                 flash('Usuário ou senha incorretos.', 'error')
         else:
             print("❌ LOGIN: user_service não disponível")
-            flash('Serviço de autenticação indisponível.', 'error')
+            flash('Serviço de autenticação indisponível. Tente novamente.', 'error')
     else:
         print("🔐 LOGIN: Exibindo formulário de login (GET)")
     
