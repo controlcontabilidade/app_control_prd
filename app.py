@@ -276,13 +276,25 @@ def get_user_service():
 def get_report_service():
     """Lazy loading do report service"""
     global report_service
+    print(f"🔍 Debug get_report_service: report_service atual = {report_service}")
+    print(f"🔍 Debug get_report_service: GOOGLE_SHEETS_ID = {GOOGLE_SHEETS_ID}")
+    
     if report_service is None and GOOGLE_SHEETS_ID:
         try:
+            print("🔄 Inicializando ReportService...")
             report_service = ReportService(GOOGLE_SHEETS_ID)
-            print("✅ Report service inicializado")
+            print("✅ Report service inicializado com sucesso")
         except Exception as e:
             print(f"❌ Erro ao inicializar report service: {e}")
+            import traceback
+            traceback.print_exc()
             report_service = None
+    elif report_service is None:
+        print("❌ GOOGLE_SHEETS_ID não disponível para ReportService")
+    else:
+        print("♻️ Report service já inicializado")
+    
+    print(f"🔍 Debug get_report_service: retornando = {report_service}")
     return report_service
 
 def get_import_service():
@@ -767,22 +779,30 @@ def debug_sistema_real():
 @login_required
 def reports():
     """Página de visualização de relatórios para usuários"""
-    if report_service:
-        # Busca apenas relatórios ativos
-        reports_data = report_service.list_reports(only_active=True)
-        username = session.get('user_name', '')
-        
-        print(f"🔍 Debug: {len(reports_data)} relatórios encontrados (apenas ativos)")
-        
-        # Filtrar relatórios que o usuário tem acesso
-        accessible_reports = []
-        for report in reports_data:
-            print(f"🔍 Debug: Relatório '{report.get('nome')}' - Ativo: '{report.get('ativo')}'")
-            if report_service.user_has_access(report, username):
-                accessible_reports.append(report)
-        
-        print(f"🔍 Debug: {len(accessible_reports)} relatórios acessíveis para '{username}'")
-        return render_template('reports.html', reports=accessible_reports)
+    # Inicializar o serviço de relatórios se necessário
+    report_svc = get_report_service()
+    
+    if report_svc:
+        try:
+            # Busca apenas relatórios ativos
+            reports_data = report_svc.list_reports(only_active=True)
+            username = session.get('user_name', '')
+            
+            print(f"🔍 Debug: {len(reports_data)} relatórios encontrados (apenas ativos)")
+            
+            # Filtrar relatórios que o usuário tem acesso
+            accessible_reports = []
+            for report in reports_data:
+                print(f"🔍 Debug: Relatório '{report.get('nome')}' - Ativo: '{report.get('ativo')}'")
+                if report_svc.user_has_access(report, username):
+                    accessible_reports.append(report)
+            
+            print(f"🔍 Debug: {len(accessible_reports)} relatórios acessíveis para '{username}'")
+            return render_template('reports.html', reports=accessible_reports)
+        except Exception as e:
+            print(f"❌ Erro ao carregar relatórios: {e}")
+            flash('Erro ao carregar relatórios. Tente novamente.', 'error')
+            return render_template('reports.html', reports=[])
     else:
         flash('Serviço de relatórios indisponível.', 'error')
         return render_template('reports.html', reports=[])
@@ -791,9 +811,17 @@ def reports():
 @admin_required
 def manage_reports():
     """Página de gerenciamento de relatórios (somente admin)"""
-    if report_service:
-        reports_data = report_service.list_reports()
-        return render_template('manage_reports.html', reports=reports_data)
+    # Inicializar o serviço de relatórios se necessário
+    report_svc = get_report_service()
+    
+    if report_svc:
+        try:
+            reports_data = report_svc.list_reports()
+            return render_template('manage_reports.html', reports=reports_data)
+        except Exception as e:
+            print(f"❌ Erro ao carregar relatórios para gerenciamento: {e}")
+            flash('Erro ao carregar relatórios. Tente novamente.', 'error')
+            return render_template('manage_reports.html', reports=[])
     else:
         flash('Serviço de relatórios indisponível.', 'error')
         return render_template('manage_reports.html', reports=[])
@@ -802,7 +830,10 @@ def manage_reports():
 @admin_required
 def create_report():
     """Criar novo relatório"""
-    if report_service:
+    # Inicializar o serviço de relatórios se necessário
+    report_svc = get_report_service()
+    
+    if report_svc:
         nome = request.form['nome']
         descricao = request.form['descricao']
         link = request.form['link']
@@ -823,7 +854,7 @@ def create_report():
         # Obter usuário da sessão
         criado_por = session.get('user_name', 'Desconhecido')
         
-        result = report_service.create_report(nome, descricao, link, ativo, ordem, criado_por, usuarios_autorizados)
+        result = report_svc.create_report(nome, descricao, link, ativo, ordem, criado_por, usuarios_autorizados)
         
         if result['success']:
             flash(result['message'], 'success')
@@ -838,7 +869,10 @@ def create_report():
 @admin_required
 def edit_report():
     """Editar relatório existente"""
-    if report_service:
+    # Inicializar o serviço de relatórios se necessário
+    report_svc = get_report_service()
+    
+    if report_svc:
         report_id = request.form['report_id']
         nome = request.form['nome']
         descricao = request.form['descricao']
@@ -857,7 +891,7 @@ def edit_report():
         ordem = int(request.form.get('ordem', 0))
         usuarios_autorizados = request.form.get('usuarios_autorizados', 'todos')
         
-        result = report_service.update_report(report_id, nome, descricao, link, ativo, ordem, usuarios_autorizados)
+        result = report_svc.update_report(report_id, nome, descricao, link, ativo, ordem, usuarios_autorizados)
         
         if result['success']:
             flash(result['message'], 'success')
@@ -872,10 +906,13 @@ def edit_report():
 @admin_required
 def delete_report():
     """Deletar relatório"""
-    if report_service:
+    # Inicializar o serviço de relatórios se necessário
+    report_svc = get_report_service()
+    
+    if report_svc:
         report_id = request.form['report_id']
         
-        result = report_service.delete_report(report_id)
+        result = report_svc.delete_report(report_id)
         
         if result['success']:
             flash(result['message'], 'success')
