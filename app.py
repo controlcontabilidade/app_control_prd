@@ -44,6 +44,11 @@ app.secret_key = os.environ.get('SECRET_KEY', 'your-secret-key-here-change-in-pr
 if MEMORY_OPTIMIZER_AVAILABLE:
     MemoryOptimizer.setup_production_memory_settings()
     MemoryOptimizer.optimize_flask_config(app)
+    
+    # Configurações específicas do Render
+    if os.environ.get('FLASK_ENV') == 'production':
+        from memory_optimizer import setup_render_optimizations
+        setup_render_optimizations()
 
 # Configurações de encoding UTF-8
 app.config['JSON_AS_ASCII'] = False
@@ -96,29 +101,42 @@ def format_datetime_filter(value):
     """Formata data e hora ISO para formato brasileiro"""
     return format_date_filter(value, '%d/%m/%Y %H:%M')
 
-# Configurações para upload de arquivos - OTIMIZADO PARA MEMÓRIA RENDER 512MB
-# Reduzido drasticamente para economizar RAM no Render
-MAX_UPLOAD_SIZE = 4 * 1024 * 1024 if os.environ.get('FLASK_ENV') == 'production' else 8 * 1024 * 1024
-app.config['MAX_CONTENT_LENGTH'] = MAX_UPLOAD_SIZE  # 4MB produção, 8MB desenvolvimento
+# Configurações para upload de arquivos - ULTRA-OTIMIZADO PARA RENDER 512MB
+# Reduzido DRASTICAMENTE para economizar RAM no Render
+MAX_UPLOAD_SIZE = 1 * 1024 * 1024 if os.environ.get('FLASK_ENV') == 'production' else 4 * 1024 * 1024
+app.config['MAX_CONTENT_LENGTH'] = MAX_UPLOAD_SIZE  # 1MB produção, 4MB desenvolvimento
 app.config['UPLOAD_FOLDER'] = 'uploads'
 ALLOWED_EXTENSIONS = {'xlsx', 'xls'}
 
 print(f"📁 Upload configurado: {MAX_UPLOAD_SIZE / 1024 / 1024:.0f}MB máximo")
 
-# Configurações específicas para produção com baixo consumo de memória
+# Configurações ULTRA-AGRESSIVAS para produção com baixíssimo consumo de memória
 if os.environ.get('FLASK_ENV') == 'production':
-    # Garbage collection mais agressivo
-    gc.set_threshold(500, 5, 5)  # Mais agressivo que padrão
-    app.config['SEND_FILE_MAX_AGE_DEFAULT'] = 300  # Cache menor (5 min)
+    # Garbage collection EXTREMAMENTE agressivo
+    gc.set_threshold(100, 2, 2)  # Muito mais agressivo que padrão
+    app.config['SEND_FILE_MAX_AGE_DEFAULT'] = 60  # Cache de apenas 1 minuto
     
-    # Configurações JSON otimizadas
+    # Configurações JSON ULTRA-otimizadas
     app.config['JSON_SORT_KEYS'] = False
     app.config['JSONIFY_PRETTYPRINT_REGULAR'] = False
+    app.config['JSONIFY_MIMETYPE'] = 'application/json'
     
-    # Limitar threads e workers
-    os.environ.setdefault('WEB_CONCURRENCY', '1')  # 1 worker apenas
+    # Limitar DRASTICAMENTE threads e workers
+    os.environ.setdefault('WEB_CONCURRENCY', '1')  # 1 worker APENAS
+    os.environ.setdefault('WORKER_CONNECTIONS', '25')  # Reduzido drasticamente
+    os.environ.setdefault('WORKER_TIMEOUT', '20')  # Timeout muito baixo
+    os.environ.setdefault('MAX_REQUESTS', '50')  # Reiniciar worker muito frequentemente
     
-    print("🧠 Configurações de produção aplicadas para economia de memória")
+    # Configurações de sessão otimizadas
+    app.config['PERMANENT_SESSION_LIFETIME'] = 900  # 15 minutos apenas
+    app.config['SESSION_COOKIE_SECURE'] = True
+    app.config['SESSION_COOKIE_HTTPONLY'] = True
+    
+    # Desabilitar funcionalidades que consomem memória
+    app.config['PRESERVE_CONTEXT_ON_EXCEPTION'] = False
+    app.config['EXPLAIN_TEMPLATE_LOADING'] = False
+    
+    print("🧠 Configurações ULTRA-AGRESSIVAS de produção aplicadas para economia máxima de memória")
 
 # Criar pasta de uploads se não existir
 if not os.path.exists(app.config['UPLOAD_FOLDER']):
@@ -127,12 +145,25 @@ if not os.path.exists(app.config['UPLOAD_FOLDER']):
 def allowed_file(filename):
     return '.' in filename and filename.rsplit('.', 1)[1].lower() in ALLOWED_EXTENSIONS
 
-# Hook para limpeza de memória após cada requisição
+# Hook ULTRA-AGRESSIVO para limpeza de memória após cada requisição
 @app.after_request
 def cleanup_memory_after_request(response):
-    """Limpa memória após cada requisição"""
+    """Limpa memória AGRESSIVAMENTE após cada requisição"""
     if MEMORY_OPTIMIZER_AVAILABLE and os.environ.get('FLASK_ENV') == 'production':
+        # Múltiplas passadas de garbage collection
         MemoryOptimizer.cleanup_after_request()
+        
+        # Limpeza adicional para ambientes críticos de memória
+        try:
+            # Forçar limpeza de cache Python interno
+            if hasattr(sys, '_clear_type_cache'):
+                sys._clear_type_cache()
+            
+            # Coleta de lixo adicional
+            gc.collect()
+        except:
+            pass
+    
     return response
 
 # Carregar variáveis de ambiente (.env local / Render)
@@ -1199,18 +1230,23 @@ def auth_status():
 @app.route('/')
 @login_required
 def index():
-    print("🔍 === ROTA INDEX CHAMADA (MEMORY OPTIMIZED) ===")
+    print("🔍 === ROTA INDEX CHAMADA (ULTRA-MEMORY OPTIMIZED) ===")
     try:
-        print("📊 Carregando clientes com lazy loading...")
+        print("📊 Carregando clientes com lazy loading EXTREMO...")
         
-        # OTIMIZAÇÃO MEMÓRIA: Usar lazy loading e limite inteligente
+        # OTIMIZAÇÃO MEMÓRIA: Forçar limpeza antes de carregar
+        if os.environ.get('FLASK_ENV') == 'production':
+            gc.collect()
+            gc.collect()  # Dupla passada
+        
+        # OTIMIZAÇÃO MEMÓRIA: Usar lazy loading e limite ULTRA-restritivo
         storage = get_storage_service()
         
         # Verificar se é possível usar serviço otimizado
         try:
             from services.memory_optimized_sheets_service import MemoryOptimizedGoogleSheetsService
             if hasattr(storage, 'spreadsheet_id'):
-                print("🧠 Usando serviço otimizado para memória")
+                print("🧠 Usando serviço ULTRA-otimizado para memória")
                 optimized_service = MemoryOptimizedGoogleSheetsService(
                     storage.spreadsheet_id, 
                     storage.range_name
@@ -1221,34 +1257,55 @@ def index():
         except ImportError:
             clients = storage.get_clients()
         
-        # Limite baseado na memória disponível
-        max_clients = MEMORY_OPTIMIZED_SETTINGS.get('MAX_ROWS_PER_REQUEST', 100) if MEMORY_OPTIMIZER_AVAILABLE else 100
+        # Limite ULTRA-restritivo baseado na memória disponível
+        max_clients = MEMORY_OPTIMIZED_SETTINGS.get('MAX_ROWS_PER_REQUEST', 25) if MEMORY_OPTIMIZER_AVAILABLE else 25
         
-        if os.environ.get('FLASK_ENV') == 'production' and len(clients) > max_clients:
+        # Para produção, ser ainda mais restritivo
+        if os.environ.get('FLASK_ENV') == 'production':
+            max_clients = min(max_clients, 15)  # Máximo 15 clientes por vez
+            
+        if len(clients) > max_clients:
             clients = clients[:max_clients]
-            print(f"🧠 Limitado a {max_clients} clientes (otimização RAM)")
+            print(f"🧠 ULTRA-LIMITADO a {max_clients} clientes (economia RAM crítica)")
         
         print(f"✅ {len(clients)} clientes carregados")
         print(f"💾 Memória atual: {MemoryOptimizer.get_memory_usage() if MEMORY_OPTIMIZER_AVAILABLE else 'N/A'}")
         
-        # OTIMIZAÇÃO MEMÓRIA: Stats simplificadas
+        # OTIMIZAÇÃO MEMÓRIA: Stats ULTRA-simplificadas
         try:
-            stats = calculate_dashboard_stats_optimized(clients)
-            print(f"📈 Estatísticas otimizadas calculadas")
+            # Usar apenas contadores básicos para economizar memória
+            stats = {
+                'total_clientes': len(clients),
+                'clientes_ativos': sum(1 for c in clients if c.get('ativo', True)),
+                'ct': sum(1 for c in clients if c.get('ct')),
+                'fs': sum(1 for c in clients if c.get('fs')),
+                'dp': sum(1 for c in clients if c.get('dp')),
+                # Remover cálculos complexos que consomem memória
+                'empresas': len(clients),  # Simplificado
+                'domesticas': 0,  # Simplificado
+                'mei': 0,  # Simplificado
+                'simples_nacional': 0,  # Simplificado
+                'lucro_presumido': 0,  # Simplificado
+                'lucro_real': 0,  # Simplificado
+                'bpo': sum(1 for c in clients if c.get('bpoFinanceiro'))
+            }
+            print(f"📈 Estatísticas ULTRA-simplificadas calculadas")
         except Exception as stats_error:
             print(f"⚠️ Erro ao calcular stats: {stats_error}")
             stats = {
                 'total_clientes': len(clients), 
-                'clientes_ativos': sum(1 for c in clients if c.get('ativo', True)), 
-                'empresas': 0, 'domesticas': 0, 'mei': 0, 'simples_nacional': 0,
+                'clientes_ativos': len(clients),  # Simplificado
+                'empresas': len(clients), 'domesticas': 0, 'mei': 0, 'simples_nacional': 0,
                 'lucro_presumido': 0, 'lucro_real': 0,
                 'ct': 0, 'fs': 0, 'dp': 0, 'bpo': 0
             }
         
-        # Garbage collection após processamento
+        # Garbage collection AGRESSIVO após processamento
         if os.environ.get('FLASK_ENV') == 'production':
-            gc.collect()
-            print(f"💾 Memória pós-GC: {MemoryOptimizer.get_memory_usage() if MEMORY_OPTIMIZER_AVAILABLE else 'N/A'}")
+            # Múltiplas passadas para garantir limpeza máxima
+            for _ in range(3):
+                gc.collect()
+            print(f"💾 Memória pós-GC-EXTREMO: {MemoryOptimizer.get_memory_usage() if MEMORY_OPTIMIZER_AVAILABLE else 'N/A'}")
         
         return render_template('index_modern.html', clients=clients, stats=stats)
         
@@ -1257,13 +1314,19 @@ def index():
         print(f"🔍 Tipo do erro: {type(e).__name__}")
         flash(f'Erro ao carregar clientes: {str(e)}', 'error')
         
-        # Em caso de erro, criar stats vazias
+        # Em caso de erro, criar stats vazias e forçar limpeza
         stats = {
             'total_clientes': 0, 'clientes_ativos': 0, 'empresas': 0,
             'domesticas': 0, 'mei': 0, 'simples_nacional': 0,
             'lucro_presumido': 0, 'lucro_real': 0,
             'ct': 0, 'fs': 0, 'dp': 0, 'bpo': 0
         }
+        
+        # Limpeza de emergência
+        if os.environ.get('FLASK_ENV') == 'production':
+            for _ in range(5):
+                gc.collect()
+        
         return render_template('index_modern.html', clients=[], stats=stats)
 
 @app.route('/test')

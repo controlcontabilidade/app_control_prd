@@ -9,7 +9,7 @@ from memory_optimizer import MemoryOptimizer, get_optimized_batch_size
 
 class MemoryOptimizedGoogleSheetsService:
     """
-    Versão otimizada do GoogleSheetsService para ambientes com pouca memória
+    Versão ULTRA-OTIMIZADA do GoogleSheetsService para ambientes com pouca memória (Render 512MB)
     """
     
     def __init__(self, spreadsheet_id: str, range_name: str = 'Clientes!A:CZ'):
@@ -17,16 +17,23 @@ class MemoryOptimizedGoogleSheetsService:
         self.range_name = range_name
         self.service = None
         self.scopes = ['https://www.googleapis.com/auth/spreadsheets']
-        self._data_cache = {}
+        
+        # Cache ULTRA-limitado para economizar memória
+        self._data_cache = None  # Mudado de {} para None
         self._cache_timestamp = None
+        self._cache_ttl = 30  # Cache de apenas 30 segundos
         
         print(f"🧠 Memory Optimized Service inicializado para planilha: {self.spreadsheet_id}")
         print(f"💾 Uso de memória inicial: {MemoryOptimizer.get_memory_usage()}")
         
         self._authenticate()
+        
+        # Limpeza de memória após inicialização
+        if os.environ.get('FLASK_ENV') == 'production':
+            gc.collect()
     
     def _authenticate(self):
-        """Autentica usando Service Account com otimizações de memória"""
+        """Autentica usando Service Account com otimizações EXTREMAS de memória"""
         try:
             service_account_json = os.environ.get('GOOGLE_SERVICE_ACCOUNT_JSON')
             
@@ -36,6 +43,8 @@ class MemoryOptimizedGoogleSheetsService:
                 credentials = Credentials.from_service_account_info(
                     credentials_info, scopes=self.scopes
                 )
+                # Limpar variável imediatamente para economizar memória
+                del credentials_info
             else:
                 print("🔐 Usando arquivo local")
                 current_dir = os.path.dirname(os.path.dirname(__file__))
@@ -44,9 +53,19 @@ class MemoryOptimizedGoogleSheetsService:
                     credentials_file, scopes=self.scopes
                 )
             
-            # Build service com configurações otimizadas
-            self.service = build('sheets', 'v4', credentials=credentials, cache_discovery=False)
+            # Build service com configurações ULTRA-otimizadas para memória
+            self.service = build(
+                'sheets', 'v4', 
+                credentials=credentials, 
+                cache_discovery=False,  # Economizar memória
+                static_discovery=False  # Economizar memória adicional
+            )
             print("✅ Autenticação concluída (cache_discovery=False para economizar memória)")
+            
+            # Forçar limpeza de credenciais da memória
+            del credentials
+            if os.environ.get('FLASK_ENV') == 'production':
+                gc.collect()
             
             # Limpar variáveis temporárias
             if 'credentials_info' in locals():

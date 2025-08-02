@@ -1,0 +1,37 @@
+# Requirements.txt ULTRA-OTIMIZADO para Render.com 512MB
+# Apenas dependências ESSENCIAIS para minimizar uso de memória
+
+# Flask core (essencial)
+Flask==2.3.3
+Werkzeug==2.3.7
+Jinja2==3.1.2
+MarkupSafe==2.1.3
+
+# Google Sheets API (essencial)
+google-api-python-client==2.103.0
+google-auth==2.23.3
+google-auth-oauthlib==1.1.0
+google-auth-httplib2==0.1.1
+
+# Autenticação e segurança (essencial)
+cryptography==41.0.4
+
+# Utilitários básicos (essencial)
+python-dotenv==1.0.0
+requests==2.31.0
+urllib3==2.0.4
+
+# WSGI para produção (essencial)
+gunicorn==21.2.0
+
+# Removidas para economizar memória:
+# - pandas (muito pesado)
+# - openpyxl (apenas se necessário)
+# - psutil (apenas para debug)
+# - numpy (dependência do pandas)
+# - matplotlib (não usado)
+# - seaborn (não usado)
+
+# Dependências condicionais - instalar apenas se necessário:
+# openpyxl==3.1.2  # Apenas se importação Excel for necessária
+# psutil==5.9.5    # Apenas para monitoramento de memória
