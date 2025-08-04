@@ -6,18 +6,27 @@ import gc  # Para otimização de memória
 from datetime import datetime
 from functools import wraps
 
-# Importar otimizador de memória
+# Importar otimizador de memória ULTRA-AGRESSIVO
 try:
-    from memory_optimizer import MemoryOptimizer, MEMORY_OPTIMIZED_SETTINGS, get_optimized_batch_size
+    from ultra_memory_optimizer import UltraMemoryOptimizer, ULTRA_MEMORY_SETTINGS, get_ultra_optimized_batch_size
     MEMORY_OPTIMIZER_AVAILABLE = True
-    print("🧠 Memory Optimizer carregado")
+    print("🧠 Ultra Memory Optimizer carregado")
 except ImportError:
-    MEMORY_OPTIMIZER_AVAILABLE = False
-    print("⚠️ Memory Optimizer não disponível")
-    
-    # Definir função fallback
-    def get_optimized_batch_size():
-        return 50
+    try:
+        from memory_optimizer import MemoryOptimizer, MEMORY_OPTIMIZED_SETTINGS, get_optimized_batch_size
+        MEMORY_OPTIMIZER_AVAILABLE = True
+        print("🧠 Memory Optimizer carregado")
+        # Usar versão padrão se ultra não estiver disponível
+        UltraMemoryOptimizer = MemoryOptimizer
+        ULTRA_MEMORY_SETTINGS = MEMORY_OPTIMIZED_SETTINGS
+        get_ultra_optimized_batch_size = get_optimized_batch_size
+    except ImportError:
+        MEMORY_OPTIMIZER_AVAILABLE = False
+        print("⚠️ Memory Optimizer não disponível")
+        
+        # Definir função fallback
+        def get_ultra_optimized_batch_size():
+            return 5  # Valor extremamente baixo para fallback
 
 from services.google_sheets_service import GoogleSheetsService
 from services.local_storage_service import LocalStorageService
@@ -40,15 +49,17 @@ from werkzeug.utils import secure_filename
 app = Flask(__name__)
 app.secret_key = os.environ.get('SECRET_KEY', 'your-secret-key-here-change-in-production')
 
-# Aplicar otimizações de memória se disponível
+# Aplicar otimizações de memória ULTRA-AGRESSIVAS se disponível
 if MEMORY_OPTIMIZER_AVAILABLE:
-    MemoryOptimizer.setup_production_memory_settings()
-    MemoryOptimizer.optimize_flask_config(app)
+    UltraMemoryOptimizer.setup_extreme_memory_optimization()
+    UltraMemoryOptimizer.optimize_flask_config(app)
     
     # Configurações específicas do Render
     if os.environ.get('FLASK_ENV') == 'production':
-        from memory_optimizer import setup_render_optimizations
-        setup_render_optimizations()
+        from ultra_memory_optimizer import setup_render_extreme_optimizations
+        setup_render_extreme_optimizations()
+else:
+    print("⚠️ Usando configurações básicas de memória")
 
 # Configurações de encoding UTF-8
 app.config['JSON_AS_ASCII'] = False
@@ -101,42 +112,43 @@ def format_datetime_filter(value):
     """Formata data e hora ISO para formato brasileiro"""
     return format_date_filter(value, '%d/%m/%Y %H:%M')
 
-# Configurações para upload de arquivos - ULTRA-OTIMIZADO PARA RENDER 512MB
+# Configurações para upload de arquivos - EXTREMAMENTE OTIMIZADO
 # Reduzido DRASTICAMENTE para economizar RAM no Render
-MAX_UPLOAD_SIZE = 1 * 1024 * 1024 if os.environ.get('FLASK_ENV') == 'production' else 4 * 1024 * 1024
-app.config['MAX_CONTENT_LENGTH'] = MAX_UPLOAD_SIZE  # 1MB produção, 4MB desenvolvimento
+MAX_UPLOAD_SIZE = 512 * 1024 if os.environ.get('FLASK_ENV') == 'production' else 2 * 1024 * 1024  # 512KB produção, 2MB desenvolvimento
+app.config['MAX_CONTENT_LENGTH'] = MAX_UPLOAD_SIZE
 app.config['UPLOAD_FOLDER'] = 'uploads'
 ALLOWED_EXTENSIONS = {'xlsx', 'xls'}
 
-print(f"📁 Upload configurado: {MAX_UPLOAD_SIZE / 1024 / 1024:.0f}MB máximo")
+print(f"📁 Upload configurado: {MAX_UPLOAD_SIZE / 1024:.0f}KB máximo")
 
-# Configurações ULTRA-AGRESSIVAS para produção com baixíssimo consumo de memória
+# Configurações EXTREMAS para produção - FOCO EM IDLE MEMORY
 if os.environ.get('FLASK_ENV') == 'production':
     # Garbage collection EXTREMAMENTE agressivo
-    gc.set_threshold(100, 2, 2)  # Muito mais agressivo que padrão
-    app.config['SEND_FILE_MAX_AGE_DEFAULT'] = 60  # Cache de apenas 1 minuto
+    gc.set_threshold(25, 1, 1)  # Ainda mais agressivo
+    app.config['SEND_FILE_MAX_AGE_DEFAULT'] = 30  # Cache de apenas 30 segundos
     
-    # Configurações JSON ULTRA-otimizadas
+    # Configurações JSON EXTREMAS
     app.config['JSON_SORT_KEYS'] = False
     app.config['JSONIFY_PRETTYPRINT_REGULAR'] = False
     app.config['JSONIFY_MIMETYPE'] = 'application/json'
     
-    # Limitar DRASTICAMENTE threads e workers
+    # Limitar DRASTICAMENTE workers e conexões
     os.environ.setdefault('WEB_CONCURRENCY', '1')  # 1 worker APENAS
-    os.environ.setdefault('WORKER_CONNECTIONS', '25')  # Reduzido drasticamente
-    os.environ.setdefault('WORKER_TIMEOUT', '20')  # Timeout muito baixo
-    os.environ.setdefault('MAX_REQUESTS', '50')  # Reiniciar worker muito frequentemente
+    os.environ.setdefault('WORKER_CONNECTIONS', '5')  # Extremamente reduzido
+    os.environ.setdefault('WORKER_TIMEOUT', '15')  # Timeout muito baixo
+    os.environ.setdefault('MAX_REQUESTS', '10')  # Restart worker frequentemente
     
-    # Configurações de sessão otimizadas
-    app.config['PERMANENT_SESSION_LIFETIME'] = 900  # 15 minutos apenas
+    # Configurações de sessão extremamente otimizadas
+    app.config['PERMANENT_SESSION_LIFETIME'] = 600  # 10 minutos apenas
     app.config['SESSION_COOKIE_SECURE'] = True
     app.config['SESSION_COOKIE_HTTPONLY'] = True
     
-    # Desabilitar funcionalidades que consomem memória
+    # Desabilitar TUDO que consome memória
     app.config['PRESERVE_CONTEXT_ON_EXCEPTION'] = False
     app.config['EXPLAIN_TEMPLATE_LOADING'] = False
+    app.config['PROPAGATE_EXCEPTIONS'] = None
     
-    print("🧠 Configurações ULTRA-AGRESSIVAS de produção aplicadas para economia máxima de memória")
+    print("🧠 Configurações EXTREMAS de produção aplicadas - ZERO DESPERDÍCIO DE MEMÓRIA")
 
 # Criar pasta de uploads se não existir
 if not os.path.exists(app.config['UPLOAD_FOLDER']):
@@ -145,13 +157,13 @@ if not os.path.exists(app.config['UPLOAD_FOLDER']):
 def allowed_file(filename):
     return '.' in filename and filename.rsplit('.', 1)[1].lower() in ALLOWED_EXTENSIONS
 
-# Hook ULTRA-AGRESSIVO para limpeza de memória após cada requisição
+# Hook EXTREMO para limpeza de memória após cada requisição
 @app.after_request
 def cleanup_memory_after_request(response):
-    """Limpa memória AGRESSIVAMENTE após cada requisição"""
+    """Limpa memória EXTREMAMENTE após cada requisição"""
     if MEMORY_OPTIMIZER_AVAILABLE and os.environ.get('FLASK_ENV') == 'production':
-        # Múltiplas passadas de garbage collection
-        MemoryOptimizer.cleanup_after_request()
+        # Usar otimizador ultra-agressivo
+        UltraMemoryOptimizer.cleanup_after_request()
         
         # Limpeza adicional para ambientes críticos de memória
         try:
@@ -159,8 +171,13 @@ def cleanup_memory_after_request(response):
             if hasattr(sys, '_clear_type_cache'):
                 sys._clear_type_cache()
             
-            # Coleta de lixo adicional
-            gc.collect()
+            # Coleta de lixo múltipla
+            for _ in range(2):
+                gc.collect()
+                
+            # Força limpeza de weakrefs
+            import weakref
+            weakref.getweakrefs(object())
         except:
             pass
     
@@ -249,8 +266,8 @@ def get_storage_service():
         
         # Limpeza de memória após inicialização
         if MEMORY_OPTIMIZER_AVAILABLE:
-            gc.collect()
-            print(f"💾 Memória após init storage: {MemoryOptimizer.get_memory_usage()}")
+            UltraMemoryOptimizer.force_cleanup()
+            print(f"💾 Memória após limpeza completa: {UltraMemoryOptimizer.get_memory_usage()}")
     
     return storage_service
 
@@ -342,14 +359,26 @@ def get_import_service():
             import_service = None
     return import_service
 
-# Inicialização básica - só o essencial
-print("🚀 Aplicação inicializada com lazy loading")
-print(f"💾 Memória inicial: {MemoryOptimizer.get_memory_usage() if MEMORY_OPTIMIZER_AVAILABLE else 'N/A'}")
+# Inicialização básica - EXTREMAMENTE otimizada
+print("🚀 Aplicação inicializada com lazy loading EXTREMO")
+print(f"💾 Memória inicial: {UltraMemoryOptimizer.get_memory_usage() if MEMORY_OPTIMIZER_AVAILABLE else 'N/A'}")
 
-# Garbage collection inicial
+# Iniciar monitor de memória ultra-otimizado
+if os.environ.get('FLASK_ENV') == 'production' and MEMORY_OPTIMIZER_AVAILABLE:
+    try:
+        from ultra_memory_monitor import start_ultra_monitoring
+        start_ultra_monitoring()
+        print("🔍 Monitor de memória ULTRA iniciado")
+    except ImportError:
+        print("⚠️ Monitor ultra não disponível")
+
+# Garbage collection EXTREMO inicial
 if os.environ.get('FLASK_ENV') == 'production':
-    gc.collect()
-    print("🧠 Limpeza inicial de memória concluída")
+    if MEMORY_OPTIMIZER_AVAILABLE:
+        UltraMemoryOptimizer.force_cleanup()
+    else:
+        gc.collect()
+    print("🧠 Limpeza EXTREMA de memória inicial concluída")
 
 # Decorator para verificar autenticação
 def login_required(f):
@@ -1097,40 +1126,46 @@ def get_users():
 def memory_status():
     """API para monitorar uso de memória em produção"""
     try:
-        # Coletar informações de memória
-        memory_info = {
-            'timestamp': datetime.now().isoformat(),
-            'environment': os.environ.get('FLASK_ENV', 'development'),
-            'python_version': sys.version.split()[0],
-        }
-        
-        # Tentar obter info detalhada de memória
+        # Usar monitor ultra-otimizado se disponível
         try:
-            import psutil
-            process = psutil.Process()
-            memory_info.update({
-                'memory_mb': round(process.memory_info().rss / 1024 / 1024, 1),
-                'memory_percent': round(process.memory_percent(), 1),
-                'cpu_percent': round(process.cpu_percent(), 1),
-                'threads': process.num_threads(),
-            })
-            
-            # Alertas baseados nos limites do Render (512MB)
-            memory_mb = memory_info['memory_mb']
-            if memory_mb > 450:
-                memory_info['alert'] = 'CRITICAL - Próximo do limite de 512MB'
-                memory_info['alert_level'] = 'danger'
-            elif memory_mb > 350:
-                memory_info['alert'] = 'WARNING - Uso de memória elevado'
-                memory_info['alert_level'] = 'warning'
-            else:
-                memory_info['alert'] = 'OK - Uso de memória normal'
-                memory_info['alert_level'] = 'success'
-                
+            from ultra_memory_monitor import get_memory_status
+            memory_info = get_memory_status()
         except ImportError:
-            memory_info['memory_mb'] = 'N/A (psutil não disponível)'
-            memory_info['alert'] = 'Monitoramento limitado'
-            memory_info['alert_level'] = 'info'
+            # Fallback para método básico
+            memory_info = {
+                'timestamp': datetime.now().isoformat(),
+                'environment': os.environ.get('FLASK_ENV', 'development'),
+                'python_version': sys.version.split()[0],
+                'monitoring': False
+            }
+            
+            # Tentar obter info básica de memória
+            try:
+                import psutil
+                process = psutil.Process()
+                memory_info.update({
+                    'memory_mb': round(process.memory_info().rss / 1024 / 1024, 1),
+                    'memory_percent': round(process.memory_percent(), 1),
+                    'cpu_percent': round(process.cpu_percent(), 1),
+                    'threads': process.num_threads(),
+                })
+                
+                # Alertas baseados nos limites do Render (512MB)
+                memory_mb = memory_info['memory_mb']
+                if memory_mb > 450:
+                    memory_info['alert'] = 'CRITICAL - Próximo do limite de 512MB'
+                    memory_info['alert_level'] = 'danger'
+                elif memory_mb > 350:
+                    memory_info['alert'] = 'WARNING - Uso de memória elevado'
+                    memory_info['alert_level'] = 'warning'
+                else:
+                    memory_info['alert'] = 'OK - Uso de memória normal'
+                    memory_info['alert_level'] = 'success'
+                    
+            except ImportError:
+                memory_info['memory_mb'] = 'N/A (psutil não disponível)'
+                memory_info['alert'] = 'Monitoramento limitado'
+                memory_info['alert_level'] = 'info'
         
         # Informações sobre garbage collection
         memory_info['gc_counts'] = gc.get_count()
@@ -1149,8 +1184,8 @@ def memory_status():
         
         # Configurações de otimização ativas
         optimizations = {
-            'memory_optimizer_available': MEMORY_OPTIMIZER_AVAILABLE,
-            'max_content_length': app.config.get('MAX_CONTENT_LENGTH', 0) / 1024 / 1024,  # MB
+            'ultra_optimizer_available': MEMORY_OPTIMIZER_AVAILABLE,
+            'max_content_length': app.config.get('MAX_CONTENT_LENGTH', 0) / 1024,  # KB
             'json_sort_keys': app.config.get('JSON_SORT_KEYS', True),
             'web_concurrency': os.environ.get('WEB_CONCURRENCY', 'auto'),
             'worker_connections': os.environ.get('WORKER_CONNECTIONS', 'auto'),
@@ -1165,6 +1200,39 @@ def memory_status():
             'timestamp': datetime.now().isoformat(),
             'alert': 'ERROR - Falha ao obter status de memória',
             'alert_level': 'danger'
+        }), 500
+
+@app.route('/api/force-cleanup')
+@admin_required
+def force_cleanup_api():
+    """API para forçar limpeza de memória"""
+    try:
+        # Usar monitor ultra se disponível
+        try:
+            from ultra_memory_monitor import force_cleanup
+            force_cleanup()
+            message = "Limpeza ULTRA executada com sucesso"
+        except ImportError:
+            # Fallback para limpeza básica
+            if MEMORY_OPTIMIZER_AVAILABLE:
+                UltraMemoryOptimizer.force_cleanup()
+                message = "Limpeza básica executada com sucesso"
+            else:
+                for _ in range(3):
+                    gc.collect()
+                message = "Limpeza manual executada"
+        
+        return jsonify({
+            'success': True,
+            'message': message,
+            'timestamp': datetime.now().isoformat()
+        })
+        
+    except Exception as e:
+        return jsonify({
+            'success': False,
+            'error': str(e),
+            'timestamp': datetime.now().isoformat()
         }), 500
 
 @app.route('/api/auth-status')
@@ -1257,19 +1325,19 @@ def index():
         except ImportError:
             clients = storage.get_clients()
         
-        # Limite ULTRA-restritivo baseado na memória disponível
-        max_clients = MEMORY_OPTIMIZED_SETTINGS.get('MAX_ROWS_PER_REQUEST', 25) if MEMORY_OPTIMIZER_AVAILABLE else 25
+        # Limite EXTREMO baseado na memória disponível
+        max_clients = ULTRA_MEMORY_SETTINGS.get('MAX_ROWS_PER_REQUEST', 10) if MEMORY_OPTIMIZER_AVAILABLE else 10
         
-        # Para produção, ser ainda mais restritivo
+        # Para produção, ser EXTREMAMENTE restritivo
         if os.environ.get('FLASK_ENV') == 'production':
-            max_clients = min(max_clients, 15)  # Máximo 15 clientes por vez
+            max_clients = min(max_clients, 5)  # Máximo 5 clientes em produção
             
         if len(clients) > max_clients:
-            clients = clients[:max_clients]
-            print(f"🧠 ULTRA-LIMITADO a {max_clients} clientes (economia RAM crítica)")
+            clients = clients[:max_clients]  # Truncar para economizar memória extrema
+            print(f"🧠 EXTREMAMENTE LIMITADO a {max_clients} clientes (economia RAM crítica)")
         
         print(f"✅ {len(clients)} clientes carregados")
-        print(f"💾 Memória atual: {MemoryOptimizer.get_memory_usage() if MEMORY_OPTIMIZER_AVAILABLE else 'N/A'}")
+        print(f"💾 Memória atual: {UltraMemoryOptimizer.get_memory_usage() if MEMORY_OPTIMIZER_AVAILABLE else 'N/A'}")
         
         # OTIMIZAÇÃO MEMÓRIA: Stats ULTRA-simplificadas
         try:
