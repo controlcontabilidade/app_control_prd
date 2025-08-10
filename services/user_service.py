@@ -42,12 +42,15 @@ class UserService:
             
             if not headers:
                 print(f"📋 Adicionando cabeçalhos na aba '{self.worksheet_name}'...")
-                # Adiciona cabeçalhos se não existirem
-                headers = ['ID', 'Nome', 'Email', 'Usuario', 'Senha_Hash', 'Perfil', 'Ativo', 'Data_Criacao', 'Ultimo_Login']
+                # Adiciona cabeçalhos se não existirem - versão atualizada com sistemas e permissões
+                headers = [
+                    'ID', 'Nome', 'Email', 'Usuario', 'Senha_Hash', 'Perfil', 'Ativo', 
+                    'Data_Criacao', 'Ultimo_Login', 'Sistemas_Acesso', 'Permissoes_SIGEC'
+                ]
                 worksheet.insert_row(headers, 1)
                 
                 print(f"👤 Criando usuário admin padrão...")
-                # Cria usuário admin padrão se não existir
+                # Cria usuário admin padrão se não existir com novos campos
                 admin_password_hash = self._hash_password('admin123')
                 admin_data = [
                     '1',
@@ -58,7 +61,9 @@ class UserService:
                     'Administrador',
                     'Sim',
                     '2024-01-01',
-                    ''
+                    '',  # Ultimo_Login
+                    'sigec,operacao-fiscal,gestao-operacional,gestao-financeira',  # Sistemas_Acesso
+                    'TOTAL_CADASTROS'  # Permissoes_SIGEC
                 ]
                 worksheet.insert_row(admin_data, 2)
                 print(f"✅ Usuário admin criado com sucesso!")
@@ -173,8 +178,8 @@ class UserService:
             print(f"Erro ao buscar usuário: {e}")
             return None
     
-    def create_user(self, nome, email, usuario, senha, perfil='Usuario'):
-        """Cria um novo usuário"""
+    def create_user(self, nome, email, usuario, senha, perfil='Usuario', sistemas_acesso='sigec', permissoes_sigec='VISUALIZADOR'):
+        """Cria um novo usuário com sistemas e permissões"""
         try:
             self._ensure_worksheet_exists()
             worksheet = self.sheets_service.get_worksheet(self.worksheet_name)
@@ -210,7 +215,9 @@ class UserService:
                 perfil,
                 'Sim',
                 datetime.now().strftime('%Y-%m-%d'),
-                ''
+                '',  # Ultimo_Login
+                sistemas_acesso,  # Sistemas_Acesso
+                permissoes_sigec  # Permissoes_SIGEC
             ]
             
             # Adiciona à planilha
@@ -248,8 +255,8 @@ class UserService:
             print(f"Erro ao listar usuários: {e}")
             return []
 
-    def update_user(self, user_id, nome, email, usuario, perfil, ativo, nova_senha=None):
-        """Atualiza os dados de um usuário"""
+    def update_user(self, user_id, nome, email, usuario, perfil, ativo, nova_senha=None, sistemas_acesso='sigec', permissoes_sigec='VISUALIZADOR'):
+        """Atualiza os dados de um usuário com novos campos"""
         try:
             self._ensure_worksheet_exists()
             worksheet = self.sheets_service.get_worksheet(self.worksheet_name)
@@ -270,6 +277,10 @@ class UserService:
             perfil_idx = headers.index('Perfil')
             ativo_idx = headers.index('Ativo')
             
+            # Índices dos novos campos
+            sistemas_idx = headers.index('Sistemas_Acesso') if 'Sistemas_Acesso' in headers else None
+            permissoes_idx = headers.index('Permissoes_SIGEC') if 'Permissoes_SIGEC' in headers else None
+            
             # Verifica se email ou usuário já existem (exceto para o próprio usuário)
             for i, user_row in enumerate(users):
                 if (len(user_row) > max(usuario_idx, email_idx, id_idx) and 
@@ -283,12 +294,18 @@ class UserService:
                 if len(user_row) > id_idx and user_row[id_idx] == str(user_id):
                     row_number = i + 2  # +2 porque lista começa em 0 e planilha em 1, mais linha de cabeçalho
                     
-                    # Atualiza os campos
+                    # Atualiza os campos básicos
                     worksheet.update_cell(row_number, nome_idx + 1, nome)
                     worksheet.update_cell(row_number, email_idx + 1, email)
                     worksheet.update_cell(row_number, usuario_idx + 1, usuario)
                     worksheet.update_cell(row_number, perfil_idx + 1, perfil)
                     worksheet.update_cell(row_number, ativo_idx + 1, ativo)
+                    
+                    # Atualiza novos campos se existirem
+                    if sistemas_idx is not None:
+                        worksheet.update_cell(row_number, sistemas_idx + 1, sistemas_acesso)
+                    if permissoes_idx is not None:
+                        worksheet.update_cell(row_number, permissoes_idx + 1, permissoes_sigec)
                     
                     # Atualiza senha se fornecida
                     if nova_senha:

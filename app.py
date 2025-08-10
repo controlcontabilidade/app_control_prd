@@ -504,10 +504,11 @@ def login():
                 session['user_id'] = user['id']
                 session['user_name'] = user['nome']
                 session['user_perfil'] = user['perfil']
+                session.permanent = True
                 print(f"🔐 LOGIN: Sessão criada - user_id: {session['user_id']}")
                 flash(f'Bem-vindo(a), {user["nome"]}!', 'success')
-                print("🔐 LOGIN: Redirecionando para index...")
-                return redirect(url_for('index'))
+                print("🔐 LOGIN: Redirecionando para seleção de sistemas...")
+                return redirect(url_for('system_selection'))
             else:
                 print("❌ LOGIN: Falha na autenticação")
                 flash('Usuário ou senha incorretos.', 'error')
@@ -519,11 +520,186 @@ def login():
     
     return render_template('login.html')
 
+@app.route('/system-selection')
+@login_required
+def system_selection():
+    """Tela de seleção de sistemas após o login"""
+    print(f"🎯 SYSTEM_SELECTION: Usuário {session.get('user_name')} acessando seleção de sistemas")
+    return render_template('system_selection.html')
+
+@app.route('/get-user-systems')
+@login_required
+def get_user_systems():
+    """Retorna os sistemas disponíveis para o usuário baseado em suas permissões"""
+    try:
+        user_id = session.get('user_id')
+        print(f"🎯 GET_USER_SYSTEMS: Buscando sistemas para usuário {user_id}")
+        
+        # Buscar dados do usuário para verificar permissões
+        current_user_service = get_user_service()
+        if current_user_service:
+            user_data = current_user_service.get_user_by_id(user_id)
+            if user_data:
+                # Sistemas disponíveis baseado nas permissões do usuário
+                available_systems = []
+                
+                # SIGEC sempre disponível (mínimo)
+                available_systems.append('sigec')
+                
+                # Verificar se é administrador - tem acesso a tudo
+                user_perfil = user_data.get('perfil', '').lower()
+                if user_perfil == 'administrador':
+                    # Administradores têm acesso a todos os sistemas
+                    available_systems = ['sigec', 'operacao-fiscal', 'gestao-operacional', 'gestao-financeira']
+                    print(f"🔑 GET_USER_SYSTEMS: Usuário administrador - todos os sistemas disponíveis")
+                    
+                    return {
+                        'success': True,
+                        'systems': available_systems,
+                        'user_permissions': 'TOTAL_CADASTROS'  # Administradores têm permissão total
+                    }
+                
+                # Para usuários não-administradores, verificar permissões específicas
+                user_systems = user_data.get('sistemas_acesso', 'sigec')
+                if isinstance(user_systems, str):
+                    user_systems = [s.strip() for s in user_systems.split(',') if s.strip()]
+                
+                for system in user_systems:
+                    system_lower = system.lower().strip()
+                    if system_lower == 'operacao-fiscal':
+                        available_systems.append('operacao-fiscal')
+                    elif system_lower == 'gestao-operacional':
+                        available_systems.append('gestao-operacional')
+                    elif system_lower == 'gestao-financeira':
+                        available_systems.append('gestao-financeira')
+                
+                # Remover duplicatas mantendo ordem
+                available_systems = list(dict.fromkeys(available_systems))
+                
+                print(f"🎯 GET_USER_SYSTEMS: Sistemas disponíveis: {available_systems}")
+                
+                return {
+                    'success': True,
+                    'systems': available_systems,
+                    'user_permissions': user_data.get('permissoes_sigec', 'VISUALIZADOR')
+                }
+            else:
+                print("❌ GET_USER_SYSTEMS: Usuário não encontrado")
+                return {'success': False, 'message': 'Usuário não encontrado'}, 404
+        else:
+            print("❌ GET_USER_SYSTEMS: Serviço de usuário indisponível")
+            # Fallback: retornar apenas SIGEC
+            return {
+                'success': True,
+                'systems': ['sigec'],
+                'user_permissions': 'VISUALIZADOR'
+            }
+            
+    except Exception as e:
+        print(f"❌ GET_USER_SYSTEMS: Erro: {str(e)}")
+        return {'success': False, 'message': 'Erro interno do servidor'}, 500
+
+@app.route('/select-system', methods=['POST'])
+@login_required
+def select_system():
+    """Processa a seleção do sistema e redireciona para o sistema escolhido"""
+    try:
+        data = request.get_json()
+        system_type = data.get('system')
+        
+        print(f"🎯 SELECT_SYSTEM: Usuário {session.get('user_name')} selecionou sistema: {system_type}")
+        
+        # Armazenar o sistema selecionado na sessão
+        session['selected_system'] = system_type
+        
+        # Definir URLs de redirecionamento baseado no sistema
+        redirect_urls = {
+            'sigec': url_for('index'),  # Dashboard principal atual
+            'operacao-fiscal': '/operacao-fiscal',  # Sistema fiscal (placeholder)
+            'gestao-operacional': 'https://app.powerbi.com/reportEmbed?reportId=8165cd63-42f4-44c1-8e4a-cad1a32d0e5b&autoAuth=true&ctid=0b754a09-0568-48fd-a100-8621a0bbd7ab',  # Power BI Gestão Operacional
+            'gestao-financeira': 'https://app.powerbi.com/reportEmbed?reportId=ef9c9663-7cec-4c9a-8b57-c1a6c895057a&autoAuth=true&ctid=0b754a09-0568-48fd-a100-8621a0bbd7ab'  # Power BI Gestão Financeira
+        }
+        
+        redirect_url = redirect_urls.get(system_type, url_for('index'))
+        
+        return {
+            'success': True,
+            'redirect_url': redirect_url,
+            'message': f'Sistema {system_type} selecionado com sucesso!'
+        }
+        
+    except Exception as e:
+        print(f"❌ SELECT_SYSTEM: Erro ao processar seleção: {str(e)}")
+        return {
+            'success': False,
+            'message': 'Erro interno do servidor'
+        }, 500
+
 @app.route('/logout')
 def logout():
     session.clear()
     flash('Logout realizado com sucesso.', 'info')
     return redirect(url_for('login'))
+
+# === ROTAS PARA SISTEMAS ESPECÍFICOS ===
+@app.route('/operacao-fiscal')
+@login_required
+def operacao_fiscal():
+    """Sistema de Operação Fiscal - Placeholder"""
+    flash('Sistema de Operação Fiscal em desenvolvimento.', 'info')
+    return render_template('under_construction.html', 
+                         system_name='Operação Fiscal',
+                         description='Sistema de controle fiscal e tributário')
+
+@app.route('/gestao-operacional')
+@login_required  
+def gestao_operacional():
+    """Dashboard de Gestão Operacional - Abre Power BI em nova aba"""
+    print(f"🎯 GESTAO_OPERACIONAL: Abrindo Power BI em nova aba para usuário {session.get('user_name')}")
+    powerbi_url = 'https://app.powerbi.com/reportEmbed?reportId=8165cd63-42f4-44c1-8e4a-cad1a32d0e5b&autoAuth=true&ctid=0b754a09-0568-48fd-a100-8621a0bbd7ab'
+    
+    # Retorna página que abre Power BI em nova aba
+    return f'''
+    <!DOCTYPE html>
+    <html>
+    <head>
+        <title>Redirecionando para Gestão Operacional</title>
+        <script>
+            window.open('{powerbi_url}', '_blank');
+            window.location.href = '/system-selection';
+        </script>
+    </head>
+    <body>
+        <p>Abrindo Dashboard de Gestão Operacional em nova aba...</p>
+        <p><a href="/system-selection">Voltar para seleção de sistemas</a></p>
+    </body>
+    </html>
+    '''
+
+@app.route('/gestao-financeira')
+@login_required
+def gestao_financeira():
+    """Dashboard de Gestão Financeira - Abre Power BI em nova aba"""
+    print(f"🎯 GESTAO_FINANCEIRA: Abrindo Power BI em nova aba para usuário {session.get('user_name')}")
+    powerbi_url = 'https://app.powerbi.com/reportEmbed?reportId=ef9c9663-7cec-4c9a-8b57-c1a6c895057a&autoAuth=true&ctid=0b754a09-0568-48fd-a100-8621a0bbd7ab'
+    
+    # Retorna página que abre Power BI em nova aba
+    return f'''
+    <!DOCTYPE html>
+    <html>
+    <head>
+        <title>Redirecionando para Gestão Financeira</title>
+        <script>
+            window.open('{powerbi_url}', '_blank');
+            window.location.href = '/system-selection';
+        </script>
+    </head>
+    <body>
+        <p>Abrindo Dashboard de Gestão Financeira em nova aba...</p>
+        <p><a href="/system-selection">Voltar para seleção de sistemas</a></p>
+    </body>
+    </html>
+    '''
 
 # === FUNÇÕES AUXILIARES PARA SEGMENTOS E ATIVIDADES ===
 def get_segmentos_list():
@@ -936,7 +1112,15 @@ def create_user():
         senha = request.form['senha']
         perfil = request.form['perfil']
         
-        result = current_user_service.create_user(nome, email, usuario, senha, perfil)
+        # Novos campos para sistemas e permissões
+        sistemas_acesso = request.form.getlist('sistemas_acesso')  # Lista de sistemas selecionados
+        if not sistemas_acesso:
+            sistemas_acesso = ['sigec']  # SIGEC sempre disponível
+        sistemas_str = ','.join(sistemas_acesso)
+        
+        permissoes_sigec = request.form.get('permissoes_sigec', 'VISUALIZADOR')
+        
+        result = current_user_service.create_user(nome, email, usuario, senha, perfil, sistemas_str, permissoes_sigec)
         
         if result['success']:
             flash(result['message'], 'success')
@@ -960,10 +1144,18 @@ def edit_user():
         ativo = request.form['ativo']
         nova_senha = request.form.get('nova_senha', '').strip()
         
+        # Novos campos para sistemas e permissões
+        sistemas_acesso = request.form.getlist('sistemas_acesso')
+        if not sistemas_acesso:
+            sistemas_acesso = ['sigec']  # SIGEC sempre disponível
+        sistemas_str = ','.join(sistemas_acesso)
+        
+        permissoes_sigec = request.form.get('permissoes_sigec', 'VISUALIZADOR')
+        
         # Se nova senha foi fornecida, usa ela, senão None
         senha_param = nova_senha if nova_senha else None
         
-        result = current_user_service.update_user(user_id, nome, email, usuario, perfil, ativo, senha_param)
+        result = current_user_service.update_user(user_id, nome, email, usuario, perfil, ativo, senha_param, sistemas_str, permissoes_sigec)
         
         if result['success']:
             flash(result['message'], 'success')

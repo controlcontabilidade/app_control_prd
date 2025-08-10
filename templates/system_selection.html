@@ -1,0 +1,305 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Selecionar Sistemas - Control Contabilidade</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css" rel="stylesheet">
+    <style>
+        body {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+        
+        .system-selection-container {
+            background: white;
+            border-radius: 20px;
+            box-shadow: 0 20px 40px rgba(0,0,0,0.1);
+            padding: 40px;
+            max-width: 1200px;
+            width: 90%;
+        }
+        
+        .logo-container {
+            text-align: center;
+            margin-bottom: 40px;
+        }
+        
+        .logo {
+            max-width: 300px;
+            height: auto;
+        }
+        
+        .system-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 30px;
+            margin-top: 40px;
+        }
+        
+        .system-card {
+            background: white;
+            border: 2px solid #e9ecef;
+            border-radius: 15px;
+            padding: 30px 20px;
+            text-align: center;
+            transition: all 0.3s ease;
+            cursor: pointer;
+            position: relative;
+            overflow: hidden;
+        }
+        
+        .system-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 15px 30px rgba(0,0,0,0.15);
+            border-color: #007bff;
+        }
+        
+        .system-card.sigec {
+            border-color: #4285f4;
+        }
+        
+        .system-card.sigec:hover {
+            border-color: #1a73e8;
+            background: linear-gradient(135deg, #f8f9ff 0%, #e8f0fe 100%);
+        }
+        
+        .system-card.operacao-fiscal {
+            border-color: #ea4335;
+        }
+        
+        .system-card.operacao-fiscal:hover {
+            border-color: #d93025;
+            background: linear-gradient(135deg, #fff8f8 0%, #feebee 100%);
+        }
+        
+        .system-card.gestao-operacional {
+            border-color: #34a853;
+        }
+        
+        .system-card.gestao-operacional:hover {
+            border-color: #137333;
+            background: linear-gradient(135deg, #f8fff8 0%, #e8f5e8 100%);
+        }
+        
+        .system-card.gestao-financeira {
+            border-color: #fbbc04;
+        }
+        
+        .system-card.gestao-financeira:hover {
+            border-color: #f9ab00;
+            background: linear-gradient(135deg, #fffdf8 0%, #fef7e0 100%);
+        }
+        
+        .system-icon {
+            font-size: 3rem;
+            margin-bottom: 20px;
+            color: #6c757d;
+        }
+        
+        .system-card.sigec .system-icon {
+            color: #4285f4;
+        }
+        
+        .system-card.operacao-fiscal .system-icon {
+            color: #ea4335;
+        }
+        
+        .system-card.gestao-operacional .system-icon {
+            color: #34a853;
+        }
+        
+        .system-card.gestao-financeira .system-icon {
+            color: #fbbc04;
+        }
+        
+        .system-title {
+            font-size: 1.5rem;
+            font-weight: 600;
+            margin-bottom: 10px;
+            color: #2c3e50;
+        }
+        
+        .system-subtitle {
+            font-size: 1rem;
+            color: #6c757d;
+            margin-bottom: 0;
+        }
+        
+        .info-box {
+            background: #f8f9fa;
+            border-left: 4px solid #007bff;
+            padding: 20px;
+            margin-top: 40px;
+            border-radius: 5px;
+        }
+        
+        .info-text {
+            margin: 0;
+            color: #495057;
+            font-size: 0.9rem;
+            line-height: 1.5;
+        }
+        
+        .permissions-info {
+            background: #fff3cd;
+            border: 1px solid #ffeaa7;
+            border-radius: 10px;
+            padding: 15px;
+            margin-top: 20px;
+        }
+        
+        .permissions-text {
+            color: #856404;
+            font-size: 0.85rem;
+            margin: 0;
+            line-height: 1.4;
+        }
+        
+        .page-title {
+            text-align: center;
+            color: #2c3e50;
+            font-size: 2rem;
+            font-weight: 300;
+            margin-bottom: 10px;
+        }
+        
+        .page-subtitle {
+            text-align: center;
+            color: #6c757d;
+            font-size: 1.1rem;
+            margin-bottom: 0;
+        }
+    </style>
+</head>
+<body>
+    <div class="system-selection-container">
+        <!-- Logo -->
+        <div class="logo-container">
+            <img src="{{ url_for('static', filename='images/control-logo.svg') }}" alt="Control Contabilidade" class="logo">
+        </div>
+        
+        <!-- Título da página -->
+        <h1 class="page-title">Selecionar Sistema</h1>
+        <p class="page-subtitle">Escolha o sistema que deseja acessar</p>
+        
+        <!-- Grid de Sistemas -->
+        <div class="system-grid" id="systemGrid">
+            <!-- Os sistemas serão carregados dinamicamente baseado nas permissões do usuário -->
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <script>
+        // Carrega os sistemas disponíveis para o usuário
+        function loadAvailableSystems() {
+            fetch('/get-user-systems')
+                .then(response => response.json())
+                .then(data => {
+                    if (data.success) {
+                        renderSystems(data.systems);
+                    } else {
+                        console.error('Erro ao carregar sistemas:', data.message);
+                    }
+                })
+                .catch(error => {
+                    console.error('Erro:', error);
+                });
+        }
+        
+        // Renderiza os sistemas disponíveis
+        function renderSystems(systems) {
+            const grid = document.getElementById('systemGrid');
+            grid.innerHTML = '';
+            
+            const systemConfigs = {
+                'sigec': {
+                    icon: 'fas fa-chart-line',
+                    title: 'SIGEC',
+                    subtitle: 'Sistema Integrado de Gestão Empresarial Contábil',
+                    class: 'sigec'
+                },
+                'operacao-fiscal': {
+                    icon: 'fas fa-file-invoice-dollar',
+                    title: 'Operação Fiscal',
+                    subtitle: 'Sistema de controle fiscal e tributário',
+                    class: 'operacao-fiscal'
+                },
+                'gestao-operacional': {
+                    icon: 'fas fa-cogs',
+                    title: 'Gestão Operacional',
+                    subtitle: 'Dashboard Power BI (abre em nova aba)',
+                    class: 'gestao-operacional'
+                },
+                'gestao-financeira': {
+                    icon: 'fas fa-money-bill-wave',
+                    title: 'Gestão Financeira',
+                    subtitle: 'Dashboard Power BI (abre em nova aba)',
+                    class: 'gestao-financeira'
+                }
+            };
+            
+            systems.forEach(systemKey => {
+                const config = systemConfigs[systemKey];
+                if (config) {
+                    const systemCard = document.createElement('div');
+                    systemCard.className = `system-card ${config.class}`;
+                    systemCard.onclick = () => selectSystem(systemKey);
+                    
+                    systemCard.innerHTML = `
+                        <div class="system-icon">
+                            <i class="${config.icon}"></i>
+                        </div>
+                        <h3 class="system-title">${config.title}</h3>
+                        <p class="system-subtitle">${config.subtitle}</p>
+                    `;
+                    
+                    grid.appendChild(systemCard);
+                }
+            });
+        }
+        
+        function selectSystem(systemType) {
+            // Sistemas que devem abrir em nova aba (Power BI)
+            const powerBiSystems = ['gestao-financeira', 'gestao-operacional'];
+            
+            // Enviar seleção para o backend
+            fetch('/select-system', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({
+                    system: systemType
+                })
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    // Se for sistema Power BI, abre em nova aba
+                    if (powerBiSystems.includes(systemType)) {
+                        window.open(data.redirect_url, '_blank');
+                    } else {
+                        // Para outros sistemas, redireciona na mesma aba
+                        window.location.href = data.redirect_url;
+                    }
+                } else {
+                    alert('Erro ao selecionar sistema: ' + data.message);
+                }
+            })
+            .catch(error => {
+                console.error('Erro:', error);
+                alert('Erro ao selecionar sistema');
+            });
+        }
+        
+        // Carregar sistemas quando a página carregar
+        document.addEventListener('DOMContentLoaded', loadAvailableSystems);
+    </script>
+</body>
+</html>
