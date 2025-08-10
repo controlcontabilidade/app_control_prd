@@ -328,52 +328,106 @@
             </div>
             <div class="card-body">
                 <div class="row">
-                    {% if client.telefoneFixo %}
-                    <div class="col-md-4 mb-3">
-                        <label class="form-label text-muted">Telefone Fixo</label>
-                        <p class="mb-0"><i class="bi bi-telephone me-1"></i>{{ client.telefoneFixo }}</p>
+                    <!-- Contato 1 -->
+                    {% if client.contato_1_nome or client.contato_1_telefone or client.contato_1_email %}
+                    <div class="col-md-12 mb-4">
+                        <h6 class="border-bottom pb-2 mb-3">Contato 1</h6>
+                        <div class="row">
+                            {% if client.contato_1_nome %}
+                            <div class="col-md-4 mb-2">
+                                <label class="form-label text-muted">Nome</label>
+                                <p class="mb-0"><i class="bi bi-person me-1"></i>{{ client.contato_1_nome }}</p>
+                            </div>
+                            {% endif %}
+                            {% if client.contato_1_telefone %}
+                            <div class="col-md-4 mb-2">
+                                <label class="form-label text-muted">Telefone</label>
+                                <p class="mb-0"><i class="bi bi-telephone me-1"></i>{{ client.contato_1_telefone }}</p>
+                            </div>
+                            {% endif %}
+                            {% if client.contato_1_email %}
+                            <div class="col-md-4 mb-2">
+                                <label class="form-label text-muted">E-mail</label>
+                                <p class="mb-0"><i class="bi bi-envelope me-1"></i>{{ client.contato_1_email }}</p>
+                            </div>
+                            {% endif %}
+                        </div>
                     </div>
                     {% endif %}
-                    {% if client.telefoneCelular %}
-                    <div class="col-md-4 mb-3">
-                        <label class="form-label text-muted">Telefone Celular</label>
-                        <p class="mb-0"><i class="bi bi-phone me-1"></i>{{ client.telefoneCelular }}</p>
+
+                    <!-- Contato 2 -->
+                    {% if client.contato_2_nome or client.contato_2_telefone or client.contato_2_email %}
+                    <div class="col-md-12 mb-4">
+                        <h6 class="border-bottom pb-2 mb-3">Contato 2</h6>
+                        <div class="row">
+                            {% if client.contato_2_nome %}
+                            <div class="col-md-4 mb-2">
+                                <label class="form-label text-muted">Nome</label>
+                                <p class="mb-0"><i class="bi bi-person me-1"></i>{{ client.contato_2_nome }}</p>
+                            </div>
+                            {% endif %}
+                            {% if client.contato_2_telefone %}
+                            <div class="col-md-4 mb-2">
+                                <label class="form-label text-muted">Telefone</label>
+                                <p class="mb-0"><i class="bi bi-telephone me-1"></i>{{ client.contato_2_telefone }}</p>
+                            </div>
+                            {% endif %}
+                            {% if client.contato_2_email %}
+                            <div class="col-md-4 mb-2">
+                                <label class="form-label text-muted">E-mail</label>
+                                <p class="mb-0"><i class="bi bi-envelope me-1"></i>{{ client.contato_2_email }}</p>
+                            </div>
+                            {% endif %}
+                        </div>
                     </div>
                     {% endif %}
-                    {% if client.whatsapp %}
-                    <div class="col-md-4 mb-3">
-                        <label class="form-label text-muted">WhatsApp</label>
-                        <p class="mb-0"><i class="bi bi-whatsapp me-1"></i>{{ client.whatsapp }}</p>
+
+                    <!-- Contato 3 -->
+                    {% if client.contato_3_nome or client.contato_3_telefone or client.contato_3_email %}
+                    <div class="col-md-12 mb-4">
+                        <h6 class="border-bottom pb-2 mb-3">Contato 3</h6>
+                        <div class="row">
+                            {% if client.contato_3_nome %}
+                            <div class="col-md-4 mb-2">
+                                <label class="form-label text-muted">Nome</label>
+                                <p class="mb-0"><i class="bi bi-person me-1"></i>{{ client.contato_3_nome }}</p>
+                            </div>
+                            {% endif %}
+                            {% if client.contato_3_telefone %}
+                            <div class="col-md-4 mb-2">
+                                <label class="form-label text-muted">Telefone</label>
+                                <p class="mb-0"><i class="bi bi-telephone me-1"></i>{{ client.contato_3_telefone }}</p>
+                            </div>
+                            {% endif %}
+                            {% if client.contato_3_email %}
+                            <div class="col-md-4 mb-2">
+                                <label class="form-label text-muted">E-mail</label>
+                                <p class="mb-0"><i class="bi bi-envelope me-1"></i>{{ client.contato_3_email }}</p>
+                            </div>
+                            {% endif %}
+                        </div>
                     </div>
                     {% endif %}
-                    {% if client.emailPrincipal %}
-                    <div class="col-md-6 mb-3">
-                        <label class="form-label text-muted">E-mail Principal</label>
-                        <p class="mb-0"><i class="bi bi-envelope me-1"></i>{{ client.emailPrincipal }}</p>
-                    </div>
-                    {% endif %}
-                    {% if client.emailSecundario %}
-                    <div class="col-md-6 mb-3">
-                        <label class="form-label text-muted">E-mail Secundário</label>
-                        <p class="mb-0"><i class="bi bi-envelope me-1"></i>{{ client.emailSecundario }}</p>
-                    </div>
-                    {% endif %}
-                    {% if client.responsavelImediato %}
-                    <div class="col-md-12 mb-3">
-                        <label class="form-label text-muted">Responsável Imediato</label>
-                        <p class="mb-0"><i class="bi bi-person-badge me-1"></i>{{ client.responsavelImediato }}</p>
+
+                    <!-- Caso não tenha nenhum contato -->
+                    {% if not (client.contato_1_nome or client.contato_1_telefone or client.contato_1_email or client.contato_2_nome or client.contato_2_telefone or client.contato_2_email or client.contato_3_nome or client.contato_3_telefone or client.contato_3_email) %}
+                    <div class="col-12">
+                        <p class="text-muted text-center">
+                            <i class="fas fa-info-circle me-2"></i>
+                            Nenhum contato cadastrado
+                        </p>
                     </div>
                     {% endif %}
                 </div>
             </div>
         </div>
 
-        <!-- Bloco 5: Senhas e Credenciais -->
+        <!-- Bloco 5: Senhas -->
         <div class="card mb-4">
-            <div class="card-header bg-danger text-white">
+            <div class="card-header bg-primary text-white">
                 <h5 class="mb-0">
-                    <i class="fas fa-key me-2"></i>
-                    Bloco 5 - Senhas e Credenciais
+                    <i class="bi bi-key me-2"></i>
+                    Bloco 5: Senhas
                 </h5>
             </div>
             <div class="card-body">
@@ -381,46 +435,79 @@
                     <i class="fas fa-exclamation-triangle me-2"></i>
                     <strong>Informações Sensíveis</strong> - Dados de acesso confidenciais
                 </div>
-                <div class="row">
-                    {% set credenciais = [
-                        ('ISS', client.acessoIss, client.senhaIss),
-                        ('SEFIN', client.acessoSefin, client.senhaSefin),
-                        ('SEUMA', client.acessoSeuma, client.senhaSeuma),
-                        ('EmpWeb', client.acessoEmpWeb, client.senhaEmpWeb),
-                        ('FAP/INSS', client.acessoFapInss, client.senhaFapInss),
-                        ('CRF', client.acessoCrf, client.senhaCrf),
-                        ('IBAMA', client.acessoIbama, client.senhaIbama),
-                        ('SEMACE', client.acessoSemace, client.senhaSemace),
-                        ('Email Gestor', client.emailGestor, client.senhaEmailGestor),
-                        ('ANVISA Gestor', client.anvisaGestor, None),
-                        ('ANVISA Empresa', client.anvisaEmpresa, None)
-                    ] %}
-                    {% set has_credentials = false %}
-                    {% for nome, usuario, senha in credenciais %}
-                        {% if usuario %}
-                            {% set has_credentials = true %}
-                            <div class="col-md-6 mb-3">
-                                <label class="form-label text-muted">{{ nome }}</label>
-                                <div class="credential-display">
-                                    <strong>Usuário:</strong>
-                                    <pre class="mb-1" style="background:#f8f9fa; padding:8px; border-radius:4px; white-space:pre-wrap; font-size:0.9rem;">{{ usuario }}</pre>
-                                    {% if senha %}
-                                    <strong>Senha:</strong>
-                                    <pre class="mb-0" style="background:#f8f9fa; padding:8px; border-radius:4px; white-space:pre-wrap; font-size:0.9rem;">{{ senha }}</pre>
-                                    {% endif %}
-                                </div>
-                            </div>
-                        {% endif %}
-                    {% endfor %}
-                    {% if not has_credentials %}
-                        <div class="col-12">
-                            <p class="text-muted text-center">
-                                <i class="fas fa-info-circle me-2"></i>
-                                Nenhuma credencial cadastrada
-                            </p>
-                        </div>
-                    {% endif %}
+                
+                <!-- Linha 1: CPF/CNPJ SN, Código Acesso SN, Acesso EmpWeb, Senha EmpWeb -->
+                <div class="row mb-3">
+                    <div class="col-md-3 mb-2">
+                        <label class="form-label text-muted small">CPF/CNPJ SN</label>
+                        <p class="mb-0 border rounded p-2 bg-light"><small>{{ client.cpfCnpjSn if client.cpfCnpjSn else '-' }}</small></p>
+                    </div>
+                    <div class="col-md-3 mb-2">
+                        <label class="form-label text-muted small">Código Acesso SN</label>
+                        <p class="mb-0 border rounded p-2 bg-light"><small>{{ client.codigoAcessoSn if client.codigoAcessoSn else '-' }}</small></p>
+                    </div>
+                    <div class="col-md-3 mb-2">
+                        <label class="form-label text-muted small">Acesso EmpWeb</label>
+                        <p class="mb-0 border rounded p-2 bg-light"><small>{{ client.acessoEmpWeb if client.acessoEmpWeb else '-' }}</small></p>
+                    </div>
+                    <div class="col-md-3 mb-2">
+                        <label class="form-label text-muted small">Senha EmpWeb</label>
+                        <p class="mb-0 border rounded p-2 bg-light"><small>{{ client.senhaEmpWeb if client.senhaEmpWeb else '-' }}</small></p>
+                    </div>
                 </div>
+
+                <!-- Linha 2: Acesso ISS, Acesso SEFIN, Acesso SEUMA, Acesso SEMACE -->
+                <div class="row mb-3">
+                    <div class="col-md-3 mb-2">
+                        <label class="form-label text-muted small">Acesso ISS</label>
+                        <p class="mb-0 border rounded p-2 bg-light"><small>{{ client.acessoIss if client.acessoIss else '-' }}</small></p>
+                    </div>
+                    <div class="col-md-3 mb-2">
+                        <label class="form-label text-muted small">Acesso SEFIN</label>
+                        <p class="mb-0 border rounded p-2 bg-light"><small>{{ client.acessoSefin if client.acessoSefin else '-' }}</small></p>
+                    </div>
+                    <div class="col-md-3 mb-2">
+                        <label class="form-label text-muted small">Acesso SEUMA</label>
+                        <p class="mb-0 border rounded p-2 bg-light"><small>{{ client.acessoSeuma if client.acessoSeuma else '-' }}</small></p>
+                    </div>
+                    <div class="col-md-3 mb-2">
+                        <label class="form-label text-muted small">Acesso SEMACE</label>
+                        <p class="mb-0 border rounded p-2 bg-light"><small>{{ client.acessoSemace if client.acessoSemace else '-' }}</small></p>
+                    </div>
+                </div>
+
+                <!-- Linha 3: Acesso IBAMA, Acesso FAP/INSS, Acesso CRF, Senha SEMACE -->
+                <div class="row mb-3">
+                    <div class="col-md-3 mb-2">
+                        <label class="form-label text-muted small">Acesso IBAMA</label>
+                        <p class="mb-0 border rounded p-2 bg-light"><small>{{ client.acessoIbama if client.acessoIbama else '-' }}</small></p>
+                    </div>
+                    <div class="col-md-3 mb-2">
+                        <label class="form-label text-muted small">Acesso FAP/INSS</label>
+                        <p class="mb-0 border rounded p-2 bg-light"><small>{{ client.acessoFapInss if client.acessoFapInss else '-' }}</small></p>
+                    </div>
+                    <div class="col-md-3 mb-2">
+                        <label class="form-label text-muted small">Acesso CRF</label>
+                        <p class="mb-0 border rounded p-2 bg-light"><small>{{ client.acessoCrf if client.acessoCrf else '-' }}</small></p>
+                    </div>
+                    <div class="col-md-3 mb-2">
+                        <label class="form-label text-muted small">Senha SEMACE</label>
+                        <p class="mb-0 border rounded p-2 bg-light"><small>{{ client.senhaSemace if client.senhaSemace else '-' }}</small></p>
+                    </div>
+                </div>
+
+                <!-- Linha 4: ANVISA Gestor, ANVISA Empresa -->
+                <div class="row mb-3">
+                    <div class="col-md-3 mb-2">
+                        <label class="form-label text-muted small">ANVISA Gestor</label>
+                        <p class="mb-0 border rounded p-2 bg-light"><small>{{ client.anvisaGestor if client.anvisaGestor else '-' }}</small></p>
+                    </div>
+                    <div class="col-md-3 mb-2">
+                        <label class="form-label text-muted small">ANVISA Empresa</label>
+                        <p class="mb-0 border rounded p-2 bg-light"><small>{{ client.anvisaEmpresa if client.anvisaEmpresa else '-' }}</small></p>
+                    </div>
+                </div>
+
             </div>
         </div>
 

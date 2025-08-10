@@ -2209,6 +2209,53 @@ def save_client():
                 client_data[f'contato_{i}_cargo'] = cargo_contato
                 print(f"🔍 Contato {i}: {nome_contato} - Cargo: {cargo_contato} - Tel: {telefone_contato} - Email: {email_contato}")
         
+        # Debug específico para dados de contatos básicos
+        print("🔍 === DEBUG DADOS DE CONTATOS BÁSICOS ===")
+        contatos_basicos = {
+            'telefoneFixo': request.form.get('telefoneFixo', ''),
+            'telefoneCelular': request.form.get('telefoneCelular', ''),
+            'whatsapp': request.form.get('whatsapp', ''),
+            'emailPrincipal': request.form.get('emailPrincipal', ''),
+            'emailSecundario': request.form.get('emailSecundario', ''),
+            'responsavelImediato': request.form.get('responsavelImediato', ''),
+            'emailsSocios': request.form.get('emailsSocios', ''),
+            'contatoContador': request.form.get('contatoContador', ''),
+            'telefoneContador': request.form.get('telefoneContador', ''),
+            'emailContador': request.form.get('emailContador', ''),
+        }
+        for key, value in contatos_basicos.items():
+            print(f"🔍 {key}: '{value}'")
+        
+        # Debug específico para senhas e credenciais
+        print("🔍 === DEBUG SENHAS E CREDENCIAIS ===")
+        senhas_credenciais = {
+            'acessoIss': request.form.get('acessoIss', ''),
+            'senhaIss': request.form.get('senhaIss', ''),
+            'acessoSefin': request.form.get('acessoSefin', ''),
+            'senhaSefin': request.form.get('senhaSefin', ''),
+            'acessoSeuma': request.form.get('acessoSeuma', ''),
+            'senhaSeuma': request.form.get('senhaSeuma', ''),
+            'acessoEmpWeb': request.form.get('acessoEmpWeb', ''),
+            'senhaEmpWeb': request.form.get('senhaEmpWeb', ''),
+            'acessoFapInss': request.form.get('acessoFapInss', ''),
+            'senhaFapInss': request.form.get('senhaFapInss', ''),
+            'acessoCrf': request.form.get('acessoCrf', ''),
+            'senhaCrf': request.form.get('senhaCrf', ''),
+            'emailGestor': request.form.get('emailGestor', ''),
+            'senhaEmailGestor': request.form.get('senhaEmailGestor', ''),
+            'anvisaGestor': request.form.get('anvisaGestor', ''),
+            'anvisaEmpresa': request.form.get('anvisaEmpresa', ''),
+            'acessoIbama': request.form.get('acessoIbama', ''),
+            'senhaIbama': request.form.get('senhaIbama', ''),
+            'acessoSemace': request.form.get('acessoSemace', ''),
+            'senhaSemace': request.form.get('senhaSemace', ''),
+        }
+        for key, value in senhas_credenciais.items():
+            if value:  # Só mostrar se tiver valor
+                print(f"🔍 {key}: '{value[:3]}...' (tamanho: {len(value)})")
+            else:
+                print(f"🔍 {key}: VAZIO")
+        
         # Continuar com outros dados
         client_data.update({
             

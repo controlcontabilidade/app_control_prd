@@ -758,36 +758,30 @@ class GoogleSheetsServiceAccountService:
             'CONTATO_5_TELEFONE',                # 58. Telefone do contato 5
             'CONTATO_5_EMAIL',                   # 59. Email do contato 5
             
-            # Bloco 5: Senhas e Credenciais
-            'ACESSO ISS',                        # 60. Login ISS municipal
-            'SENHA ISS',                         # 61. Senha ISS municipal
-            'ACESSO SEFIN',                      # 62. Login SEFIN estadual
-            'SENHA SEFIN',                       # 63. Senha SEFIN estadual
-            'ACESSO SEUMA',                      # 64. Login SEUMA ambiental
-            'SENHA SEUMA',                       # 65. Senha SEUMA ambiental
-            'ACESSO EMPWEB',                     # 66. Login eSocial/EmpWeb
-            'SENHA EMPWEB',                      # 67. Senha eSocial/EmpWeb
-            'ACESSO FAP/INSS',                   # 68. Login FAP/INSS
-            'SENHA FAP/INSS',                    # 69. Senha FAP/INSS
+            # Bloco 5: Senhas e Credenciais (APENAS CAMPOS ESPECIFICADOS)
+            'CPF/CNPJ SN',                       # 60. CPF/CNPJ Simples Nacional
+            'CÓDIGO ACESSO SN',                  # 61. Código de acesso SN
+            'ACESSO EMPWEB',                     # 62. Login eSocial/EmpWeb
+            'SENHA EMPWEB',                      # 63. Senha eSocial/EmpWeb
+            'ACESSO ISS',                        # 64. Login ISS municipal
+            'ACESSO SEFIN',                      # 65. Login SEFIN estadual
+            'ACESSO SEUMA',                      # 66. Login SEUMA ambiental
+            'ACESSO SEMACE',                     # 67. Login SEMACE estadual
+            'ACESSO IBAMA',                      # 68. Login IBAMA
+            'ACESSO FAP/INSS',                   # 69. Login FAP/INSS
             'ACESSO CRF',                        # 70. Login CRF (farmácias)
-            'SENHA CRF',                         # 71. Senha CRF (farmácias)
-            'EMAIL GESTOR',                      # 72. Email para gestão
-            'SENHA EMAIL GESTOR',                # 73. Senha email gestão
-            'ANVISA GESTOR',                     # 74. Login ANVISA gestor
-            'ANVISA EMPRESA',                    # 75. Login ANVISA empresa
-            'ACESSO IBAMA',                      # 76. Login IBAMA
-            'SENHA IBAMA',                       # 77. Senha IBAMA
-            'ACESSO SEMACE',                     # 78. Login SEMACE estadual
-            'SENHA SEMACE',                      # 79. Senha SEMACE estadual
+            'SENHA SEMACE',                      # 71. Senha SEMACE estadual
+            'ANVISA GESTOR',                     # 72. Login ANVISA gestor
+            'ANVISA EMPRESA',                    # 73. Login ANVISA empresa
             
-            # Bloco 6: Procurações
-            'PROCURAÇÃO RFB',                    # 80. Tem procuração RFB? (SIM/NÃO)
-            'DATA PROCURAÇÃO RFB',               # 81. Data da procuração RFB
-            'PROCURAÇÃO RECEITA ESTADUAL',       # 82. Tem procuração RE? (SIM/NÃO)
-            'DATA PROCURAÇÃO RC',                # 83. Data da procuração RC
-            'PROCURAÇÃO CAIXA ECONÔMICA',        # 84. Tem procuração CEF? (SIM/NÃO)
-            'DATA PROCURAÇÃO CX',                # 85. Data da procuração CX
-            'PROCURAÇÃO PREVIDÊNCIA SOCIAL',     # 86. Tem procuração INSS? (SIM/NÃO)
+            # Bloco 6: Procurações (AJUSTADO após redução do Bloco 5)
+            'PROCURAÇÃO RFB',                    # 74. Tem procuração RFB? (SIM/NÃO)
+            'DATA PROCURAÇÃO RFB',               # 75. Data da procuração RFB
+            'PROCURAÇÃO RECEITA ESTADUAL',       # 76. Tem procuração RE? (SIM/NÃO)
+            'DATA PROCURAÇÃO RC',                # 77. Data da procuração RC
+            'PROCURAÇÃO CAIXA ECONÔMICA',        # 78. Tem procuração CEF? (SIM/NÃO)
+            'DATA PROCURAÇÃO CX',                # 79. Data da procuração CX
+            'PROCURAÇÃO PREVIDÊNCIA SOCIAL',     # 80. Tem procuração INSS? (SIM/NÃO)
             'DATA PROCURAÇÃO SW',                # 87. Data da procuração SW
             'PROCURAÇÃO MUNICIPAL',              # 88. Tem procuração municipal? (SIM/NÃO)
             'DATA PROCURAÇÃO MUNICIPAL',         # 89. Data da procuração municipal
@@ -956,7 +950,7 @@ class GoogleSheetsServiceAccountService:
             'SIM' if client.get('fs') else 'NÃO',             # 15. SERVIÇO FS
             'SIM' if client.get('dp') else 'NÃO',             # 16. SERVIÇO DP
             'SIM' if client.get('bpoFinanceiro') else 'NÃO',  # 17. SERVIÇO BPO FINANCEIRO
-            '',                                               # 18. (REMOVIDO DUPLICAÇÃO - DATA INÍCIO ESTÁ NO ÍNDICE 85)
+            client.get('dataInicioServicos', ''),             # 18. DATA INÍCIO DOS SERVIÇOS (CORRIGIDO)
             
             # Códigos dos Sistemas (Bloco 2)
             client.get('codFortesCt', ''),                    # 19. CÓDIGO FORTES CT
@@ -1007,52 +1001,46 @@ class GoogleSheetsServiceAccountService:
             client.get('contato_5_telefone', ''),             # 58. CONTATO_5_TELEFONE
             client.get('contato_5_email', ''),                # 59. CONTATO_5_EMAIL
             
-            # Bloco 5: Senhas e Credenciais
-            client.get('acessoIss', ''),                      # 60. ACESSO ISS
-            client.get('senhaIss', ''),                       # 61. SENHA ISS
-            client.get('acessoSefin', ''),                    # 62. ACESSO SEFIN
-            client.get('senhaSefin', ''),                     # 63. SENHA SEFIN
-            client.get('acessoSeuma', ''),                    # 64. ACESSO SEUMA
-            client.get('senhaSeuma', ''),                     # 65. SENHA SEUMA
-            client.get('acessoEmpWeb', ''),                   # 66. ACESSO EMPWEB
-            client.get('senhaEmpWeb', ''),                    # 67. SENHA EMPWEB
-            client.get('acessoFapInss', ''),                  # 68. ACESSO FAP/INSS
-            client.get('senhaFapInss', ''),                   # 69. SENHA FAP/INSS
+            # Bloco 5: Senhas e Credenciais (APENAS CAMPOS ESPECIFICADOS)
+            client.get('cpfCnpjSn', ''),                      # 60. CPF/CNPJ SN
+            client.get('codigoAcessoSn', ''),                 # 61. CÓDIGO ACESSO SN
+            client.get('acessoEmpWeb', ''),                   # 62. ACESSO EMPWEB
+            client.get('senhaEmpWeb', ''),                    # 63. SENHA EMPWEB
+            client.get('acessoIss', ''),                      # 64. ACESSO ISS
+            client.get('acessoSefin', ''),                    # 65. ACESSO SEFIN
+            client.get('acessoSeuma', ''),                    # 66. ACESSO SEUMA
+            client.get('acessoSemace', ''),                   # 67. ACESSO SEMACE
+            client.get('acessoIbama', ''),                    # 68. ACESSO IBAMA
+            client.get('acessoFapInss', ''),                  # 69. ACESSO FAP/INSS
             client.get('acessoCrf', ''),                      # 70. ACESSO CRF
-            client.get('senhaCrf', ''),                       # 71. SENHA CRF
-            client.get('emailGestor', ''),                    # 72. EMAIL GESTOR
-            client.get('senhaEmailGestor', ''),               # 73. SENHA EMAIL GESTOR
-            client.get('anvisaGestor', ''),                   # 74. ANVISA GESTOR
-            client.get('anvisaEmpresa', ''),                  # 75. ANVISA EMPRESA
-            client.get('acessoIbama', ''),                    # 76. ACESSO IBAMA
-            client.get('senhaIbama', ''),                     # 77. SENHA IBAMA
-            client.get('acessoSemace', ''),                   # 78. ACESSO SEMACE
-            client.get('senhaSemace', ''),                    # 79. SENHA SEMACE
+            client.get('senhaSemace', ''),                    # 71. SENHA SEMACE
+            client.get('anvisaGestor', ''),                   # 72. ANVISA GESTOR
+            client.get('anvisaEmpresa', ''),                  # 73. ANVISA EMPRESA
             
-            # Bloco 6: Procurações
-            'SIM' if client.get('procRfb') else 'NÃO',        # 80. PROCURAÇÃO RFB
-            client.get('procRfbData', ''),                    # 81. DATA PROCURAÇÃO RFB
-            'SIM' if client.get('procRc') else 'NÃO',         # 82. PROCURAÇÃO RECEITA ESTADUAL
-            client.get('procRcData', ''),                     # 83. DATA PROCURAÇÃO RC
-            'SIM' if client.get('procCx') else 'NÃO',         # 84. PROCURAÇÃO CAIXA ECONÔMICA
-            client.get('procCxData', ''),                     # 85. DATA PROCURAÇÃO CX
-            'SIM' if client.get('procSw') else 'NÃO',         # 86. PROCURAÇÃO PREVIDÊNCIA SOCIAL
-            client.get('procSwData', ''),                     # 87. DATA PROCURAÇÃO SW
-            'SIM' if client.get('procMunicipal') else 'NÃO',  # 88. PROCURAÇÃO MUNICIPAL
-            client.get('procMunicipalData', ''),              # 89. DATA PROCURAÇÃO MUNICIPAL
+            # Bloco 6: Procurações (AJUSTADO após redução do Bloco 5)
+            'SIM' if client.get('procRfb') else 'NÃO',        # 74. PROCURAÇÃO RFB
+            client.get('procRfbData', ''),                    # 75. DATA PROCURAÇÃO RFB
+            'SIM' if client.get('procRc') else 'NÃO',         # 76. PROCURAÇÃO RECEITA ESTADUAL
+            client.get('procRcData', ''),                     # 77. DATA PROCURAÇÃO RC
+            'SIM' if client.get('procCx') else 'NÃO',         # 78. PROCURAÇÃO CAIXA ECONÔMICA
+            client.get('procCxData', ''),                     # 79. DATA PROCURAÇÃO CX
+            'SIM' if client.get('procSw') else 'NÃO',         # 80. PROCURAÇÃO PREVIDÊNCIA SOCIAL
+            client.get('procSwData', ''),                     # 81. DATA PROCURAÇÃO SW
+            'SIM' if client.get('procMunicipal') else 'NÃO',  # 82. PROCURAÇÃO MUNICIPAL
+            client.get('procMunicipalData', ''),              # 83. DATA PROCURAÇÃO MUNICIPAL
             client.get('outrasProc', ''),                     # 90. OUTRAS PROCURAÇÕES
             client.get('obsProcuracoes', ''),                 # 91. OBSERVAÇÕES PROCURAÇÕES
             
             # Bloco 7: Observações e Dados Adicionais
             client.get('observacoesGerais', ''),              # 92. OBSERVAÇÕES GERAIS
             client.get('tarefasVinculadas', 0),               # 93. TAREFAS VINCULADAS
-            client.get('dataInicioServicos', ''),             # 94. DATA INÍCIO SERVIÇOS
+            client.get('dataInicioServicos', ''),             # 94. DATA INÍCIO SERVIÇOS (DUPLICAÇÃO REMOVIDA - já está no índice 18)
             client.get('statusCliente', 'ATIVO'),             # 95. STATUS DO CLIENTE
-            client.get('ultimaAtualizacao', ''),              # 76. ÚLTIMA ATUALIZAÇÃO
-            client.get('responsavelAtualizacao', ''),         # 77. RESPONSÁVEL ATUALIZAÇÃO
-            client.get('prioridadeCliente', 'NORMAL'),        # 78. PRIORIDADE
-            client.get('tagsCliente', ''),                    # 79. TAGS/CATEGORIAS
-            client.get('historicoAlteracoes', ''),            # 80. HISTÓRICO DE ALTERAÇÕES
+            client.get('ultimaAtualizacao', ''),              # 96. ÚLTIMA ATUALIZAÇÃO
+            client.get('responsavelAtualizacao', ''),         # 97. RESPONSÁVEL ATUALIZAÇÃO
+            client.get('prioridadeCliente', 'NORMAL'),        # 98. PRIORIDADE
+            client.get('tagsCliente', ''),                    # 99. TAGS/CATEGORIAS
+            client.get('historicoAlteracoes', ''),            # 100. HISTÓRICO DE ALTERAÇÕES
             # placeholders para manter comprimento; campos finais serão preenchidos por nome
             '',  # placeholder
             '',  # placeholder
@@ -1210,74 +1198,68 @@ class GoogleSheetsServiceAccountService:
             # Campos legados para compatibilidade
             'emailsSocio': safe_get(row, 35),
 
-            # Bloco 4: Contatos Detalhados (novo)
-            'contato_1_nome': safe_get(row, 40),
-            'contato_1_cargo': safe_get(row, 41),
-            'contato_1_telefone': safe_get(row, 42),
-            'contato_1_email': safe_get(row, 43),
-            'contato_2_nome': safe_get(row, 44),
-            'contato_2_cargo': safe_get(row, 45),
-            'contato_2_telefone': safe_get(row, 46),
-            'contato_2_email': safe_get(row, 47),
-            'contato_3_nome': safe_get(row, 48),
-            'contato_3_cargo': safe_get(row, 49),
-            'contato_3_telefone': safe_get(row, 50),
-            'contato_3_email': safe_get(row, 51),
-            'contato_4_nome': safe_get(row, 52),
-            'contato_4_cargo': safe_get(row, 53),
-            'contato_4_telefone': safe_get(row, 54),
-            'contato_4_email': safe_get(row, 55),
-            'contato_5_nome': safe_get(row, 56),
-            'contato_5_cargo': safe_get(row, 57),
-            'contato_5_telefone': safe_get(row, 58),
-            'contato_5_email': safe_get(row, 59),
+            # Bloco 4: Contatos Detalhados (CORRIGIDO - convertendo índices 1-based para 0-based)
+            'contato_1_nome': safe_get(row, 39),     # 40-1 = 39 (CONTATO_1_NOME)
+            'contato_1_cargo': safe_get(row, 40),    # 41-1 = 40 (CONTATO_1_CARGO)
+            'contato_1_telefone': safe_get(row, 41), # 42-1 = 41 (CONTATO_1_TELEFONE)
+            'contato_1_email': safe_get(row, 42),    # 43-1 = 42 (CONTATO_1_EMAIL)
+            'contato_2_nome': safe_get(row, 43),     # 44-1 = 43 (CONTATO_2_NOME)
+            'contato_2_cargo': safe_get(row, 44),    # 45-1 = 44 (CONTATO_2_CARGO)
+            'contato_2_telefone': safe_get(row, 45), # 46-1 = 45 (CONTATO_2_TELEFONE)
+            'contato_2_email': safe_get(row, 46),    # 47-1 = 46 (CONTATO_2_EMAIL)
+            'contato_3_nome': safe_get(row, 47),     # 48-1 = 47 (CONTATO_3_NOME)
+            'contato_3_cargo': safe_get(row, 48),    # 49-1 = 48 (CONTATO_3_CARGO)
+            'contato_3_telefone': safe_get(row, 49), # 50-1 = 49 (CONTATO_3_TELEFONE)
+            'contato_3_email': safe_get(row, 50),    # 51-1 = 50 (CONTATO_3_EMAIL)
+            'contato_4_nome': safe_get(row, 51),     # 52-1 = 51 (CONTATO_4_NOME)
+            'contato_4_cargo': safe_get(row, 52),    # 53-1 = 52 (CONTATO_4_CARGO)
+            'contato_4_telefone': safe_get(row, 53), # 54-1 = 53 (CONTATO_4_TELEFONE)
+            'contato_4_email': safe_get(row, 54),    # 55-1 = 54 (CONTATO_4_EMAIL)
+            'contato_5_nome': safe_get(row, 55),     # 56-1 = 55 (CONTATO_5_NOME)
+            'contato_5_cargo': safe_get(row, 56),    # 57-1 = 56 (CONTATO_5_CARGO)
+            'contato_5_telefone': safe_get(row, 57), # 58-1 = 57 (CONTATO_5_TELEFONE)
+            'contato_5_email': safe_get(row, 58),    # 59-1 = 58 (CONTATO_5_EMAIL)
 
-            # Bloco 5: Senhas e Credenciais (índices ajustados após remoção dos campos Sistema/Onvio)
-            'acessoIss': safe_get(row, 60),
-            'senhaIss': safe_get(row, 61),
-            'acessoSefin': safe_get(row, 62),
-            'senhaSefin': safe_get(row, 63),
-            'acessoSeuma': safe_get(row, 64),
-            'senhaSeuma': safe_get(row, 65),
-            'acessoEmpWeb': safe_get(row, 66),
-            'senhaEmpWeb': safe_get(row, 67),
-            'acessoFapInss': safe_get(row, 68),
-            'senhaFapInss': safe_get(row, 69),
-            'acessoCrf': safe_get(row, 70),
-            'senhaCrf': safe_get(row, 71),
-            'emailGestor': safe_get(row, 72),
-            'senhaEmailGestor': safe_get(row, 73),
-            'anvisaGestor': safe_get(row, 74),
-            'anvisaEmpresa': safe_get(row, 75),
-            'acessoIbama': safe_get(row, 76),
-            'senhaIbama': safe_get(row, 77),
-            'acessoSemace': safe_get(row, 78),
-            'senhaSemace': safe_get(row, 79),
+            # Bloco 5: Senhas e Credenciais (APENAS CAMPOS ESPECIFICADOS)
+            'cpfCnpjSn': safe_get(row, 59),          # 60-1 = 59 (CPF/CNPJ SN)
+            'codigoAcessoSn': safe_get(row, 60),     # 61-1 = 60 (CÓDIGO ACESSO SN)
+            'acessoEmpWeb': safe_get(row, 61),       # 62-1 = 61 (ACESSO EMPWEB)
+            'senhaEmpWeb': safe_get(row, 62),        # 63-1 = 62 (SENHA EMPWEB)
+            'acessoIss': safe_get(row, 63),          # 64-1 = 63 (ACESSO ISS)
+            'acessoSefin': safe_get(row, 64),        # 65-1 = 64 (ACESSO SEFIN)
+            'acessoSeuma': safe_get(row, 65),        # 66-1 = 65 (ACESSO SEUMA)
+            'acessoSemace': safe_get(row, 66),       # 67-1 = 66 (ACESSO SEMACE)
+            'acessoIbama': safe_get(row, 67),        # 68-1 = 67 (ACESSO IBAMA)
+            'acessoFapInss': safe_get(row, 68),      # 69-1 = 68 (ACESSO FAP/INSS)
+            'acessoCrf': safe_get(row, 69),          # 70-1 = 69 (ACESSO CRF)
+            'senhaSemace': safe_get(row, 70),        # 71-1 = 70 (SENHA SEMACE)
+            'anvisaGestor': safe_get(row, 71),       # 72-1 = 71 (ANVISA GESTOR)
+            'anvisaEmpresa': safe_get(row, 72),      # 73-1 = 72 (ANVISA EMPRESA)
 
-            # Bloco 6: Procurações (índices ajustados)
-            'procRfb': bool_from_text(safe_get(row, 80)),
-            'procRfbData': safe_get(row, 81),
-            'procRc': bool_from_text(safe_get(row, 82)),
-            'procRcData': safe_get(row, 83),
-            'procCx': bool_from_text(safe_get(row, 84)),
-            'procCxData': safe_get(row, 85),
-            'procSw': bool_from_text(safe_get(row, 86)),
-            'procSwData': safe_get(row, 87),
-            'procMunicipal': bool_from_text(safe_get(row, 88)),
-            'procMunicipalData': safe_get(row, 89),
-            'outrasProc': safe_get(row, 90),
-            'obsProcuracoes': safe_get(row, 91),
+            # Bloco 6: Procurações (AJUSTADO após redução do Bloco 5)
+            'procRfb': bool_from_text(safe_get(row, 73)),      # 74-1 = 73
+            'procRfbData': safe_get(row, 74),                  # 75-1 = 74
+            'procRc': bool_from_text(safe_get(row, 75)),       # 76-1 = 75
+            'procRcData': safe_get(row, 76),                   # 77-1 = 76
+            'procCx': bool_from_text(safe_get(row, 77)),       # 78-1 = 77
+            'procCxData': safe_get(row, 78),                   # 79-1 = 78
+            'procSw': bool_from_text(safe_get(row, 79)),       # 80-1 = 79
+            'procSwData': safe_get(row, 80),                   # 81-1 = 80
+            'procMunicipal': bool_from_text(safe_get(row, 81)), # 82-1 = 81
+            'procMunicipalData': safe_get(row, 88),            # 89-1 = 88
+            'outrasProc': safe_get(row, 89),                   # 90-1 = 89
+            'obsProcuracoes': safe_get(row, 90),               # 91-1 = 90
 
-            # Bloco 7: Observações e Dados Adicionais (índices ajustados)
-            'observacoesGerais': safe_get(row, 92),
-            'tarefasVinculadas': int(safe_get(row, hidx.get('TAREFAS VINCULADAS', 93), 0)) if str(safe_get(row, hidx.get('TAREFAS VINCULADAS', 93), 0)).isdigit() else 0,
-            'dataInicioServicos': safe_get(row, hidx.get('DATA INÍCIO SERVIÇOS', 94)),
-            'statusCliente': safe_get(row, hidx.get('STATUS DO CLIENTE', 95), 'ATIVO'),
-            'ultimaAtualizacao': safe_get(row, hidx.get('ÚLTIMA ATUALIZAÇÃO', 96)),
-            'responsavelAtualizacao': safe_get(row, hidx.get('RESPONSÁVEL ATUALIZAÇÃO', 97)),
-            'prioridadeCliente': safe_get(row, hidx.get('PRIORIDADE', 98), 'NORMAL'),
-            'tagsCliente': safe_get(row, hidx.get('TAGS/CATEGORIAS', 99)),
-            'historicoAlteracoes': safe_get(row, hidx.get('HISTÓRICO DE ALTERAÇÕES', 100)),
+            # Bloco 7: Observações e Dados Adicionais (CORRIGIDO - convertendo índices 1-based para 0-based)
+            'observacoesGerais': safe_get(row, 91),            # 92-1 = 91
+            'tarefasVinculadas': int(safe_get(row, hidx.get('TAREFAS VINCULADAS', 92), 0)) if str(safe_get(row, hidx.get('TAREFAS VINCULADAS', 92), 0)).isdigit() else 0,
+            'dataInicioServicos': safe_get(row, hidx.get('DATA INÍCIO SERVIÇOS', 93)),  # 94-1 = 93
+            'statusCliente': safe_get(row, hidx.get('STATUS DO CLIENTE', 94), 'ATIVO'),
+            'ultimaAtualizacao': safe_get(row, hidx.get('ÚLTIMA ATUALIZAÇÃO', 95)),
+            'responsavelAtualizacao': safe_get(row, hidx.get('RESPONSÁVEL ATUALIZAÇÃO', 96)),
+            'prioridadeCliente': safe_get(row, hidx.get('PRIORIDADE', 97), 'NORMAL'),
+            'tagsCliente': safe_get(row, hidx.get('TAGS/CATEGORIAS', 98)),
+            'historicoAlteracoes': safe_get(row, hidx.get('HISTÓRICO DE ALTERAÇÕES', 99)),
 
             # Campos internos do sistema (alinhados aos cabeçalhos - índices ajustados)
             'id': id_resolvido,
