@@ -70,84 +70,79 @@
                         <label class="form-label text-muted">Nome da Empresa</label>
                         <p class="mb-0"><strong>{{ client.nomeEmpresa or '-' }}</strong></p>
                     </div>
+                    {% if client.razaoSocialReceita %}
                     <div class="col-md-6 mb-3">
                         <label class="form-label text-muted">Razão Social (Receita)</label>
-                        <p class="mb-0">{{ client.razaoSocialReceita or '-' }}</p>
+                        <p class="mb-0">{{ client.razaoSocialReceita }}</p>
                     </div>
+                    {% endif %}
+                    {% if client.nomeFantasiaReceita %}
                     <div class="col-md-6 mb-3">
                         <label class="form-label text-muted">Nome Fantasia (Receita)</label>
-                        <p class="mb-0">{{ client.nomeFantasiaReceita or '-' }}</p>
+                        <p class="mb-0">{{ client.nomeFantasiaReceita }}</p>
                     </div>
+                    {% endif %}
+                    {% if client.cpfCnpj or client.cnpj %}
                     <div class="col-md-6 mb-3">
                         <label class="form-label text-muted">CPF/CNPJ</label>
-                        <p class="mb-0">
-                            {% if client.cpfCnpj or client.cnpj %}
-                                <code>{{ client.cpfCnpj or client.cnpj }}</code>
-                            {% else %}
-                                -
-                            {% endif %}
-                        </p>
+                        <p class="mb-0"><code>{{ client.cpfCnpj or client.cnpj }}</code></p>
                     </div>
+                    {% endif %}
+                    {% set perfil_val = client.perfil or client.perfilCliente %}
+                    {% if perfil_val %}
                     <div class="col-md-4 mb-3">
                         <label class="form-label text-muted">Perfil do Cliente</label>
-                        <p class="mb-0">
-                            {% if client.perfil %}
-                                <span class="badge bg-info">{{ client.perfil }}</span>
-                            {% else %}
-                                -
-                            {% endif %}
-                        </p>
+                        <p class="mb-0"><span class="badge bg-info">{{ perfil_val }}</span></p>
                     </div>
+                    {% endif %}
+                    {% if client.inscEst %}
                     <div class="col-md-4 mb-3">
                         <label class="form-label text-muted">Inscrição Estadual</label>
-                        <p class="mb-0">{{ client.inscEst or '-' }}</p>
+                        <p class="mb-0">{{ client.inscEst }}</p>
                     </div>
+                    {% endif %}
+                    {% if client.inscMun %}
                     <div class="col-md-4 mb-3">
                         <label class="form-label text-muted">Inscrição Municipal</label>
-                        <p class="mb-0">{{ client.inscMun or '-' }}</p>
+                        <p class="mb-0">{{ client.inscMun }}</p>
                     </div>
+                    {% endif %}
+                    {% if client.estado %}
                     <div class="col-md-4 mb-3">
                         <label class="form-label text-muted">Estado</label>
-                        <p class="mb-0">
-                            {% if client.estado %}
-                                <span class="badge bg-primary">{{ client.estado }}</span>
-                            {% else %}
-                                -
-                            {% endif %}
-                        </p>
+                        <p class="mb-0"><span class="badge bg-primary">{{ client.estado }}</span></p>
                     </div>
+                    {% endif %}
+                    {% if client.cidade %}
                     <div class="col-md-4 mb-3">
                         <label class="form-label text-muted">Cidade</label>
-                        <p class="mb-0">{{ client.cidade or '-' }}</p>
+                        <p class="mb-0">{{ client.cidade }}</p>
                     </div>
+                    {% endif %}
+                    {% if client.regimeFederal or client.tributacao %}
                     <div class="col-md-4 mb-3">
                         <label class="form-label text-muted">Regime Federal</label>
-                        <p class="mb-0">
-                            {% if client.regimeFederal or client.tributacao %}
-                                <span class="badge bg-secondary">{{ client.regimeFederal or client.tributacao }}</span>
-                            {% else %}
-                                -
-                            {% endif %}
-                        </p>
+                        <p class="mb-0"><span class="badge bg-secondary">{{ client.regimeFederal or client.tributacao }}</span></p>
                     </div>
+                    {% endif %}
+                    {% if client.regimeEstadual %}
                     <div class="col-md-4 mb-3">
                         <label class="form-label text-muted">Regime Estadual</label>
-                        <p class="mb-0">
-                            {% if client.regimeEstadual %}
-                                <span class="badge bg-secondary">{{ client.regimeEstadual }}</span>
-                            {% else %}
-                                -
-                            {% endif %}
-                        </p>
+                        <p class="mb-0"><span class="badge bg-secondary">{{ client.regimeEstadual }}</span></p>
                     </div>
+                    {% endif %}
+                    {% if client.segmento %}
                     <div class="col-md-6 mb-3">
                         <label class="form-label text-muted">Segmento</label>
-                        <p class="mb-0">{{ client.segmento or '-' }}</p>
+                        <p class="mb-0">{{ client.segmento }}</p>
                     </div>
+                    {% endif %}
+                    {% if client.atividade %}
                     <div class="col-md-6 mb-3">
                         <label class="form-label text-muted">Atividade Principal</label>
-                        <p class="mb-0">{{ client.atividade or '-' }}</p>
+                        <p class="mb-0">{{ client.atividade }}</p>
                     </div>
+                    {% endif %}
                 </div>
             </div>
         </div>
@@ -162,6 +157,8 @@
             </div>
             <div class="card-body">
                 <div class="row">
+                    <!-- Serviços Contratados -->
+                    {% if client.bpoFinanceiro or client.ct or client.fs or client.dp %}
                     <div class="col-md-12 mb-3">
                         <label class="form-label text-muted">Serviços Contratados</label>
                         <div class="d-flex gap-2 flex-wrap">
@@ -185,35 +182,65 @@
                                     <i class="bi bi-people me-1"></i>Departamento Pessoal (DP)
                                 </span>
                             {% endif %}
-                            {% if not client.bpoFinanceiro and not client.ct and not client.fs and not client.dp %}
-                                <span class="text-muted">Nenhum serviço contratado</span>
-                            {% endif %}
                         </div>
                     </div>
+                    {% endif %}
 
+                    <!-- Data de Início dos Serviços -->
+                    {% if client.dataInicioServicos or client.mesAnoInicio %}
                     <div class="col-md-6 mb-3">
                         <label class="form-label text-muted">Data de Início dos Serviços</label>
-                        <p class="mb-0">
-                            {% if client.dataInicioServicos or client.mesAnoInicio %}
-                                <i class="bi bi-calendar-event me-1"></i>
-                                {{ (client.dataInicioServicos or client.mesAnoInicio)|format_date }}
-                            {% else %}
-                                -
-                            {% endif %}
-                        </p>
+                        <p class="mb-0"><i class="bi bi-calendar-event me-1"></i>{{ client.dataInicioServicos or client.mesAnoInicio }}</p>
                     </div>
+                    {% endif %}
 
+                    <!-- Responsável pelos Serviços -->
+                    {% if client.responsavelServicos or client.donoResp %}
                     <div class="col-md-6 mb-3">
                         <label class="form-label text-muted">Responsável pelos Serviços</label>
-                        <p class="mb-0">
-                            {% if client.responsavelServicos or client.donoResp %}
-                                <i class="bi bi-person-badge me-1"></i>
-                                {{ client.responsavelServicos or client.donoResp }}
-                            {% else %}
-                                -
-                            {% endif %}
-                        </p>
+                        <p class="mb-0"><i class="bi bi-person-badge me-1"></i>{{ client.responsavelServicos or client.donoResp }}</p>
                     </div>
+                    {% endif %}
+
+                    <!-- Códigos dos Sistemas -->
+                    {% if client.codDominio %}
+                    <div class="col-md-3 mb-3">
+                        <label class="form-label text-muted">Código Domínio</label>
+                        <p class="mb-0"><code>{{ client.codDominio }}</code></p>
+                    </div>
+                    {% endif %}
+                    {% if client.codFortesCt %}
+                    <div class="col-md-3 mb-3">
+                        <label class="form-label text-muted">Código Fortes CT</label>
+                        <p class="mb-0"><code>{{ client.codFortesCt }}</code></p>
+                    </div>
+                    {% endif %}
+                    {% if client.codFortesFs %}
+                    <div class="col-md-3 mb-3">
+                        <label class="form-label text-muted">Código Fortes FS</label>
+                        <p class="mb-0"><code>{{ client.codFortesFs }}</code></p>
+                    </div>
+                    {% endif %}
+                    {% if client.codFortesPs %}
+                    <div class="col-md-3 mb-3">
+                        <label class="form-label text-muted">Código Fortes PS</label>
+                        <p class="mb-0"><code>{{ client.codFortesPs }}</code></p>
+                    </div>
+                    {% endif %}
+
+                    <!-- Doméstica e SPED -->
+                    {% if client.domestica %}
+                    <div class="col-md-6 mb-3">
+                        <label class="form-label text-muted">Doméstica</label>
+                        <p class="mb-0"><span class="badge bg-{{ 'success' if client.domestica == 'SIM' else 'secondary' }}">{{ client.domestica }}</span></p>
+                    </div>
+                    {% endif %}
+                    {% if client.geraArquivoSped %}
+                    <div class="col-md-6 mb-3">
+                        <label class="form-label text-muted">Gera arquivo do SPED</label>
+                        <p class="mb-0"><span class="badge bg-{{ 'success' if client.geraArquivoSped == 'SIM' else 'secondary' }}">{{ client.geraArquivoSped }}</span></p>
+                    </div>
+                    {% endif %}
                 </div>
             </div>
         </div>
@@ -229,7 +256,7 @@
             <div class="card-body">
                 {% set found_socio = false %}
                 {% for i in range(1, 5) %}
-                    {% set socio_nome = client.get('socio' + i|string + '_nome') %}
+                    {% set socio_nome = client.get('socio_' ~ i ~ '_nome') or client.get('socio' ~ i ~ '_nome') or client.get('socio' ~ i ~ 'Nome') or client.get('socio' ~ i) %}
                     {% if socio_nome %}
                         {% set found_socio = true %}
                         <div class="row mb-3">
@@ -243,36 +270,41 @@
                                 <label class="form-label text-muted">Nome</label>
                                 <p class="mb-0"><strong>{{ socio_nome }}</strong></p>
                             </div>
+                            {% set socio_cpf = client.get('socio_' ~ i ~ '_cpf') or client.get('socio' ~ i ~ '_cpf') or client.get('socio' ~ i ~ 'Cpf') %}
+                            {% if socio_cpf %}
                             <div class="col-md-6 mb-2">
                                 <label class="form-label text-muted">CPF</label>
-                                <p class="mb-0">
-                                    {% set socio_cpf = client.get('socio' + i|string + '_cpf') %}
-                                    {% if socio_cpf %}
-                                        <code>{{ socio_cpf }}</code>
-                                    {% else %}
-                                        -
-                                    {% endif %}
-                                </p>
+                                <p class="mb-0"><code>{{ socio_cpf }}</code></p>
                             </div>
+                            {% endif %}
+                            {% set socio_nasc = client.get('socio_' ~ i ~ '_data_nascimento') or client.get('socio_' ~ i ~ '_dataNascimento') or client.get('socio' ~ i ~ '_nascimento') or client.get('socio' ~ i ~ 'DataNascimento') %}
+                            {% if socio_nasc %}
                             <div class="col-md-4 mb-2">
                                 <label class="form-label text-muted">Data Nascimento</label>
-                                <p class="mb-0">{{ client.get('socio' + i|string + '_dataNascimento') or '-' }}</p>
+                                <p class="mb-0">{{ socio_nasc }}</p>
                             </div>
+                            {% endif %}
+                            {% set socio_admin = client.get('socio_' ~ i ~ '_administrador') or client.get('socio' ~ i ~ '_admin') or client.get('socio' ~ i ~ 'Admin') %}
+                            {% if socio_admin %}
                             <div class="col-md-4 mb-2">
                                 <label class="form-label text-muted">Administrador</label>
-                                <p class="mb-0">
-                                    {% set socio_admin = client.get('socio' + i|string + '_administrador') %}
-                                    {% if socio_admin %}
-                                        <span class="badge bg-success">{{ socio_admin }}</span>
-                                    {% else %}
-                                        -
-                                    {% endif %}
-                                </p>
+                                <p class="mb-0"><span class="badge bg-success">{{ 'SIM' if socio_admin else 'NÃO' }}</span></p>
                             </div>
+                            {% endif %}
+                            {% set socio_part = client.get('socio_' ~ i ~ '_participacao') or client.get('socio' ~ i ~ '_cotas') or client.get('socio' ~ i ~ 'Cotas') %}
+                            {% if socio_part %}
                             <div class="col-md-4 mb-2">
-                                <label class="form-label text-muted">% Cotas</label>
-                                <p class="mb-0">{{ client.get('socio' + i|string + '_cotas') or '-' }}</p>
+                                <label class="form-label text-muted">% Participação</label>
+                                <p class="mb-0">{{ socio_part }}%</p>
                             </div>
+                            {% endif %}
+                            {% set socio_resp = client.get('socio_' ~ i ~ '_resp_legal') or client.get('socio' ~ i ~ '_respLegal') %}
+                            {% if socio_resp %}
+                            <div class="col-md-4 mb-2">
+                                <label class="form-label text-muted">Responsável Legal</label>
+                                <p class="mb-0"><span class="badge bg-info">{{ 'SIM' if socio_resp else 'NÃO' }}</span></p>
+                            </div>
+                            {% endif %}
                         </div>
                         {% if not loop.last %}<hr>{% endif %}
                     {% endif %}
@@ -296,110 +328,52 @@
             </div>
             <div class="card-body">
                 <div class="row">
+                    {% if client.telefoneFixo %}
                     <div class="col-md-4 mb-3">
                         <label class="form-label text-muted">Telefone Fixo</label>
-                        <p class="mb-0">
-                            {% if client.telefoneFixo %}
-                                <i class="bi bi-telephone me-1"></i>{{ client.telefoneFixo }}
-                            {% else %}
-                                -
-                            {% endif %}
-                        </p>
+                        <p class="mb-0"><i class="bi bi-telephone me-1"></i>{{ client.telefoneFixo }}</p>
                     </div>
+                    {% endif %}
+                    {% if client.telefoneCelular %}
                     <div class="col-md-4 mb-3">
                         <label class="form-label text-muted">Telefone Celular</label>
-                        <p class="mb-0">
-                            {% if client.telefoneCelular %}
-                                <i class="bi bi-phone me-1"></i>{{ client.telefoneCelular }}
-                            {% else %}
-                                -
-                            {% endif %}
-                        </p>
+                        <p class="mb-0"><i class="bi bi-phone me-1"></i>{{ client.telefoneCelular }}</p>
                     </div>
+                    {% endif %}
+                    {% if client.whatsapp %}
                     <div class="col-md-4 mb-3">
                         <label class="form-label text-muted">WhatsApp</label>
-                        <p class="mb-0">
-                            {% if client.whatsapp %}
-                                <i class="bi bi-whatsapp me-1"></i>{{ client.whatsapp }}
-                            {% else %}
-                                -
-                            {% endif %}
-                        </p>
+                        <p class="mb-0"><i class="bi bi-whatsapp me-1"></i>{{ client.whatsapp }}</p>
                     </div>
+                    {% endif %}
+                    {% if client.emailPrincipal %}
                     <div class="col-md-6 mb-3">
                         <label class="form-label text-muted">E-mail Principal</label>
-                        <p class="mb-0">
-                            {% if client.emailPrincipal %}
-                                <i class="bi bi-envelope me-1"></i>{{ client.emailPrincipal }}
-                            {% else %}
-                                -
-                            {% endif %}
-                        </p>
+                        <p class="mb-0"><i class="bi bi-envelope me-1"></i>{{ client.emailPrincipal }}</p>
                     </div>
+                    {% endif %}
+                    {% if client.emailSecundario %}
                     <div class="col-md-6 mb-3">
                         <label class="form-label text-muted">E-mail Secundário</label>
-                        <p class="mb-0">
-                            {% if client.emailSecundario %}
-                                <i class="bi bi-envelope me-1"></i>{{ client.emailSecundario }}
-                            {% else %}
-                                -
-                            {% endif %}
-                        </p>
+                        <p class="mb-0"><i class="bi bi-envelope me-1"></i>{{ client.emailSecundario }}</p>
                     </div>
+                    {% endif %}
+                    {% if client.responsavelImediato %}
                     <div class="col-md-12 mb-3">
                         <label class="form-label text-muted">Responsável Imediato</label>
-                        <p class="mb-0">
-                            {% if client.responsavelImediato %}
-                                <i class="bi bi-person-badge me-1"></i>{{ client.responsavelImediato }}
-                            {% else %}
-                                -
-                            {% endif %}
-                        </p>
+                        <p class="mb-0"><i class="bi bi-person-badge me-1"></i>{{ client.responsavelImediato }}</p>
                     </div>
+                    {% endif %}
                 </div>
             </div>
         </div>
 
-        <!-- Bloco 5: Sistemas e Acessos -->
-        <div class="card mb-4">
-            <div class="card-header bg-secondary text-white">
-                <h5 class="mb-0">
-                    <i class="fas fa-desktop me-2"></i>
-                    Bloco 5 - Sistemas e Acessos
-                </h5>
-            </div>
-            <div class="card-body">
-                <div class="row">
-                    <div class="col-md-6 mb-3">
-                        <label class="form-label text-muted">Sistema Principal</label>
-                        <p class="mb-0">
-                            {% if client.sistemaPrincipal or client.sistemaUtilizado %}
-                                <span class="badge bg-info">{{ client.sistemaPrincipal or client.sistemaUtilizado }}</span>
-                            {% else %}
-                                -
-                            {% endif %}
-                        </p>
-                    </div>
-                    <div class="col-md-6 mb-3">
-                        <label class="form-label text-muted">Código Acesso Simples Nacional</label>
-                        <p class="mb-0">
-                            {% if client.codAcessoSimples %}
-                                <code>{{ client.codAcessoSimples }}</code>
-                            {% else %}
-                                -
-                            {% endif %}
-                        </p>
-                    </div>
-                </div>
-            </div>
-        </div>
-
-        <!-- Bloco 6: Senhas e Credenciais -->
+        <!-- Bloco 5: Senhas e Credenciais -->
         <div class="card mb-4">
             <div class="card-header bg-danger text-white">
                 <h5 class="mb-0">
                     <i class="fas fa-key me-2"></i>
-                    Bloco 6 - Senhas e Credenciais
+                    Bloco 5 - Senhas e Credenciais
                 </h5>
             </div>
             <div class="card-body">
@@ -409,42 +383,36 @@
                 </div>
                 <div class="row">
                     {% set credenciais = [
-                        ('ISS', client.acessoIss),
-                        ('SEFIN', client.acessoSefin),
-                        ('SEUMA', client.acessoSeuma),
-                        ('EmpWeb', client.acessoEmpWeb),
-                        ('FAP/INSS', client.acessoFapInss),
-                        ('CRF', client.acessoCrf),
-                        ('IBAMA', client.acessoIbama),
-                        ('SEMACE', client.acessoSemace)
+                        ('ISS', client.acessoIss, client.senhaIss),
+                        ('SEFIN', client.acessoSefin, client.senhaSefin),
+                        ('SEUMA', client.acessoSeuma, client.senhaSeuma),
+                        ('EmpWeb', client.acessoEmpWeb, client.senhaEmpWeb),
+                        ('FAP/INSS', client.acessoFapInss, client.senhaFapInss),
+                        ('CRF', client.acessoCrf, client.senhaCrf),
+                        ('IBAMA', client.acessoIbama, client.senhaIbama),
+                        ('SEMACE', client.acessoSemace, client.senhaSemace),
+                        ('Email Gestor', client.emailGestor, client.senhaEmailGestor),
+                        ('ANVISA Gestor', client.anvisaGestor, None),
+                        ('ANVISA Empresa', client.anvisaEmpresa, None)
                     ] %}
-                    {% for nome, acesso in credenciais %}
-                        {% if acesso %}
+                    {% set has_credentials = false %}
+                    {% for nome, usuario, senha in credenciais %}
+                        {% if usuario %}
+                            {% set has_credentials = true %}
                             <div class="col-md-6 mb-3">
                                 <label class="form-label text-muted">{{ nome }}</label>
-                                <div class="credential-field">
-                                    <div class="input-group">
-                                        <span class="input-group-text">
-                                            <i class="fas fa-user"></i>
-                                        </span>
-                                        <input type="password" 
-                                               class="form-control credential-input" 
-                                               value="{{ acesso }}" 
-                                               readonly 
-                                               id="credential-{{ loop.index }}"
-                                               style="background-color: #f8f9fa; cursor: text;">
-                                        <button class="btn btn-outline-secondary toggle-password-btn" 
-                                                type="button" 
-                                                onclick="toggleCredentialVisibility('credential-{{ loop.index }}', this)"
-                                                title="Mostrar/Ocultar senha">
-                                            <i class="fas fa-eye"></i>
-                                        </button>
-                                    </div>
+                                <div class="credential-display">
+                                    <strong>Usuário:</strong>
+                                    <pre class="mb-1" style="background:#f8f9fa; padding:8px; border-radius:4px; white-space:pre-wrap; font-size:0.9rem;">{{ usuario }}</pre>
+                                    {% if senha %}
+                                    <strong>Senha:</strong>
+                                    <pre class="mb-0" style="background:#f8f9fa; padding:8px; border-radius:4px; white-space:pre-wrap; font-size:0.9rem;">{{ senha }}</pre>
+                                    {% endif %}
                                 </div>
                             </div>
                         {% endif %}
                     {% endfor %}
-                    {% if not (client.acessoIss or client.acessoSefin or client.acessoSeuma or client.acessoEmpWeb or client.acessoFapInss or client.acessoCrf or client.acessoIbama or client.acessoSemace) %}
+                    {% if not has_credentials %}
                         <div class="col-12">
                             <p class="text-muted text-center">
                                 <i class="fas fa-info-circle me-2"></i>
@@ -456,12 +424,12 @@
             </div>
         </div>
 
-        <!-- Bloco 7: Procurações -->
+        <!-- Bloco 6: Procurações -->
         <div class="card mb-4">
             <div class="card-header bg-dark text-white">
                 <h5 class="mb-0">
                     <i class="fas fa-file-contract me-2"></i>
-                    Bloco 7 - Procurações
+                    Bloco 6 - Procurações
                 </h5>
             </div>
             <div class="card-body">
@@ -516,12 +484,12 @@
             </div>
         </div>
 
-        <!-- Bloco 8: Observações e Dados Adicionais -->
+        <!-- Bloco 7: Observações e Dados Adicionais -->
         <div class="card mb-4">
             <div class="card-header bg-light text-dark">
                 <h5 class="mb-0">
                     <i class="fas fa-sticky-note me-2"></i>
-                    Bloco 8 - Observações e Dados Adicionais
+                    Bloco 7 - Observações e Dados Adicionais
                 </h5>
             </div>
             <div class="card-body">
@@ -530,6 +498,34 @@
                         <div class="col-12">
                             <label class="form-label text-muted">Observações Gerais</label>
                             <p class="mb-0">{{ client.observacoesGerais }}</p>
+                        </div>
+                    </div>
+                {% endif %}
+                {% if client.tarefasVinculadas %}
+                    <div class="row mb-3">
+                        <div class="col-12">
+                            <label class="form-label text-muted">Tarefas Vinculadas</label>
+                            <p class="mb-0"><span class="badge bg-info">{{ client.tarefasVinculadas }}</span></p>
+                        </div>
+                    </div>
+                {% endif %}
+                {% if client.tagsCliente %}
+                    <div class="row mb-3">
+                        <div class="col-12">
+                            <label class="form-label text-muted">Tags/Categorias</label>
+                            <p class="mb-0">{{ client.tagsCliente }}</p>
+                        </div>
+                    </div>
+                {% endif %}
+                {% if client.prioridadeCliente %}
+                    <div class="row mb-3">
+                        <div class="col-12">
+                            <label class="form-label text-muted">Prioridade</label>
+                            <p class="mb-0">
+                                <span class="badge bg-{{ 'danger' if client.prioridadeCliente == 'ALTA' else ('warning' if client.prioridadeCliente == 'NORMAL' else 'secondary') }}">
+                                    {{ client.prioridadeCliente or 'NORMAL' }}
+                                </span>
+                            </p>
                         </div>
                     </div>
                 {% endif %}
@@ -548,16 +544,24 @@
                             {% endif %}
                         </p>
                     </div>
+                    {% if client.ultimaAtualizacao %}
                     <div class="col-md-6 mb-3">
                         <label class="form-label text-muted">Última Atualização</label>
-                        <p class="mb-0">
-                            {% if client.ultimaAtualizacao %}
-                                <i class="fas fa-clock me-1"></i>{{ client.ultimaAtualizacao|format_datetime }}
-                            {% else %}
-                                -
-                            {% endif %}
-                        </p>
+                        <p class="mb-0"><i class="fas fa-clock me-1"></i>{{ client.ultimaAtualizacao }}</p>
                     </div>
+                    {% endif %}
+                    {% if client.criadoEm %}
+                    <div class="col-md-6 mb-3">
+                        <label class="form-label text-muted">Data de Criação</label>
+                        <p class="mb-0"><i class="fas fa-calendar-plus me-1"></i>{{ client.criadoEm }}</p>
+                    </div>
+                    {% endif %}
+                    {% if client.responsavelAtualizacao %}
+                    <div class="col-md-6 mb-3">
+                        <label class="form-label text-muted">Responsável pela Última Atualização</label>
+                        <p class="mb-0"><i class="fas fa-user-edit me-1"></i>{{ client.responsavelAtualizacao }}</p>
+                    </div>
+                    {% endif %}
                 </div>
             </div>
         </div>
@@ -586,7 +590,7 @@
                         <span class="text-muted">Cliente desde:</span>
                         <strong>
                             {% if client.dataInicioServicos or client.mesAnoInicio %}
-                                {{ (client.dataInicioServicos or client.mesAnoInicio)|format_date }}
+                                {{ client.dataInicioServicos or client.mesAnoInicio }}
                             {% else %}
                                 -
                             {% endif %}
@@ -595,13 +599,13 @@
                     
                     <div class="info-item d-flex justify-content-between align-items-center mb-3">
                         <span class="text-muted">Perfil:</span>
-                        <strong class="text-info">{{ client.perfil or '-' }}</strong>
+                        <strong class="text-info">{{ client.perfil or client.perfilCliente or '-' }}</strong>
                     </div>
                     
                     <div class="info-item d-flex justify-content-between align-items-center mb-3">
-                        <span class="text-muted">Cadastrado no Onvio:</span>
-                        <strong class="text-{{ 'success' if client.sistemaOnvio else 'secondary' }}">
-                            {{ 'SIM' if client.sistemaOnvio else 'NÃO' }}
+                        <span class="text-muted">Sistema Onvio:</span>
+                        <strong class="text-{{ 'success' if (client.sistemaOnvio or client.onvio) else 'secondary' }}">
+                            {{ 'SIM' if (client.sistemaOnvio or client.onvio) else 'NÃO' }}
                         </strong>
                     </div>
                     
@@ -746,6 +750,9 @@
                     Cancelar
                 </button>
                 <form method="POST" action="/client/{{ client.id }}/delete" style="display: inline;">
+                    {% if client._row_number %}
+                    <input type="hidden" name="row_number" value="{{ client._row_number }}">
+                    {% endif %}
                     <button type="submit" class="btn btn-danger">
                         <i class="fas fa-trash me-2"></i>
                         Confirmar Exclusão

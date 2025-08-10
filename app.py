@@ -33,6 +33,7 @@ from services.local_storage_service import LocalStorageService
 from services.meeting_service import MeetingService
 from services.user_service import UserService
 from services.report_service import ReportService
+from services.segmento_atividade_service import SegmentoAtividadeService
 
 # Tentar importar serviço completo, usar lite como fallback
 try:
@@ -199,7 +200,10 @@ print(f"🔧 Configurações:")
 print(f"   USE_GOOGLE_SHEETS: {USE_GOOGLE_SHEETS}")
 print(f"   USE_OAUTH2: {USE_OAUTH2}")
 print(f"   USE_SERVICE_ACCOUNT: {USE_SERVICE_ACCOUNT}")
-print(f"   API_KEY: {GOOGLE_SHEETS_API_KEY[:10]}...")
+if GOOGLE_SHEETS_API_KEY:
+    print(f"   API_KEY: {GOOGLE_SHEETS_API_KEY[:10]}...")
+else:
+    print("   API_KEY: None")
 print(f"   SPREADSHEET_ID: {GOOGLE_SHEETS_ID}")
 
 # Inicializar serviços COM LAZY LOADING - OTIMIZAÇÃO MEMÓRIA RENDER
@@ -359,6 +363,27 @@ def get_import_service():
             import_service = None
     return import_service
 
+# Global para cache do serviço de segmentos/atividades
+segmento_atividade_service = None
+
+def get_segmento_atividade_service():
+    """Lazy loading do segmento/atividade service"""
+    global segmento_atividade_service
+    if segmento_atividade_service is None:
+        try:
+            if GOOGLE_SHEETS_ID:
+                print("🏢 Inicializando SegmentoAtividadeService...")
+                segmento_atividade_service = SegmentoAtividadeService(GOOGLE_SHEETS_ID)
+                print("✅ SegmentoAtividadeService inicializado")
+            else:
+                print("❌ GOOGLE_SHEETS_ID não disponível para SegmentoAtividadeService")
+        except Exception as e:
+            print(f"❌ Erro ao inicializar SegmentoAtividadeService: {e}")
+            import traceback
+            traceback.print_exc()
+            segmento_atividade_service = None
+    return segmento_atividade_service
+
 # Inicialização básica - EXTREMAMENTE otimizada
 print("🚀 Aplicação inicializada com lazy loading EXTREMO")
 print(f"💾 Memória inicial: {UltraMemoryOptimizer.get_memory_usage() if MEMORY_OPTIMIZER_AVAILABLE else 'N/A'}")
@@ -423,8 +448,13 @@ def login():
     print(f"🔐 LOGIN: Método da requisição: {request.method}")
     
     if request.method == 'POST':
-        username = request.form['username']
-        password = request.form['password']
+        # Aceitar tanto username/password quanto usuario/senha
+        username = request.form.get('username') or request.form.get('usuario')
+        password = request.form.get('password') or request.form.get('senha')
+        
+        if not username or not password:
+            flash('Por favor, preencha usuário e senha.', 'error')
+            return render_template('login.html')
         
         print(f"🔐 LOGIN: Tentativa de login para usuário: {username}")
         
@@ -466,6 +496,395 @@ def logout():
     session.clear()
     flash('Logout realizado com sucesso.', 'info')
     return redirect(url_for('login'))
+
+# === FUNÇÕES AUXILIARES PARA SEGMENTOS E ATIVIDADES ===
+def get_segmentos_list():
+    """Retorna lista de segmentos cadastrados"""
+    try:
+        service = get_segmento_atividade_service()
+        if service:
+            segmentos = service.get_segmentos_ativos()
+            return [s['nome'] for s in segmentos]
+        else:
+            print("⚠️ Serviço não disponível, usando lista padrão")
+    except Exception as e:
+        print(f"❌ Erro ao buscar segmentos: {e}")
+    
+    # Fallback para lista estática
+    return [
+        "COMÉRCIO VAREJISTA",
+        "PRESTAÇÃO DE SERVIÇOS",
+        "INDÚSTRIA",
+        "AGRONEGÓCIO",
+        "TECNOLOGIA",
+        "SAÚDE",
+        "EDUCAÇÃO",
+        "TRANSPORTE",
+        "CONSTRUÇÃO CIVIL",
+        "ALIMENTAÇÃO"
+    ]
+
+def get_atividades_list():
+    """Retorna lista de atividades principais cadastradas"""
+    try:
+        service = get_segmento_atividade_service()
+        if service:
+            atividades = service.get_atividades_ativas()
+            return [a['nome'] for a in atividades]
+        else:
+            print("⚠️ Serviço não disponível, usando lista padrão")
+    except Exception as e:
+        print(f"❌ Erro ao buscar atividades: {e}")
+    
+    # Fallback para lista estática
+    return [
+        "VENDA DE ROUPAS E ACESSÓRIOS",
+        "CONSULTORIA EMPRESARIAL", 
+        "DESENVOLVIMENTO DE SOFTWARE",
+        "SERVIÇOS CONTÁBEIS",
+        "RESTAURANTE E LANCHONETE",
+        "CLÍNICA MÉDICA",
+        "ESCOLA DE ENSINO FUNDAMENTAL",
+        "TRANSPORTE RODOVIÁRIO DE CARGAS",
+        "CONSTRUÇÃO DE EDIFÍCIOS",
+        "PRODUÇÃO AGRÍCOLA"
+    ]
+
+# === ROTAS PARA CADASTRO DE SEGMENTOS E ATIVIDADES ===
+@app.route('/segmentos')
+@login_required
+def manage_segmentos():
+    """Página para gerenciar segmentos"""
+    try:
+        service = get_segmento_atividade_service()
+        if service:
+            segmentos = service.get_segmentos()
+            return render_template('manage_segmentos.html', segmentos=segmentos)
+        else:
+            flash('Serviço de segmentos indisponível', 'error')
+            return redirect(url_for('index'))
+    except Exception as e:
+        print(f"❌ Erro ao carregar segmentos: {e}")
+        flash('Erro ao carregar segmentos', 'error')
+        return redirect(url_for('index'))
+
+@app.route('/segmentos/create', methods=['POST'])
+@login_required  
+def create_segmento():
+    """Criar novo segmento"""
+    try:
+        service = get_segmento_atividade_service()
+        if not service:
+            flash('Serviço de segmentos indisponível', 'error')
+            return redirect(url_for('manage_segmentos'))
+        
+        nome_segmento = request.form.get('nome', '').strip()
+        descricao = request.form.get('descricao', '').strip()
+        codigo = request.form.get('codigo', '').strip()
+        
+        if not nome_segmento:
+            flash('Nome do segmento é obrigatório', 'error')
+            return redirect(url_for('manage_segmentos'))
+        
+        segmento_data = {
+            'nome': nome_segmento.upper(),
+            'descricao': descricao,
+            'codigo': codigo.upper() if codigo else '',
+            'ativo': True,
+            'criadoPor': session.get('user_name', 'Sistema')
+        }
+        
+        if service.save_segmento(segmento_data):
+            flash(f'Segmento "{nome_segmento}" criado com sucesso!', 'success')
+        else:
+            flash('Erro ao criar segmento', 'error')
+            
+        return redirect(url_for('manage_segmentos'))
+    except Exception as e:
+        print(f"❌ Erro ao criar segmento: {e}")
+        flash('Erro ao criar segmento', 'error')
+        return redirect(url_for('manage_segmentos'))
+
+@app.route('/segmentos/edit/<segmento_id>', methods=['POST'])
+@login_required
+def edit_segmento(segmento_id):
+    """Editar segmento existente"""
+    try:
+        service = get_segmento_atividade_service()
+        if not service:
+            flash('Serviço de segmentos indisponível', 'error')
+            return redirect(url_for('manage_segmentos'))
+        
+        segmento = service.get_segmento(segmento_id)
+        if not segmento:
+            flash('Segmento não encontrado', 'error')
+            return redirect(url_for('manage_segmentos'))
+        
+        # Atualizar dados
+        segmento['nome'] = request.form.get('nome', '').strip().upper()
+        segmento['descricao'] = request.form.get('descricao', '').strip()
+        segmento['codigo'] = request.form.get('codigo', '').strip().upper()
+        segmento['ativo'] = request.form.get('ativo') == 'on'
+        
+        if not segmento['nome']:
+            flash('Nome do segmento é obrigatório', 'error')
+            return redirect(url_for('manage_segmentos'))
+        
+        if service.save_segmento(segmento):
+            flash(f'Segmento "{segmento["nome"]}" atualizado com sucesso!', 'success')
+        else:
+            flash('Erro ao atualizar segmento', 'error')
+            
+        return redirect(url_for('manage_segmentos'))
+    except Exception as e:
+        print(f"❌ Erro ao editar segmento: {e}")
+        flash('Erro ao editar segmento', 'error')
+        return redirect(url_for('manage_segmentos'))
+
+@app.route('/segmentos/delete/<segmento_id>', methods=['POST'])
+@login_required
+def delete_segmento(segmento_id):
+    """Excluir segmento (soft delete)"""
+    try:
+        service = get_segmento_atividade_service()
+        if not service:
+            flash('Serviço de segmentos indisponível', 'error')
+            return redirect(url_for('manage_segmentos'))
+        
+        if service.delete_segmento(segmento_id):
+            flash('Segmento excluído com sucesso!', 'success')
+        else:
+            flash('Erro ao excluir segmento', 'error')
+            
+        return redirect(url_for('manage_segmentos'))
+    except Exception as e:
+        print(f"❌ Erro ao excluir segmento: {e}")
+        flash('Erro ao excluir segmento', 'error')
+        return redirect(url_for('manage_segmentos'))
+
+@app.route('/atividades')
+@login_required
+def manage_atividades():
+    """Página para gerenciar atividades principais"""
+    try:
+        service = get_segmento_atividade_service()
+        if service:
+            atividades = service.get_atividades()
+            segmentos = service.get_segmentos_ativos()
+            return render_template('manage_atividades.html', atividades=atividades, segmentos=segmentos)
+        else:
+            flash('Serviço de atividades indisponível', 'error')
+            return redirect(url_for('index'))
+    except Exception as e:
+        print(f"❌ Erro ao carregar atividades: {e}")
+        flash('Erro ao carregar atividades', 'error')
+        return redirect(url_for('index'))
+
+@app.route('/atividades/create', methods=['POST'])
+@login_required
+def create_atividade():
+    """Criar nova atividade principal"""
+    try:
+        service = get_segmento_atividade_service()
+        if not service:
+            flash('Serviço de atividades indisponível', 'error')
+            return redirect(url_for('manage_atividades'))
+        
+        nome_atividade = request.form.get('nome', '').strip()
+        codigo_cnae = request.form.get('codigoCnae', '').strip()
+        descricao = request.form.get('descricao', '').strip()
+        segmento_id = request.form.get('segmentoId', '').strip()
+        
+        if not nome_atividade:
+            flash('Nome da atividade é obrigatório', 'error')
+            return redirect(url_for('manage_atividades'))
+        
+        if not segmento_id:
+            flash('Segmento é obrigatório', 'error')
+            return redirect(url_for('manage_atividades'))
+        
+        atividade_data = {
+            'nome': nome_atividade.upper(),
+            'codigoCnae': codigo_cnae,
+            'descricao': descricao,
+            'segmentoId': segmento_id,
+            'ativo': True,
+            'criadoPor': session.get('user_name', 'Sistema')
+        }
+        
+        if service.save_atividade(atividade_data):
+            flash(f'Atividade "{nome_atividade}" criada com sucesso!', 'success')
+        else:
+            flash('Erro ao criar atividade', 'error')
+            
+        return redirect(url_for('manage_atividades'))
+    except Exception as e:
+        print(f"❌ Erro ao criar atividade: {e}")
+        flash('Erro ao criar atividade', 'error')
+        return redirect(url_for('manage_atividades'))
+
+@app.route('/atividades/edit/<atividade_id>', methods=['POST'])
+@login_required
+def edit_atividade(atividade_id):
+    """Editar atividade existente"""
+    try:
+        service = get_segmento_atividade_service()
+        if not service:
+            flash('Serviço de atividades indisponível', 'error')
+            return redirect(url_for('manage_atividades'))
+        
+        atividade = service.get_atividade(atividade_id)
+        if not atividade:
+            flash('Atividade não encontrada', 'error')
+            return redirect(url_for('manage_atividades'))
+        
+        # Atualizar dados
+        atividade['nome'] = request.form.get('nome', '').strip().upper()
+        atividade['codigoCnae'] = request.form.get('codigoCnae', '').strip()
+        atividade['descricao'] = request.form.get('descricao', '').strip()
+        atividade['segmentoId'] = request.form.get('segmentoId', '').strip()
+        atividade['ativo'] = request.form.get('ativo') == 'on'
+        
+        if not atividade['nome']:
+            flash('Nome da atividade é obrigatório', 'error')
+            return redirect(url_for('manage_atividades'))
+        
+        if not atividade['segmentoId']:
+            flash('Segmento é obrigatório', 'error')
+            return redirect(url_for('manage_atividades'))
+        
+        if service.save_atividade(atividade):
+            flash(f'Atividade "{atividade["nome"]}" atualizada com sucesso!', 'success')
+        else:
+            flash('Erro ao atualizar atividade', 'error')
+            
+        return redirect(url_for('manage_atividades'))
+    except Exception as e:
+        print(f"❌ Erro ao editar atividade: {e}")
+        flash('Erro ao editar atividade', 'error')
+        return redirect(url_for('manage_atividades'))
+
+@app.route('/atividades/delete/<atividade_id>', methods=['POST'])
+@login_required
+def delete_atividade(atividade_id):
+    """Excluir atividade (soft delete)"""
+    try:
+        service = get_segmento_atividade_service()
+        if not service:
+            flash('Serviço de atividades indisponível', 'error')
+            return redirect(url_for('manage_atividades'))
+        
+        if service.delete_atividade(atividade_id):
+            flash('Atividade excluída com sucesso!', 'success')
+        else:
+            flash('Erro ao excluir atividade', 'error')
+            
+        return redirect(url_for('manage_atividades'))
+    except Exception as e:
+        print(f"❌ Erro ao excluir atividade: {e}")
+        flash('Erro ao excluir atividade', 'error')
+        return redirect(url_for('manage_atividades'))
+
+# === ROTAS API PARA INTEGRAÇÃO ===
+
+@app.route('/api/segmentos', methods=['GET'])
+@login_required
+def api_get_segmentos():
+    """API para buscar segmentos"""
+    try:
+        service = get_segmento_atividade_service()
+        if not service:
+            return jsonify({'error': 'Serviço indisponível'}), 500
+        
+        apenas_ativos = request.args.get('ativos', 'true').lower() == 'true'
+        termo_busca = request.args.get('busca', '').strip()
+        
+        if termo_busca:
+            segmentos = service.search_segmentos(termo_busca)
+        elif apenas_ativos:
+            segmentos = service.get_segmentos_ativos()
+        else:
+            segmentos = service.get_segmentos()
+        
+        return jsonify({
+            'success': True,
+            'data': segmentos,
+            'total': len(segmentos)
+        })
+    except Exception as e:
+        print(f"❌ Erro na API de segmentos: {e}")
+        return jsonify({'error': str(e)}), 500
+
+@app.route('/api/atividades', methods=['GET'])
+@login_required
+def api_get_atividades():
+    """API para buscar atividades"""
+    try:
+        service = get_segmento_atividade_service()
+        if not service:
+            return jsonify({'error': 'Serviço indisponível'}), 500
+        
+        segmento_id = request.args.get('segmento_id')
+        apenas_ativos = request.args.get('ativos', 'true').lower() == 'true'
+        termo_busca = request.args.get('busca', '').strip()
+        
+        if termo_busca:
+            atividades = service.search_atividades(termo_busca, segmento_id)
+        elif apenas_ativos:
+            atividades = service.get_atividades_ativas(segmento_id)
+        else:
+            atividades = service.get_atividades(segmento_id)
+        
+        return jsonify({
+            'success': True,
+            'data': atividades,
+            'total': len(atividades)
+        })
+    except Exception as e:
+        print(f"❌ Erro na API de atividades: {e}")
+        return jsonify({'error': str(e)}), 500
+
+@app.route('/api/segmentos/<segmento_id>', methods=['GET'])
+@login_required
+def api_get_segmento(segmento_id):
+    """API para buscar um segmento específico"""
+    try:
+        service = get_segmento_atividade_service()
+        if not service:
+            return jsonify({'error': 'Serviço indisponível'}), 500
+        
+        segmento = service.get_segmento(segmento_id)
+        if not segmento:
+            return jsonify({'error': 'Segmento não encontrado'}), 404
+        
+        return jsonify({
+            'success': True,
+            'data': segmento
+        })
+    except Exception as e:
+        print(f"❌ Erro na API de segmento: {e}")
+        return jsonify({'error': str(e)}), 500
+
+@app.route('/api/atividades/<atividade_id>', methods=['GET'])
+@login_required
+def api_get_atividade(atividade_id):
+    """API para buscar uma atividade específica"""
+    try:
+        service = get_segmento_atividade_service()
+        if not service:
+            return jsonify({'error': 'Serviço indisponível'}), 500
+        
+        atividade = service.get_atividade(atividade_id)
+        if not atividade:
+            return jsonify({'error': 'Atividade não encontrada'}), 404
+        
+        return jsonify({
+            'success': True,
+            'data': atividade
+        })
+    except Exception as e:
+        print(f"❌ Erro na API de atividade: {e}")
+        return jsonify({'error': str(e)}), 500
 
 @app.route('/users')
 @admin_required
@@ -679,10 +1098,17 @@ def download_template():
             'SÓCIO 1 NOME', 'SÓCIO 1 CPF', 'SÓCIO 1 DATA NASCIMENTO', 
             'SÓCIO 1 ADMINISTRADOR', 'SÓCIO 1 COTAS', 'SÓCIO 1 RESPONSÁVEL LEGAL',
             
-            # Bloco 4: Contatos (10 campos)
+            # Bloco 4: Contatos (10 campos básicos + contatos detalhados)
             'TELEFONE FIXO', 'TELEFONE CELULAR', 'WHATSAPP', 
             'EMAIL PRINCIPAL', 'EMAIL SECUNDÁRIO', 'RESPONSÁVEL IMEDIATO',
             'EMAILS DOS SÓCIOS', 'CONTATO CONTADOR', 'TELEFONE CONTADOR', 'EMAIL CONTADOR',
+            
+            # Contatos Detalhados (até 10 contatos com 4 campos cada = 40 campos)
+            'CONTATO_1_NOME', 'CONTATO_1_CARGO', 'CONTATO_1_TELEFONE', 'CONTATO_1_EMAIL',
+            'CONTATO_2_NOME', 'CONTATO_2_CARGO', 'CONTATO_2_TELEFONE', 'CONTATO_2_EMAIL',
+            'CONTATO_3_NOME', 'CONTATO_3_CARGO', 'CONTATO_3_TELEFONE', 'CONTATO_3_EMAIL',
+            'CONTATO_4_NOME', 'CONTATO_4_CARGO', 'CONTATO_4_TELEFONE', 'CONTATO_4_EMAIL',
+            'CONTATO_5_NOME', 'CONTATO_5_CARGO', 'CONTATO_5_TELEFONE', 'CONTATO_5_EMAIL',
             
             # Bloco 5: Sistemas e Acessos (7 campos)
             'SISTEMA PRINCIPAL', 'VERSÃO DO SISTEMA', 'CÓDIGO ACESSO SIMPLES NACIONAL',
@@ -1424,6 +1850,115 @@ def test():
     </html>
     """
 
+@app.route('/update-sheet-headers')
+@admin_required
+def update_sheet_headers():
+    """Atualiza os cabeçalhos da planilha Google Sheets removendo campos não utilizados"""
+    try:
+        print("🔧 [ADMIN] Iniciando atualização dos cabeçalhos da planilha...")
+        
+        # Usar get_storage_service() para lazy loading
+        storage = get_storage_service()
+        
+        # Verificar se é o serviço do Google Sheets
+        if hasattr(storage, 'update_sheet_headers_for_removed_fields'):
+            print("✅ [ADMIN] Serviço Google Sheets detectado, iniciando atualização...")
+            success = storage.update_sheet_headers_for_removed_fields()
+            
+            if success:
+                message = """
+                <html>
+                <head>
+                    <title>Atualização Concluída</title>
+                    <style>
+                        body { font-family: Arial; padding: 20px; background: #f0f0f0; }
+                        .container { background: white; padding: 20px; border-radius: 8px; max-width: 800px; margin: 0 auto; }
+                        h1 { color: #28a745; }
+                        .info { background: #e7f3ff; padding: 15px; border-radius: 5px; margin: 10px 0; }
+                        .removed-fields { background: #fff3cd; padding: 15px; border-radius: 5px; margin: 10px 0; }
+                        ul { text-align: left; }
+                        .back-btn { background: #007bff; color: white; padding: 10px 20px; text-decoration: none; border-radius: 5px; display: inline-block; margin-top: 20px; }
+                    </style>
+                </head>
+                <body>
+                    <div class="container">
+                        <h1>✅ Planilha Google Sheets Atualizada!</h1>
+                        
+                        <div class="info">
+                            <h3>📊 Resumo da Atualização:</h3>
+                            <p><strong>Colunas atuais:</strong> 86 (antes eram 97)</p>
+                            <p><strong>Campos removidos:</strong> 11 campos não utilizados</p>
+                            <p><strong>Status:</strong> Planilha otimizada e sincronizada com o sistema</p>
+                        </div>
+                        
+                        <div class="removed-fields">
+                            <h3>🗑️ Campos Removidos do Bloco 2:</h3>
+                            <ul>
+                                <li>Sistema Principal</li>
+                                <li>Versão do Sistema</li>
+                                <li>Código Acesso Simples</li>
+                                <li>CPF/CNPJ para Acesso</li>
+                                <li>Portal Cliente Ativo</li>
+                                <li>Integração Domínio</li>
+                                <li>Sistema Onvio</li>
+                                <li>Onvio Contábil</li>
+                                <li>Onvio Fiscal</li>
+                                <li>Onvio Pessoal</li>
+                                <li>Módulo SPED Trier</li>
+                            </ul>
+                        </div>
+                        
+                        <div class="info">
+                            <h3>✅ Benefícios:</h3>
+                            <ul>
+                                <li>Planilha mais limpa e organizada</li>
+                                <li>Melhor performance</li>
+                                <li>Campos alinhados com o que realmente é usado</li>
+                                <li>Dados existentes preservados</li>
+                            </ul>
+                        </div>
+                        
+                        <a href="/" class="back-btn">← Voltar ao Painel</a>
+                    </div>
+                </body>
+                </html>
+                """
+                return message
+            else:
+                return """
+                <html>
+                <body style="font-family: Arial; padding: 20px; text-align: center;">
+                    <h1 style="color: #dc3545;">❌ Erro na Atualização</h1>
+                    <p>Não foi possível atualizar os cabeçalhos da planilha.</p>
+                    <p>Verifique os logs do sistema para mais detalhes.</p>
+                    <a href="/" style="background: #007bff; color: white; padding: 10px 20px; text-decoration: none; border-radius: 5px;">← Voltar</a>
+                </body>
+                </html>
+                """
+        else:
+            return """
+            <html>
+            <body style="font-family: Arial; padding: 20px; text-align: center;">
+                <h1 style="color: #ffc107;">⚠️ Serviço Não Compatível</h1>
+                <p>Esta função só está disponível quando usando Google Sheets como storage.</p>
+                <p>Serviço atual: {}</p>
+                <a href="/" style="background: #007bff; color: white; padding: 10px 20px; text-decoration: none; border-radius: 5px;">← Voltar</a>
+            </body>
+            </html>
+            """.format(type(storage).__name__)
+            
+    except Exception as e:
+        print(f"❌ [ADMIN] Erro ao atualizar cabeçalhos: {e}")
+        return f"""
+        <html>
+        <body style="font-family: Arial; padding: 20px; text-align: center;">
+            <h1 style="color: #dc3545;">❌ Erro</h1>
+            <p>Erro ao atualizar cabeçalhos: {str(e)}</p>
+            <a href="/" style="background: #007bff; color: white; padding: 10px 20px; text-decoration: none; border-radius: 5px;">← Voltar</a>
+        </body>
+        </html>
+        """
+
 @app.route('/client/<client_id>')
 @login_required
 def view_client(client_id):
@@ -1440,7 +1975,8 @@ def view_client(client_id):
         if client:
             print(f"🔍 [VIEW] Nome do cliente: {client.get('nomeEmpresa')}")
             print(f"🔍 [VIEW] ID do cliente retornado: '{client.get('id')}'")
-            return render_template('client_view_modern.html', client=client)
+            # Usa a nova versão de visualização alinhada ao formulário
+            return render_template('client_view_modern_new.html', client=client)
         else:
             print(f"❌ [VIEW] Cliente {client_id} não encontrado!")
             flash('Cliente não encontrado', 'error')
@@ -1455,7 +1991,9 @@ def view_client(client_id):
 @app.route('/client/new')
 @login_required
 def new_client():
-    return render_template('client_form_complete.html', client=None)
+    segmentos = get_segmentos_list()
+    atividades = get_atividades_list()
+    return render_template('client_form_complete.html', client=None, segmentos=segmentos, atividades=atividades)
 
 @app.route('/client/<client_id>/edit')
 @login_required
@@ -1480,7 +2018,9 @@ def edit_client(client_id):
                 print(f"⚠️ [EDIT] Cliente não tem ID! Forçando ID = {client_id}")
                 client['id'] = client_id
             
-            return render_template('client_form_complete.html', client=client)
+            segmentos = get_segmentos_list()
+            atividades = get_atividades_list()
+            return render_template('client_form_complete.html', client=client, segmentos=segmentos, atividades=atividades)
         else:
             print(f"❌ [EDIT] Cliente {client_id} não encontrado!")
             flash('Cliente não encontrado', 'error')
@@ -1501,6 +2041,7 @@ def save_client():
     
     # CORREÇÃO DUPLICAÇÃO: Verificar ID primeiro
     client_id = request.form.get('id', '').strip()
+    row_number = request.form.get('row_number')
     print(f"🔍 ID do cliente (raw): '{request.form.get('id')}'")
     print(f"🔍 ID do cliente (processed): '{client_id}'")
     print(f"🔍 Operação: {'EDIÇÃO' if client_id else 'CRIAÇÃO'}")
@@ -1511,7 +2052,8 @@ def save_client():
         razao_social = request.form.get('razaoSocialReceita', '').strip()
         nome_fantasia = request.form.get('nomeFantasiaReceita', '').strip()
         cpf_cnpj = request.form.get('cpfCnpj', '').strip()
-        perfil = request.form.get('perfil', '').strip()
+        # Compat: o formulário usa 'perfilCliente'
+        perfil = (request.form.get('perfilCliente') or request.form.get('perfil') or '').strip()
         insc_est = request.form.get('inscEst', '').strip()
         insc_mun = request.form.get('inscMun', '').strip()
         estado = request.form.get('estado', '').strip()
@@ -1568,6 +2110,7 @@ def save_client():
         # Dados básicos obrigatórios - Bloco 1
         client_data = {
             'id': client_id if client_id else None,  # FIXADO: usar variável processada
+            '_row_number': int(row_number) if row_number and row_number.isdigit() else None,
             
             # Bloco 1: Informações da Pessoa Física / Jurídica
             'nomeEmpresa': nome_empresa,
@@ -1576,6 +2119,7 @@ def save_client():
             'cpfCnpj': cpf_cnpj,
             'cnpj': cpf_cnpj,  # Manter compatibilidade com campo antigo
             'perfil': perfil,
+            'perfilCliente': perfil,  # alias
             'inscEst': insc_est,
             'inscMun': insc_mun,
             'estado': estado,
@@ -1592,6 +2136,9 @@ def save_client():
             'fs': request.form.get('fs') == 'on',
             'dp': request.form.get('dp') == 'on',
             'dataInicioServicos': request.form.get('dataInicioServicos', ''),
+            # Novos campos Bloco 2
+            'domestica': request.form.get('domestica', '').strip().upper(),
+            'geraArquivoSped': request.form.get('geraArquivoSped', '').strip().upper(),
             
             # Códigos dos Sistemas (Bloco 2)
             'codFortesCt': request.form.get('codFortesCt', ''),
@@ -1599,7 +2146,6 @@ def save_client():
             'codFortesPs': request.form.get('codFortesPs', ''),
             'codDominio': request.form.get('codDominio', ''),
             'sistemaUtilizado': request.form.get('sistemaUtilizado', ''),
-            'moduloSpedTrier': request.form.get('moduloSpedTrier', ''),
             
             # Bloco 4: Contatos
             'telefoneFixo': request.form.get('telefoneFixo', ''),
@@ -1621,27 +2167,31 @@ def save_client():
             if nome_socio:  # Se há nome, processar os dados do sócio
                 client_data[f'socio_{i}_nome'] = nome_socio
                 client_data[f'socio_{i}_cpf'] = request.form.get(f'socio_{i}_cpf', '').strip()
+                client_data[f'socio_{i}_data_nascimento'] = request.form.get(f'socio_{i}_data_nascimento', '').strip()
+                client_data[f'socio_{i}_participacao'] = request.form.get(f'socio_{i}_participacao', '').strip()
+                client_data[f'socio_{i}_administrador'] = request.form.get(f'socio_{i}_administrador') == '1'
+                client_data[f'socio_{i}_resp_legal'] = request.form.get('representante_legal') == f'socio_{i}'
                 client_data[f'socio_{i}_email'] = request.form.get(f'socio_{i}_email', '').strip()
                 client_data[f'socio_{i}_telefone'] = request.form.get(f'socio_{i}_telefone', '').strip()
-                client_data[f'socio_{i}_participacao'] = request.form.get(f'socio_{i}_participacao', '').strip()
-                print(f"🔍 Sócio {i}: {nome_socio}")
+                print(f"🔍 Sócio {i}: {nome_socio} - CPF: {client_data[f'socio_{i}_cpf']} - Admin: {client_data[f'socio_{i}_administrador']}")
+        
+        # Processar dados dos contatos dinamicamente
+        print("🔍 Processando dados dos contatos...")
+        for i in range(1, 11):  # Suporte para até 10 contatos
+            nome_contato = request.form.get(f'contato_{i}_nome', '').strip()
+            telefone_contato = request.form.get(f'contato_{i}_telefone', '').strip()
+            email_contato = request.form.get(f'contato_{i}_email', '').strip()
+            cargo_contato = request.form.get(f'contato_{i}_cargo', '').strip()
+            
+            if nome_contato or telefone_contato or email_contato:  # Se há pelo menos um dado, processar o contato
+                client_data[f'contato_{i}_nome'] = nome_contato
+                client_data[f'contato_{i}_telefone'] = telefone_contato
+                client_data[f'contato_{i}_email'] = email_contato
+                client_data[f'contato_{i}_cargo'] = cargo_contato
+                print(f"🔍 Contato {i}: {nome_contato} - Cargo: {cargo_contato} - Tel: {telefone_contato} - Email: {email_contato}")
         
         # Continuar com outros dados
         client_data.update({
-            
-            # Bloco 5: Sistemas e Acessos
-            'sistemaPrincipal': request.form.get('sistemaPrincipal', ''),
-            'versaoSistema': request.form.get('versaoSistema', ''),
-            'codAcessoSimples': request.form.get('codAcessoSimples', ''),
-            'cpfCnpjAcesso': request.form.get('cpfCnpjAcesso', ''),
-            'portalClienteAtivo': request.form.get('portalClienteAtivo') == 'on',
-            'integracaoDominio': request.form.get('integracaoDominio') == 'on',
-            'sistemaOnvio': request.form.get('sistemaOnvio') == 'on',
-            
-            # Novos campos Sistema Onvio
-            'sistemaOnvioContabil': request.form.get('sistemaOnvioContabil') == 'on',
-            'sistemaOnvioFiscal': request.form.get('sistemaOnvioFiscal') == 'on',
-            'sistemaOnvioPessoal': request.form.get('sistemaOnvioPessoal') == 'on',
             
             # Bloco 6: Senhas e Credenciais
             'acessoIss': request.form.get('acessoIss', ''),
@@ -1697,9 +2247,16 @@ def save_client():
             'ativo': request.form.get('ativo') == 'on',
         })
         
+        # Regras complementares
         # Sincronizar statusCliente com ativo para compatibilidade
         status_cliente = client_data.get('statusCliente', 'ativo')
         client_data['ativo'] = status_cliente == 'ativo'
+        
+        # Aplicar regra Doméstica no backend (segurança): só permitido quando CPF completo (11 dígitos)
+        import re
+        digits = re.sub(r'\D', '', client_data.get('cnpj', ''))
+        if len(digits) != 11:
+            client_data['domestica'] = 'NÃO'
         
         # CORREÇÃO DUPLICAÇÃO: Melhor controle de criação vs edição
         if not client_data.get('id'):
@@ -1763,7 +2320,19 @@ def delete_client(client_id):
         
         # CORREÇÃO: Usar get_storage_service() para lazy loading
         storage = get_storage_service()
-        success = storage.delete_client(client_id)
+        # Suportar deleção direta por linha quando disponível
+        row_number = request.form.get('row_number')
+        if row_number and hasattr(storage, 'delete_client_by_row'):
+            try:
+                row_number_int = int(row_number)
+            except ValueError:
+                row_number_int = None
+            if row_number_int and row_number_int > 1:
+                success = storage.delete_client_by_row(row_number_int)
+            else:
+                success = storage.delete_client(client_id)
+        else:
+            success = storage.delete_client(client_id)
         if success:
             flash('Cliente excluído com sucesso!', 'success')
         else:

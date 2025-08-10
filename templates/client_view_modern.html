@@ -92,8 +92,9 @@
                     <div class="col-md-4 mb-3">
                         <label class="form-label text-muted">Perfil do Cliente</label>
                         <p class="mb-0">
-                            {% if client.perfil %}
-                                <span class="badge bg-info">{{ client.perfil }}</span>
+                            {% set perfil_val = client.perfil or client.perfilCliente %}
+                            {% if perfil_val %}
+                                <span class="badge bg-info">{{ perfil_val }}</span>
                             {% else %}
                                 -
                             {% endif %}
@@ -163,6 +164,27 @@
             </div>
             <div class="card-body">
                 <div class="row">
+                    <!-- Indicadores específicos -->
+                    <div class="col-md-3 mb-3">
+                        <label class="form-label text-muted">Doméstica</label>
+                        <p class="mb-0">
+                            {% if client.domestica %}
+                                <span class="badge bg-secondary">{{ client.domestica }}</span>
+                            {% else %}
+                                -
+                            {% endif %}
+                        </p>
+                    </div>
+                    <div class="col-md-3 mb-3">
+                        <label class="form-label text-muted">Gera arquivo do Sped</label>
+                        <p class="mb-0">
+                            {% if client.geraArquivoSped %}
+                                <span class="badge bg-secondary">{{ client.geraArquivoSped }}</span>
+                            {% else %}
+                                -
+                            {% endif %}
+                        </p>
+                    </div>
                     <div class="col-md-12 mb-3">
                         <label class="form-label text-muted">Serviços Contratados</label>
                         <div class="d-flex gap-2 flex-wrap">
@@ -280,7 +302,7 @@
         </div>
 
         <!-- Bloco 3: Quadro Societário -->
-        <div class="card mb-4">
+    <div class="card mb-4">
             <div class="card-header bg-info text-white">
                 <h5 class="mb-0">
                     <i class="fas fa-users me-2"></i>
@@ -310,9 +332,9 @@
                                     {% set socio_cpf = client.get('socio' + i|string + '_cpf') %}
                                     {% if socio_cpf %}
                                         <code>{{ socio_cpf }}</code>
-                                    {% else %}
-                                        -
-                                    {% endif %}
+                                    {% set found_socio = false %}
+                                    {% for i in range(1, 5) %}
+                                        {% set socio_nome = client.get('socio_' ~ i ~ '_nome') %}
                                 </p>
                             </div>
                             <div class="col-md-4 mb-2">
@@ -329,33 +351,43 @@
                                         -
                                     {% endif %}
                                 </p>
-                            </div>
+                                                        {% set socio_cpf = client.get('socio_' ~ i ~ '_cpf') %}
                             <div class="col-md-4 mb-2">
-                                <label class="form-label text-muted">% Cotas</label>
+                                                            <code class="user-select-all">{{ socio_cpf | only_numbers }}</code>
                                 <p class="mb-0">{{ client.get('socio' + i|string + '_cotas') or '-' }}</p>
                             </div>
                         </div>
                         {% if not loop.last %}<hr>{% endif %}
                     {% endif %}
-                {% endfor %}
-                {% if not found_socio %}
-                    <p class="text-muted text-center">
-                        <i class="fas fa-info-circle me-2"></i>
-                        Nenhum sócio cadastrado
-                    </p>
-                {% endif %}
-            </div>
-        </div>
-
-        <!-- Bloco 4: Contatos -->
-        <div class="card mb-4">
-            <div class="card-header bg-warning text-dark">
-                <h5 class="mb-0">
-                    <i class="fas fa-address-book me-2"></i>
-                    Bloco 4 - Contatos
-                </h5>
-            </div>
-            <div class="card-body">
+                                                <div class="col-md-4 mb-2">
+                                                    <label class="form-label text-muted">Data Nascimento</label>
+                                                    <p class="mb-0">{{ client.get('socio_' ~ i ~ '_data_nascimento') or client.get('socio_' ~ i ~ '_dataNascimento') or '-' }}</p>
+                                                </div>
+                                                <div class="col-md-4 mb-2">
+                                                    <label class="form-label text-muted">Administrador</label>
+                                                    <p class="mb-0">
+                                                        {% set socio_admin = client.get('socio_' ~ i ~ '_administrador') %}
+                                                        {% if socio_admin %}
+                                                            <span class="badge bg-success">{{ socio_admin }}</span>
+                                                        {% else %}
+                                                            -
+                                                        {% endif %}
+                                                    </p>
+                                                </div>
+                                                <div class="col-md-4 mb-2">
+                                                    <label class="form-label text-muted">% Participação</label>
+                                                    <p class="mb-0">{{ client.get('socio_' ~ i ~ '_participacao') or '-' }}</p>
+                                                </div>
+                                                {% if client.get('socio_' ~ i ~ '_email') or client.get('socio_' ~ i ~ '_telefone') %}
+                                                <div class="col-md-6 mb-2">
+                                                    <label class="form-label text-muted">E-mail</label>
+                                                    <p class="mb-0">{{ client.get('socio_' ~ i ~ '_email') or '-' }}</p>
+                                                </div>
+                                                <div class="col-md-6 mb-2">
+                                                    <label class="form-label text-muted">Telefone</label>
+                                                    <p class="mb-0">{{ client.get('socio_' ~ i ~ '_telefone') or '-' }}</p>
+                                                </div>
+                                                {% endif %}
                 <div class="row">
                     <div class="col-md-4 mb-3">
                         <label class="form-label text-muted">telefone fixo</label>
@@ -421,46 +453,12 @@
             </div>
         </div>
 
-        <!-- Bloco 5: Sistemas e Acessos -->
-        <div class="card mb-4">
-            <div class="card-header bg-secondary text-white">
-                <h5 class="mb-0">
-                    <i class="fas fa-desktop me-2"></i>
-                    Bloco 5 - Sistemas e Acessos
-                </h5>
-            </div>
-            <div class="card-body">
-                <div class="row">
-                    <div class="col-md-6 mb-3">
-                        <label class="form-label text-muted">Sistema Principal</label>
-                        <p class="mb-0">
-                            {% if client.sistemaPrincipal or client.sistemaUtilizado %}
-                                <span class="badge bg-info">{{ client.sistemaPrincipal or client.sistemaUtilizado }}</span>
-                            {% else %}
-                                -
-                            {% endif %}
-                        </p>
-                    </div>
-                    <div class="col-md-6 mb-3">
-                        <label class="form-label text-muted">Código Acesso Simples Nacional</label>
-                        <p class="mb-0">
-                            {% if client.codAcessoSimples %}
-                                <code>{{ client.codAcessoSimples }}</code>
-                            {% else %}
-                                -
-                            {% endif %}
-                        </p>
-                    </div>
-                </div>
-            </div>
-        </div>
-
-        <!-- Bloco 6: Senhas e Credenciais -->
+        <!-- Bloco 5: Senhas e Credenciais -->
         <div class="card mb-4">
             <div class="card-header bg-danger text-white">
                 <h5 class="mb-0">
                     <i class="fas fa-key me-2"></i>
-                    Bloco 6 - Senhas e Credenciais
+                    Bloco 5 - Senhas e Credenciais
                 </h5>
             </div>
             <div class="card-body">
@@ -502,12 +500,12 @@
             </div>
         </div>
 
-        <!-- Bloco 7: Procurações -->
+        <!-- Bloco 6: Procurações -->
         <div class="card mb-4">
             <div class="card-header bg-dark text-white">
                 <h5 class="mb-0">
                     <i class="fas fa-file-contract me-2"></i>
-                    Bloco 7 - Procurações
+                    Bloco 6 - Procurações
                 </h5>
             </div>
             <div class="card-body">
@@ -562,12 +560,12 @@
             </div>
         </div>
 
-        <!-- Bloco 8: Observações e Dados Adicionais -->
+        <!-- Bloco 7: Observações e Dados Adicionais -->
         <div class="card mb-4">
             <div class="card-header bg-light text-dark">
                 <h5 class="mb-0">
                     <i class="fas fa-sticky-note me-2"></i>
-                    Bloco 8 - Observações e Dados Adicionais
+                    Bloco 7 - Observações e Dados Adicionais
                 </h5>
             </div>
             <div class="card-body">
@@ -641,7 +639,8 @@
                     
                     <div class="info-item d-flex justify-content-between align-items-center mb-3">
                         <span class="text-muted">Perfil:</span>
-                        <strong class="text-info">{{ client.perfil or '-' }}</strong>
+                        {% set perfil_val = client.perfil or client.perfilCliente %}
+                        <strong class="text-info">{{ perfil_val or '-' }}</strong>
                     </div>
                     
                     <div class="info-item d-flex justify-content-between align-items-center mb-3">
@@ -853,10 +852,6 @@
 .user-select-all:hover {
     background-color: #e3f2fd;
     border-color: #2196f3;
-}
-    display: flex;
-    align-items: center;
-    justify-content: center;
 }
 
 @media (max-width: 991px) {

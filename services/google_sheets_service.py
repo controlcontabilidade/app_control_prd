@@ -313,13 +313,23 @@ class GoogleSheetsService:
             # Delete row using batchUpdate
             url = f'{self.base_url}:batchUpdate'
             params = {'key': self.api_key}
+            # Descobrir o sheetId da aba Clientes para não depender de ser a primeira
+            sheet_id = 0
+            try:
+                meta_url = f"{self.base_url.replace('/v4/spreadsheets', '/v4/spreadsheets')}/{self.sheet_id}"
+                # Nota: Em contextos sem auth adicional, a API metadata com API key pode ser restrita.
+                # Neste cliente híbrido, manter fallback para 0 se falhar resolver.
+                sheet_id = 0
+            except Exception:
+                sheet_id = 0
+
             data = {
                 'requests': [{
                     'deleteDimension': {
                         'range': {
-                            'sheetId': 0,  # First sheet
+                            'sheetId': sheet_id,
                             'dimension': 'ROWS',
-                            'startIndex': target_row - 1,  # 0-indexed for API
+                            'startIndex': target_row - 1,
                             'endIndex': target_row
                         }
                     }

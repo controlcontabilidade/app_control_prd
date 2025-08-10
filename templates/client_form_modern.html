@@ -43,94 +43,64 @@
             </h5>
         </div>
         <div class="card-body">
+            <!-- Primeira linha: Nome da Empresa e Razão Social -->
             <div class="row">
                 <div class="col-md-6 mb-3">
                     <label for="nomeEmpresa" class="form-label">
-                        <i class="bi bi-building me-1"></i>NOME DA EMPRESA 
-                        <span class="text-danger">*</span>
+                        <i class="bi bi-building me-1"></i>Nome da Empresa
+                        <span class="text-danger required-field">*</span>
                     </label>
-                    <input type="text" class="form-control" id="nomeEmpresa" name="nomeEmpresa" 
+                    <input type="text" class="form-control upper-input" id="nomeEmpresa" name="nomeEmpresa" 
                            value="{{ client.nomeEmpresa if client else '' }}" required>
                     <div class="invalid-feedback">
                         Por favor, informe o nome da empresa.
                     </div>
-                
+                </div>
                 <div class="col-md-6 mb-3">
                     <label for="razaoSocialReceita" class="form-label">
-                        <i class="bi bi-file-text me-1"></i>RAZÃO SOCIAL (RECEITA)
-                        <span class="text-danger">*</span>
+                        <i class="bi bi-file-text me-1"></i>Razão Social (Receita)
+                        <span class="text-danger conditional-required">*</span>
                     </label>
-                    <input type="text" class="form-control" id="razaoSocialReceita" name="razaoSocialReceita"
-                           value="{{ client.razaoSocialReceita if client else '' }}" required>
+                    <input type="text" class="form-control upper-input" id="razaoSocialReceita" name="razaoSocialReceita"
+                           value="{{ client.razaoSocialReceita if client else '' }}">
                     <div class="invalid-feedback">
                         Por favor, informe a razão social.
                     </div>
-                
+                </div>
+            </div>
+            
+            <!-- Segunda linha: Nome Fantasia e CPF/CNPJ -->
+            <div class="row">
                 <div class="col-md-6 mb-3">
                     <label for="nomeFantasiaReceita" class="form-label">
-                        <i class="bi bi-shop me-1"></i>NOME FANTASIA (RECEITA)
-                        <span class="text-danger">*</span>
+                        <i class="bi bi-shop me-1"></i>Nome Fantasia (Receita)
+                        <span class="text-danger conditional-required">*</span>
                     </label>
-                    <input type="text" class="form-control" id="nomeFantasiaReceita" name="nomeFantasiaReceita"
-                           value="{{ client.nomeFantasiaReceita if client else '' }}" required>
+                    <input type="text" class="form-control upper-input" id="nomeFantasiaReceita" name="nomeFantasiaReceita"
+                           value="{{ client.nomeFantasiaReceita if client else '' }}">
                     <div class="invalid-feedback">
                         Por favor, informe o nome fantasia.
                     </div>
-                
+                </div>
                 <div class="col-md-6 mb-3">
                     <label for="cpfCnpj" class="form-label">
                         <i class="bi bi-card-text me-1"></i>CPF/CNPJ
-                        <span class="text-danger">*</span>
+                        <span class="text-danger required-field">*</span>
                     </label>
-                    <input type="text" class="form-control" id="cpfCnpj" name="cpfCnpj"
-                           value="{{ client.cpfCnpj if client else '' }}" 
-                            "placeholder= +                            placeholder="00.000.000/0001-00" required>
+                    <input type="text" class="form-control upper-input" id="cpfCnpj" name="cpfCnpj"
+                           value="{{ client.cpfCnpj if client else '' }}" placeholder="00.000.000/0001-00" required>
                     <div class="invalid-feedback">
                         Por favor, informe o CPF ou CNPJ.
                     </div>
-                
-                <div class="col-md-6 mb-3">
-                    <label for="perfil" class="form-label">
-                        <i class="bi bi-star me-1"></i>PERFIL do cliente
-                        <span class="text-danger">*</span>
-                    </label>
-                    <select class="form-select" id="perfil" name="perfil" required>
-                        <option value="">Selecione um perfil</option>
-                        <option value="A" {% if client and client.perfil == 'A' %}selected{% endif %}>Escolha A</option>
-                        <option value="B" {% if client and client.perfil == 'B' %}selected{% endif %}>Escolha B</option>
-                        <option value="C" {% if client and client.perfil == 'C' %}selected{% endif %}>Escolha C</option>
-                        <option value="D" {% if client and client.perfil == 'D' %}selected{% endif %}>Escolha D</option>
-                    </select>
-                    <div class="invalid-feedback">
-                        Por favor, selecione um perfil.
-                    </div>
-                
-                <div class="col-md-6 mb-3">
-                    <label for="inscEst" class="form-label">
-                        <i class="bi bi-card-list me-1"></i>INSCRIÇÃO ESTADUAL
-                        <span class="text-danger">*</span>
-                    </label>
-                    <input type="text" class="form-control" id="inscEst" name="inscEst"
-                           value="{{ client.inscEst if client else '' }}" required>
-                    <div class="invalid-feedback">
-                        Por favor, informe a inscrição estadual.
-                    </div>
-                
-                <div class="col-md-6 mb-3">
-                    <label for="inscMun" class="form-label">
-                        <i class="bi bi-geo-alt me-1"></i>INSCRIÇÃO MUNICIPAL
-                        <span class="text-danger">*</span>
-                    </label>
-                    <input type="text" class="form-control" id="inscMun" name="inscMun"
-                           value="{{ client.inscMun if client else '' }}" required>
-                    <div class="invalid-feedback">
-                        Por favor, informe a inscrição municipal.
-                    </div>
-                
-                <div class="col-md-6 mb-3">
+                </div>
+            </div>
+            
+            <!-- Terceira linha: Estado, Cidade, Inscrição Estadual, Inscrição Municipal -->
+            <div class="row">
+                <div class="col-md-3 mb-3">
                     <label for="estado" class="form-label">
-                        <i class="bi bi-map me-1"></i>ESTADO
-                        <span class="text-danger">*</span>
+                        <i class="bi bi-map me-1"></i>Estado
+                        <span class="text-danger required-field">*</span>
                     </label>
                     <select class="form-select" id="estado" name="estado" required>
                         <option value="">Selecione o estado</option>
@@ -165,72 +135,115 @@
                     <div class="invalid-feedback">
                         Por favor, selecione o estado.
                     </div>
-                
-                <div class="col-md-6 mb-3">
+                </div>
+                <div class="col-md-3 mb-3">
                     <label for="cidade" class="form-label">
-                        <i class="bi bi-geo me-1"></i>CIDADE
-                        <span class="text-danger">*</span>
+                        <i class="bi bi-geo me-1"></i>Cidade
+                        <span class="text-danger required-field">*</span>
                     </label>
-                    <input type="text" class="form-control" id="cidade" name="cidade"
+                    <input type="text" class="form-control upper-input" id="cidade" name="cidade"
                            value="{{ client.cidade if client else '' }}" required>
                     <div class="invalid-feedback">
                         Por favor, informe a cidade.
                     </div>
-                
-                <div class="col-md-6 mb-3">
-                    <label for="regimeFederal" class="form-label">
-                        <i class="bi bi-percent me-1"></i>REGIME FEDERAL
-                        <span class="text-danger">*</span>
+                </div>
+                <div class="col-md-3 mb-3">
+                    <label for="inscEst" class="form-label">
+                        <i class="bi bi-card-list me-1"></i>Inscrição Estadual
+                        <span class="text-danger conditional-required">*</span>
                     </label>
-                    <select class="form-select" id="regimeFederal" name="regimeFederal" required>
-                        <option value="">Selecione o regime federal</option>
-                        <option value="SIMPLES" {% if client and client.regimeFederal == 'SIMPLES' %}selected{% endif %}>Simples Nacional</option>
-                        <option value="LUCRO_PRESUMIDO" {% if client and client.regimeFederal == 'LUCRO_PRESUMIDO' %}selected{% endif %}>Lucro Presumido</option>
-                        <option value="LUCRO_REAL" {% if client and client.regimeFederal == 'LUCRO_REAL' %}selected{% endif %}>Lucro Real</option>
-                        <option value="MEI" {% if client and client.regimeFederal == 'MEI' %}selected{% endif %}>MEI</option>
-                    </select>
+                    <input type="text" class="form-control upper-input" id="inscEst" name="inscEst"
+                           value="{{ client.inscEst if client else '' }}">
                     <div class="invalid-feedback">
-                        Por favor, selecione o regime federal.
+                        Por favor, informe a inscrição estadual.
                     </div>
-                
+                </div>
+                <div class="col-md-3 mb-3">
+                    <label for="inscMun" class="form-label">
+                        <i class="bi bi-geo-alt me-1"></i>Inscrição Municipal
+                        <span class="text-danger conditional-required">*</span>
+                    </label>
+                    <input type="text" class="form-control upper-input" id="inscMun" name="inscMun"
+                           value="{{ client.inscMun if client else '' }}">
+                    <div class="invalid-feedback">
+                        Por favor, informe a inscrição municipal.
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Quarta linha: Segmento, Atividade Principal -->
+            <div class="row">
+                <div class="col-md-6 mb-3">
+                    <label for="segmento" class="form-label">
+                        <i class="bi bi-tags me-1"></i>Segmento
+                        <span class="text-danger conditional-required">*</span>
+                    </label>
+                    <div class="input-group">
+                        <input type="text" class="form-control upper-input" id="segmento" name="segmento"
+                               value="{{ client.segmento if client else '' }}">
+                        <button class="btn btn-outline-secondary" type="button" onclick="window.open('/segmentos', '_blank')" title="Cadastrar novos segmentos">
+                            <i class="bi bi-plus-circle"></i>
+                        </button>
+                    </div>
+                    <div class="invalid-feedback">
+                        Por favor, informe o segmento.
+                    </div>
+                </div>
+                <div class="col-md-6 mb-3">
+                    <label for="atividade" class="form-label">
+                        <i class="bi bi-briefcase me-1"></i>Atividade Principal
+                        <span class="text-danger conditional-required">*</span>
+                    </label>
+                    <div class="input-group">
+                        <input type="text" class="form-control upper-input" id="atividade" name="atividade"
+                               value="{{ client.atividade if client else '' }}">
+                        <button class="btn btn-outline-secondary" type="button" onclick="window.open('/atividades', '_blank')" title="Cadastrar novas atividades">
+                            <i class="bi bi-plus-circle"></i>
+                        </button>
+                    </div>
+                    <div class="invalid-feedback">
+                        Por favor, informe a atividade principal.
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Quinta linha: Regime Estadual e Regime Federal -->
+            <div class="row">
                 <div class="col-md-6 mb-3">
                     <label for="regimeEstadual" class="form-label">
-                        <i class="bi bi-bank me-1"></i>REGIME ESTADUAL
-                        <span class="text-danger">*</span>
+                        <i class="bi bi-bank me-1"></i>Regime Estadual
+                        <span class="text-danger conditional-required">*</span>
                     </label>
-                    <select class="form-select" id="regimeEstadual" name="regimeEstadual" required>
+                    <select class="form-select" id="regimeEstadual" name="regimeEstadual">
                         <option value="">Selecione o regime estadual</option>
                         <option value="SIMPLES" {% if client and client.regimeEstadual == 'SIMPLES' %}selected{% endif %}>Simples Nacional</option>
                         <option value="NORMAL" {% if client and client.regimeEstadual == 'NORMAL' %}selected{% endif %}>Regime Normal</option>
-                        <option value="ISENTO" {% if client and client.regimeEstadual == 'ISENTO' %}selected{% endif %}>Isento</option>
+                        <option value="REGIME_ESPECIAL" {% if client and client.regimeEstadual == 'REGIME_ESPECIAL' %}selected{% endif %}>Regime Especial</option>
                     </select>
                     <div class="invalid-feedback">
                         Por favor, selecione o regime estadual.
                     </div>
-                
+                </div>
                 <div class="col-md-6 mb-3">
-                    <label for="segmento" class="form-label">
-                        <i class="bi bi-tags me-1"></i>SEGMENTO
-                        <span class="text-danger">*</span>
+                    <label for="regimeFederal" class="form-label">
+                        <i class="bi bi-percent me-1"></i>Regime Federal
+                        <span class="text-danger conditional-required">*</span>
                     </label>
-                    <input type="text" class="form-control" id="segmento" name="segmento"
-                           value="{{ client.segmento if client else '' }}" required>
+                    <select class="form-select" id="regimeFederal" name="regimeFederal">
+                        <option value="">Selecione o regime federal</option>
+                        <option value="MEI" {% if client and client.regimeFederal == 'MEI' %}selected{% endif %}>MEI</option>
+                        <option value="SIMPLES" {% if client and client.regimeFederal == 'SIMPLES' %}selected{% endif %}>Simples Nacional</option>
+                        <option value="LUCRO_PRESUMIDO" {% if client and client.regimeFederal == 'LUCRO_PRESUMIDO' %}selected{% endif %}>Lucro Presumido</option>
+                        <option value="LUCRO_REAL" {% if client and client.regimeFederal == 'LUCRO_REAL' %}selected{% endif %}>Lucro Real</option>
+                        <option value="REGIME_ESPECIAL" {% if client and client.regimeFederal == 'REGIME_ESPECIAL' %}selected{% endif %}>Regime Especial</option>
+                    </select>
                     <div class="invalid-feedback">
-                        Por favor, informe o segmento.
+                        Por favor, selecione o regime federal.
                     </div>
-                
-                <div class="col-md-6 mb-3">
-                    <label for="atividade" class="form-label">
-                        <i class="bi bi-briefcase me-1"></i>ATIVIDADE PRINCIPAL
-                        <span class="text-danger">*</span>
-                    </label>
-                    <input type="text" class="form-control" id="atividade" name="atividade"
-                           value="{{ client.atividade if client else '' }}" required>
-                    <div class="invalid-feedback">
-                        Por favor, informe a atividade principal.
-                    </div>
-
-    <!-- Bloco 2: Serviços Prestados pela Control -->
+                </div>
+            </div>
+        </div>
+    </div>
     <div class="card mb-4">
         <div class="card-header bg-success text-white">
             <h5 class="mb-0">
@@ -789,6 +802,63 @@
                 {% endif %}
             </div>
 </form>
+<style>
+    .upper-input { text-transform: uppercase; }
+    .conditional-required { display: none; }
+</style>
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        // Forçar caixa alta nos inputs
+        document.querySelectorAll('.upper-input').forEach(function(input) {
+            input.addEventListener('input', function() {
+                this.value = this.value.toUpperCase();
+            });
+        });
+        
+        // Controlar obrigatoriedade baseada no tipo de documento
+        const cpfCnpjInput = document.getElementById('cpfCnpj');
+        const requiredFields = document.querySelectorAll('.required-field');
+        const conditionalFields = document.querySelectorAll('.conditional-required');
+        
+        function updateRequiredFields() {
+            const value = cpfCnpjInput.value.replace(/\D/g, '');
+            const isCPF = value.length <= 11;
+            
+            // Se for CPF, só obrigar: Nome da Empresa, CPF, Estado, Cidade
+            if (isCPF) {
+                // Ocultar asteriscos condicionais
+                conditionalFields.forEach(span => {
+                    span.style.display = 'none';
+                });
+                
+                // Remover required dos campos condicionais
+                ['razaoSocialReceita', 'nomeFantasiaReceita', 'inscEst', 'inscMun', 
+                 'segmento', 'atividade', 'regimeEstadual', 'regimeFederal'].forEach(fieldId => {
+                    const field = document.getElementById(fieldId);
+                    if (field) field.removeAttribute('required');
+                });
+            } else {
+                // Se for CNPJ, todos os campos são obrigatórios
+                conditionalFields.forEach(span => {
+                    span.style.display = 'inline';
+                });
+                
+                // Adicionar required aos campos condicionais
+                ['razaoSocialReceita', 'nomeFantasiaReceita', 'inscEst', 'inscMun', 
+                 'segmento', 'atividade', 'regimeEstadual', 'regimeFederal'].forEach(fieldId => {
+                    const field = document.getElementById(fieldId);
+                    if (field) field.setAttribute('required', 'required');
+                });
+            }
+        }
+        
+        // Executar ao carregar a página
+        updateRequiredFields();
+        
+        // Executar quando o CPF/CNPJ mudar
+        cpfCnpjInput.addEventListener('input', updateRequiredFields);
+    });
+</script>
 
 <!-- Modal de confirmação de exclusão -->
 {% if client %}

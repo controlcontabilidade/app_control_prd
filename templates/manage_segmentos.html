@@ -1,0 +1,232 @@
+{% extends "base.html" %}
+
+{% block title %}Gerenciar Segmentos - SIGEC{% endblock %}
+
+{% block content %}
+<div class="page-header">
+    <div class="row align-items-center">
+        <div class="col-md-8">
+            <h1>
+                <i class="bi bi-tags" style="color: var(--control-primary);"></i>
+                Gerenciar Segmentos
+            </h1>
+            <p class="mb-0">Cadastre e gerencie os segmentos de empresas</p>
+        </div>
+        <div class="col-md-4 text-end">
+            <button class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#novoSegmentoModal">
+                <i class="bi bi-plus-circle"></i>
+                Novo Segmento
+            </button>
+            <a href="/" class="btn btn-secondary">
+                <i class="bi bi-arrow-left"></i>
+                Voltar
+            </a>
+        </div>
+    </div>
+</div>
+
+<div class="card">
+    <div class="card-header">
+        <h5 class="mb-0">
+            <i class="bi bi-list-ul"></i>
+            Lista de Segmentos
+        </h5>
+    </div>
+    <div class="card-body">
+        {% if segmentos %}
+        <div class="table-responsive">
+            <table class="table table-striped table-hover">
+                <thead class="table-dark">
+                    <tr>
+                        <th>ID</th>
+                        <th>Nome</th>
+                        <th>Código</th>
+                        <th>Descrição</th>
+                        <th>Status</th>
+                        <th>Criado em</th>
+                        <th class="text-center">Ações</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for segmento in segmentos %}
+                    <tr>
+                        <td>{{ segmento.id }}</td>
+                        <td><strong>{{ segmento.nome }}</strong></td>
+                        <td><span class="badge bg-secondary">{{ segmento.codigo }}</span></td>
+                        <td>{{ segmento.descricao or '-' }}</td>
+                        <td>
+                            {% if segmento.ativo == 'Sim' %}
+                                <span class="badge bg-success">Ativo</span>
+                            {% else %}
+                                <span class="badge bg-danger">Inativo</span>
+                            {% endif %}
+                        </td>
+                        <td>{{ segmento.data_criacao }}</td>
+                        <td class="text-center">
+                            <button class="btn btn-sm btn-outline-primary" onclick="editarSegmento('{{ segmento.id }}')">
+                                <i class="bi bi-pencil"></i>
+                            </button>
+                            <button class="btn btn-sm btn-outline-danger" onclick="excluirSegmento('{{ segmento.id }}')">
+                                <i class="bi bi-trash"></i>
+                            </button>
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+        {% else %}
+        <div class="text-center py-5">
+            <i class="bi bi-tags" style="font-size: 3rem; color: #ccc;"></i>
+            <h4 class="mt-3">Nenhum segmento cadastrado</h4>
+            <p class="text-muted">Clique em "Novo Segmento" para adicionar o primeiro</p>
+        </div>
+        {% endif %}
+    </div>
+</div>
+
+<!-- Modal Novo Segmento -->
+<div class="modal fade" id="novoSegmentoModal" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">
+                    <i class="bi bi-plus-circle"></i>
+                    Novo Segmento
+                </h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <form id="formNovoSegmento" method="POST" action="/segmentos/create">
+                <div class="modal-body">
+                    <div class="mb-3">
+                        <label for="nome" class="form-label">Nome <span class="text-danger">*</span></label>
+                        <input type="text" class="form-control upper-input" id="nome" name="nome" required maxlength="100">
+                    </div>
+                    <div class="mb-3">
+                        <label for="codigo" class="form-label">Código <span class="text-danger">*</span></label>
+                        <input type="text" class="form-control upper-input" id="codigo" name="codigo" required maxlength="20">
+                    </div>
+                    <div class="mb-3">
+                        <label for="descricao" class="form-label">Descrição</label>
+                        <textarea class="form-control" id="descricao" name="descricao" rows="3" maxlength="500"></textarea>
+                    </div>
+                    <div class="mb-3">
+                        <div class="form-check">
+                            <input class="form-check-input" type="checkbox" id="ativo" name="ativo" checked>
+                            <label class="form-check-label" for="ativo">Ativo</label>
+                        </div>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
+                    <button type="submit" class="btn btn-primary">
+                        <i class="bi bi-check-circle"></i>
+                        Salvar
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<!-- Modal Editar Segmento -->
+<div class="modal fade" id="editarSegmentoModal" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">
+                    <i class="bi bi-pencil"></i>
+                    Editar Segmento
+                </h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <form id="formEditarSegmento" method="POST">
+                <div class="modal-body">
+                    <input type="hidden" id="edit_id" name="id">
+                    <div class="mb-3">
+                        <label for="edit_nome" class="form-label">Nome <span class="text-danger">*</span></label>
+                        <input type="text" class="form-control upper-input" id="edit_nome" name="nome" required maxlength="100">
+                    </div>
+                    <div class="mb-3">
+                        <label for="edit_codigo" class="form-label">Código <span class="text-danger">*</span></label>
+                        <input type="text" class="form-control upper-input" id="edit_codigo" name="codigo" required maxlength="20">
+                    </div>
+                    <div class="mb-3">
+                        <label for="edit_descricao" class="form-label">Descrição</label>
+                        <textarea class="form-control" id="edit_descricao" name="descricao" rows="3" maxlength="500"></textarea>
+                    </div>
+                    <div class="mb-3">
+                        <div class="form-check">
+                            <input class="form-check-input" type="checkbox" id="edit_ativo" name="ativo">
+                            <label class="form-check-label" for="edit_ativo">Ativo</label>
+                        </div>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
+                    <button type="submit" class="btn btn-primary">
+                        <i class="bi bi-check-circle"></i>
+                        Salvar Alterações
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<script>
+// Forçar caixa alta nos inputs
+document.addEventListener('DOMContentLoaded', function() {
+    document.querySelectorAll('.upper-input').forEach(function(input) {
+        input.addEventListener('input', function() {
+            this.value = this.value.toUpperCase();
+        });
+    });
+});
+
+// Função para editar segmento
+function editarSegmento(id) {
+    fetch(`/api/segmentos/${id}`)
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                const segmento = data.segmento;
+                document.getElementById('edit_id').value = segmento.id;
+                document.getElementById('edit_nome').value = segmento.nome;
+                document.getElementById('edit_codigo').value = segmento.codigo;
+                document.getElementById('edit_descricao').value = segmento.descricao || '';
+                document.getElementById('edit_ativo').checked = segmento.ativo === 'Sim';
+                
+                document.getElementById('formEditarSegmento').action = `/segmentos/edit/${id}`;
+                new bootstrap.Modal(document.getElementById('editarSegmentoModal')).show();
+            } else {
+                alert('Erro ao carregar dados do segmento');
+            }
+        })
+        .catch(error => {
+            console.error('Erro:', error);
+            alert('Erro ao carregar dados do segmento');
+        });
+}
+
+// Função para excluir segmento
+function excluirSegmento(id) {
+    if (confirm('Tem certeza que deseja excluir este segmento?')) {
+        fetch(`/segmentos/delete/${id}`, {
+            method: 'POST'
+        })
+        .then(response => {
+            if (response.ok) {
+                location.reload();
+            } else {
+                alert('Erro ao excluir segmento');
+            }
+        })
+        .catch(error => {
+            console.error('Erro:', error);
+            alert('Erro ao excluir segmento');
+        });
+    }
+}
+</script>
+{% endblock %}
