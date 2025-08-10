@@ -4,25 +4,32 @@ import logging
 import gc
 
 # Configurar logging mínimo para produção (economizar memória)
-if os.environ.get('FLASK_ENV') == 'production':
+# Detectar Render ou qualquer ambiente de produção
+is_production = os.environ.get('RENDER') or os.environ.get('FLASK_ENV') == 'production'
+
+if is_production:
     logging.basicConfig(level=logging.ERROR)  # Apenas erros
     
-    # Otimizações de memória críticas para Render 512MB
-    gc.set_threshold(500, 5, 5)  # GC mais agressivo
+    # Otimizações de memória EXTREMAS para Render (objetivo: <256MB)
+    gc.set_threshold(10, 1, 1)  # GC MUITO mais agressivo
     
-    # Limitar variáveis de ambiente desnecessárias
-    unnecessary_env_vars = [
-        'PYTHONPATH', 'PYTHON_PATH', 'PATH_INFO',
-        'SCRIPT_NAME', 'REQUEST_METHOD', 'CONTENT_TYPE'
-    ]
-    for var in unnecessary_env_vars:
-        if var in os.environ and var not in ['PORT', 'FLASK_ENV']:
-            try:
-                del os.environ[var]
-            except:
-                pass
+    # Configurações específicas para economizar memória no Render
+    if os.environ.get('RENDER'):
+        # Limitar cache de módulos Python
+        sys.dont_write_bytecode = True
+        
+        # Configurar variáveis de ambiente para economia máxima
+        os.environ.setdefault('PYTHONDONTWRITEBYTECODE', '1')
+        os.environ.setdefault('PYTHONUNBUFFERED', '1')
+        
+        print("🎯 WSGI configurado para RENDER - economia máxima de memória")
+    else:
+        print("🧠 WSGI configurado para produção genérica")
     
-    print("🧠 WSGI configurado para máxima economia de memória")
+    # Limpeza inicial de memória
+    for _ in range(3):
+        gc.collect()
+        
 else:
     logging.basicConfig(level=logging.INFO)
 
