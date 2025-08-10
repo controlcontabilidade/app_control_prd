@@ -70,6 +70,9 @@
                 <!-- Campo hidden para ID do cliente -->
                 {% if client %}
                 <input type="hidden" name="id" value="{{ client.id }}">
+                {% if client._row_number %}
+                <input type="hidden" name="row_number" value="{{ client._row_number }}">
+                {% endif %}
                 {% endif %}
                 <!-- Bloco 1: Informações da Pessoa Física / Jurídica -->
                 <div class="card mb-4">
@@ -80,13 +83,14 @@
                         </h5>
                     </div>
                     <div class="card-body">
+                        <!-- Primeira linha: Nome da Empresa e Razão Social -->
                         <div class="row">
                             <div class="col-md-6 mb-3">
                                 <label for="nomeEmpresa" class="form-label">
-                                    <i class="bi bi-building me-1"></i>NOME DA EMPRESA 
-                                    <span class="text-danger">*</span>
+                                    <i class="bi bi-building me-1"></i>Nome da Empresa
+                                    <span class="text-danger required-field">*</span>
                                 </label>
-                                <input type="text" class="form-control" id="nomeEmpresa" name="nomeEmpresa" 
+                                <input type="text" class="form-control upper-input" id="nomeEmpresa" name="nomeEmpresa" 
                                        value="{{ client.nomeEmpresa if client else '' }}" required>
                                 <div class="invalid-feedback">
                                     Por favor, informe o nome da empresa.
@@ -94,24 +98,26 @@
                             </div>
                             <div class="col-md-6 mb-3">
                                 <label for="razaoSocialReceita" class="form-label">
-                                    <i class="bi bi-file-text me-1"></i>RAZÃO SOCIAL (RECEITA)
-                                    <span class="text-danger">*</span>
+                                    <i class="bi bi-file-text me-1"></i>Razão Social (Receita)
+                                    <span class="text-danger conditional-required">*</span>
                                 </label>
-                                <input type="text" class="form-control" id="razaoSocialReceita" name="razaoSocialReceita"
-                                       value="{{ client.razaoSocialReceita if client else '' }}" required>
+                                <input type="text" class="form-control upper-input" id="razaoSocialReceita" name="razaoSocialReceita"
+                                       value="{{ client.razaoSocialReceita if client else '' }}">
                                 <div class="invalid-feedback">
                                     Por favor, informe a razão social.
                                 </div>
                             </div>
                         </div>
+                        
+                        <!-- Segunda linha: Nome Fantasia e CPF/CNPJ -->
                         <div class="row">
                             <div class="col-md-6 mb-3">
                                 <label for="nomeFantasiaReceita" class="form-label">
-                                    <i class="bi bi-shop me-1"></i>NOME FANTASIA (RECEITA)
-                                    <span class="text-danger">*</span>
+                                    <i class="bi bi-shop me-1"></i>Nome Fantasia (Receita)
+                                    <span class="text-danger conditional-required">*</span>
                                 </label>
-                                <input type="text" class="form-control" id="nomeFantasiaReceita" name="nomeFantasiaReceita"
-                                       value="{{ client.nomeFantasiaReceita if client else '' }}" required>
+                                <input type="text" class="form-control upper-input" id="nomeFantasiaReceita" name="nomeFantasiaReceita"
+                                       value="{{ client.nomeFantasiaReceita if client else '' }}">
                                 <div class="invalid-feedback">
                                     Por favor, informe o nome fantasia.
                                 </div>
@@ -119,9 +125,9 @@
                             <div class="col-md-6 mb-3">
                                 <label for="cpfCnpj" class="form-label">
                                     <i class="bi bi-card-text me-1"></i>CPF/CNPJ
-                                    <span class="text-danger">*</span>
+                                    <span class="text-danger required-field">*</span>
                                 </label>
-                                <input type="text" class="form-control" id="cpfCnpj" name="cpfCnpj"
+                                <input type="text" class="form-control upper-input" id="cpfCnpj" name="cpfCnpj"
                                        value="{{ client.cpfCnpj if client else '' }}" 
                                        placeholder="00.000.000/0001-00" required>
                                 <div class="invalid-feedback">
@@ -129,51 +135,13 @@
                                 </div>
                             </div>
                         </div>
+                        
+                        <!-- Terceira linha: Estado, Cidade, Inscrição Estadual, Inscrição Municipal -->
                         <div class="row">
-                            <div class="col-md-6 mb-3">
-                                <label for="perfil" class="form-label">
-                                    <i class="bi bi-star me-1"></i>PERFIL do cliente
-                                    <span class="text-danger">*</span>
-                                </label>
-                                <select class="form-select" id="perfil" name="perfil" required>
-                                    <option value="">Selecione um perfil</option>
-                                    <option value="A" {% if client and client.perfil == 'A' %}selected{% endif %}>A</option>
-                                    <option value="B" {% if client and client.perfil == 'B' %}selected{% endif %}>B</option>
-                                    <option value="C" {% if client and client.perfil == 'C' %}selected{% endif %}>C</option>
-                                    <option value="D" {% if client and client.perfil == 'D' %}selected{% endif %}>D</option>
-                                </select>
-                                <div class="invalid-feedback">
-                                    Por favor, selecione um perfil.
-                                </div>
-                            </div>
-                            <div class="col-md-6 mb-3">
-                                <label for="inscEst" class="form-label">
-                                    <i class="bi bi-card-list me-1"></i>INSCRIÇÃO ESTADUAL
-                                    <span class="text-danger">*</span>
-                                </label>
-                                <input type="text" class="form-control" id="inscEst" name="inscEst"
-                                       value="{{ client.inscEst if client else '' }}" required>
-                                <div class="invalid-feedback">
-                                    Por favor, informe a inscrição estadual.
-                                </div>
-                            </div>
-                        </div>
-                        <div class="row">
-                            <div class="col-md-6 mb-3">
-                                <label for="inscMun" class="form-label">
-                                    <i class="bi bi-geo-alt me-1"></i>INSCRIÇÃO MUNICIPAL
-                                    <span class="text-danger">*</span>
-                                </label>
-                                <input type="text" class="form-control" id="inscMun" name="inscMun"
-                                       value="{{ client.inscMun if client else '' }}" required>
-                                <div class="invalid-feedback">
-                                    Por favor, informe a inscrição municipal.
-                                </div>
-                            </div>
-                            <div class="col-md-6 mb-3">
+                            <div class="col-md-3 mb-3">
                                 <label for="estado" class="form-label">
-                                    <i class="bi bi-map me-1"></i>ESTADO
-                                    <span class="text-danger">*</span>
+                                    <i class="bi bi-map me-1"></i>Estado
+                                    <span class="text-danger required-field">*</span>
                                 </label>
                                 <select class="form-select" id="estado" name="estado" required>
                                     <option value="">Selecione o estado</option>
@@ -209,75 +177,113 @@
                                     Por favor, selecione o estado.
                                 </div>
                             </div>
-                        </div>
-                        <div class="row">
-                            <div class="col-md-6 mb-3">
+                            <div class="col-md-3 mb-3">
                                 <label for="cidade" class="form-label">
-                                    <i class="bi bi-geo me-1"></i>CIDADE
-                                    <span class="text-danger">*</span>
+                                    <i class="bi bi-geo me-1"></i>Cidade
+                                    <span class="text-danger required-field">*</span>
                                 </label>
-                                <input type="text" class="form-control" id="cidade" name="cidade"
+                                <input type="text" class="form-control upper-input" id="cidade" name="cidade"
                                        value="{{ client.cidade if client else '' }}" required>
                                 <div class="invalid-feedback">
                                     Por favor, informe a cidade.
                                 </div>
                             </div>
-                            <div class="col-md-6 mb-3">
-                                <label for="regimeFederal" class="form-label">
-                                    <i class="bi bi-percent me-1"></i>REGIME FEDERAL
-                                    <span class="text-danger">*</span>
+                            <div class="col-md-3 mb-3">
+                                <label for="inscEst" class="form-label">
+                                    <i class="bi bi-card-list me-1"></i>Inscrição Estadual
+                                    <span class="text-danger conditional-required">*</span>
                                 </label>
-                                <select class="form-select" id="regimeFederal" name="regimeFederal" required>
-                                    <option value="">Selecione o regime federal</option>
-                                    <option value="MEI" {% if client and client.regimeFederal == 'MEI' %}selected{% endif %}>MEI</option>
-                                    <option value="SIMPLES_NACIONAL" {% if client and client.regimeFederal == 'SIMPLES_NACIONAL' or client.regimeFederal == 'SIMPLES' %}selected{% endif %}>SIMPLES NACIONAL</option>
-                                    <option value="LUCRO_PRESUMIDO" {% if client and client.regimeFederal == 'LUCRO_PRESUMIDO' %}selected{% endif %}>LUCRO PRESUMIDO</option>
-                                    <option value="LUCRO_REAL" {% if client and client.regimeFederal == 'LUCRO_REAL' %}selected{% endif %}>LUCRO REAL</option>
-                                    <option value="REGIME_ESPECIAL" {% if client and client.regimeFederal == 'REGIME_ESPECIAL' %}selected{% endif %}>REGIME ESPECIAL</option>
-                                </select>
+                                <input type="text" class="form-control upper-input" id="inscEst" name="inscEst"
+                                       value="{{ client.inscEst if client else '' }}">
                                 <div class="invalid-feedback">
-                                    Por favor, selecione o regime federal.
+                                    Por favor, informe a inscrição estadual.
                                 </div>
                             </div>
-                        </div>
-                        <div class="row">
-                            <div class="col-md-6 mb-3">
-                                <label for="regimeEstadual" class="form-label">
-                                    <i class="bi bi-bank me-1"></i>REGIME ESTADUAL
-                                    <span class="text-danger">*</span>
+                            <div class="col-md-3 mb-3">
+                                <label for="inscMun" class="form-label">
+                                    <i class="bi bi-geo-alt me-1"></i>Inscrição Municipal
+                                    <span class="text-danger conditional-required">*</span>
                                 </label>
-                                <select class="form-select" id="regimeEstadual" name="regimeEstadual" required>
+                                <input type="text" class="form-control upper-input" id="inscMun" name="inscMun"
+                                       value="{{ client.inscMun if client else '' }}">
+                                <div class="invalid-feedback">
+                                    Por favor, informe a inscrição municipal.
+                                </div>
+                            </div>
+                        
+                        
+                        <!-- Quarta linha: Segmento, Atividade Principal, Regime Estadual e Regime Federal -->
+                        <div class="row">
+                            <div class="col-md-3 mb-3">
+                                <label for="segmento" class="form-label">
+                                    <i class="bi bi-tags me-1"></i>Segmento
+                                    <span class="text-danger conditional-required">*</span>
+                                </label>
+                                <div class="input-group">
+                                    <select class="form-select" id="segmento" name="segmento">
+                                        <option value="">Selecione o segmento</option>
+                                        {% for segmento in segmentos %}
+                                        <option value="{{ segmento }}" {% if client and client.segmento == segmento %}selected{% endif %}>{{ segmento }}</option>
+                                        {% endfor %}
+                                    </select>
+                                    <button class="btn btn-outline-secondary" type="button" onclick="window.open('/segmentos', '_blank')" title="Cadastrar novos segmentos">
+                                        <i class="bi bi-plus-circle"></i>
+                                    </button>
+                                </div>
+                                <div class="invalid-feedback">
+                                    Por favor, selecione o segmento.
+                                </div>
+                            </div>
+                            <div class="col-md-3 mb-3">
+                                <label for="atividade" class="form-label">
+                                    <i class="bi bi-briefcase me-1"></i>Atividade Principal
+                                    <span class="text-danger conditional-required">*</span>
+                                </label>
+                                <div class="input-group">
+                                    <select class="form-select" id="atividade" name="atividade">
+                                        <option value="">Selecione a atividade principal</option>
+                                        {% for atividade in atividades %}
+                                        <option value="{{ atividade }}" {% if client and client.atividade == atividade %}selected{% endif %}>{{ atividade }}</option>
+                                        {% endfor %}
+                                    </select>
+                                    <button class="btn btn-outline-secondary" type="button" onclick="window.open('/atividades', '_blank')" title="Cadastrar novas atividades">
+                                        <i class="bi bi-plus-circle"></i>
+                                    </button>
+                                </div>
+                                <div class="invalid-feedback">
+                                    Por favor, selecione a atividade principal.
+                                </div>
+                            </div>
+                            <div class="col-md-3 mb-3">
+                                <label for="regimeEstadual" class="form-label">
+                                    <i class="bi bi-bank me-1"></i>Regime Estadual
+                                    <span class="text-danger conditional-required">*</span>
+                                </label>
+                                <select class="form-select" id="regimeEstadual" name="regimeEstadual">
                                     <option value="">Selecione o regime estadual</option>
                                     <option value="SIMPLES" {% if client and client.regimeEstadual == 'SIMPLES' %}selected{% endif %}>Simples Nacional</option>
                                     <option value="NORMAL" {% if client and client.regimeEstadual == 'NORMAL' %}selected{% endif %}>Regime Normal</option>
-                                    <option value="ISENTO" {% if client and client.regimeEstadual == 'ISENTO' %}selected{% endif %}>Isento</option>
+                                    <option value="REGIME_ESPECIAL" {% if client and client.regimeEstadual == 'REGIME_ESPECIAL' %}selected{% endif %}>Regime Especial</option>
                                 </select>
                                 <div class="invalid-feedback">
                                     Por favor, selecione o regime estadual.
                                 </div>
                             </div>
-                            <div class="col-md-6 mb-3">
-                                <label for="segmento" class="form-label">
-                                    <i class="bi bi-tags me-1"></i>SEGMENTO
-                                    <span class="text-danger">*</span>
+                            <div class="col-md-3 mb-3">
+                                <label for="regimeFederal" class="form-label">
+                                    <i class="bi bi-percent me-1"></i>Regime Federal
+                                    <span class="text-danger conditional-required">*</span>
                                 </label>
-                                <input type="text" class="form-control" id="segmento" name="segmento"
-                                       value="{{ client.segmento if client else '' }}" required>
+                                <select class="form-select" id="regimeFederal" name="regimeFederal">
+                                    <option value="">Selecione o regime federal</option>
+                                    <option value="MEI" {% if client and client.regimeFederal == 'MEI' %}selected{% endif %}>MEI</option>
+                                    <option value="SIMPLES_NACIONAL" {% if client and client.regimeFederal == 'SIMPLES_NACIONAL' or client.regimeFederal == 'SIMPLES' %}selected{% endif %}>Simples Nacional</option>
+                                    <option value="LUCRO_PRESUMIDO" {% if client and client.regimeFederal == 'LUCRO_PRESUMIDO' %}selected{% endif %}>Lucro Presumido</option>
+                                    <option value="LUCRO_REAL" {% if client and client.regimeFederal == 'LUCRO_REAL' %}selected{% endif %}>Lucro Real</option>
+                                    <option value="REGIME_ESPECIAL" {% if client and client.regimeFederal == 'REGIME_ESPECIAL' %}selected{% endif %}>Regime Especial</option>
+                                </select>
                                 <div class="invalid-feedback">
-                                    Por favor, informe o segmento.
-                                </div>
-                            </div>
-                        </div>
-                        <div class="row">
-                            <div class="col-md-6 mb-3">
-                                <label for="atividade" class="form-label">
-                                    <i class="bi bi-briefcase me-1"></i>ATIVIDADE PRINCIPAL
-                                    <span class="text-danger">*</span>
-                                </label>
-                                <input type="text" class="form-control" id="atividade" name="atividade"
-                                       value="{{ client.atividade if client else '' }}" required>
-                                <div class="invalid-feedback">
-                                    Por favor, informe a atividade principal.
+                                    Por favor, selecione o regime federal.
                                 </div>
                             </div>
                         </div>
@@ -293,6 +299,7 @@
                         </h5>
                     </div>
                     <div class="card-body">
+                        <!-- Primeira linha: Checkboxes dos serviços -->
                         <div class="row">
                             <!-- BPO Financeiro -->
                             <div class="col-md-3 mb-3">
@@ -339,123 +346,134 @@
                                 </div>
                             </div>
                         </div>
+
+                        <!-- Segunda linha: Doméstica, Data de Início, Perfil do Cliente, Sistema Utilizado, Gera arquivo do Sped -->
                         <div class="row">
+                            <!-- Doméstica -->
+                            <div class="col-md-2 mb-3">
+                                <label for="domestica" class="form-label">
+                                    <i class="bi bi-house me-1"></i>
+                                    Doméstica
+                                </label>
+                                <select class="form-select" id="domestica" name="domestica" disabled>
+                                    <option value="NÃO" {% if not client or not client.domestica or client.domestica == 'NÃO' %}selected{% endif %}>NÃO</option>
+                                    <option value="SIM" {% if client and client.domestica == 'SIM' %}selected{% endif %}>SIM</option>
+                                </select>
+                            </div>
+                            
                             <!-- Data de Início dos Serviços -->
-                            <div class="col-md-6 mb-3">
+                            <div class="col-md-2 mb-3">
                                 <label for="dataInicioServicos" class="form-label">
                                     <i class="bi bi-calendar-event me-1"></i>
-                                    DATA DE INÍCIO DOS SERVIÇOS
+                                    Data de Início dos Serviços
                                 </label>
-                                <input type="date" class="form-control" id="dataInicioServicos" name="dataInicioServicos" 
-                                       value="{{ client.dataInicioServicos if client else '' }}">
-                                <div class="form-text">
-                                    Selecione a data de início dos serviços
+                                <input type="text" class="form-control" id="dataInicioServicos" name="dataInicioServicos" 
+                                       value="{{ client.dataInicioServicos if client else '' }}"
+                                       placeholder="mm/aaaa" pattern="^(0[1-9]|1[0-2])\/\d{4}$" 
+                                       title="Formato: MM/AAAA (Ex: 08/2025)">
+                            </div>
+
+                            <!-- Perfil do Cliente -->
+                            <div class="col-md-2 mb-3">
+                                <label for="perfilCliente" class="form-label">
+                                    <i class="bi bi-person-badge me-1"></i>
+                                    Perfil do Cliente *
+                                </label>
+                                <select class="form-select" id="perfilCliente" name="perfilCliente" required>
+                                    <option value="">Selecione um perfil</option>
+                                    <option value="A" {% if client and client.perfilCliente == 'A' %}selected{% endif %}>A</option>
+                                    <option value="B" {% if client and client.perfilCliente == 'B' %}selected{% endif %}>B</option>
+                                    <option value="C" {% if client and client.perfilCliente == 'C' %}selected{% endif %}>C</option>
+                                    <option value="D" {% if client and client.perfilCliente == 'D' %}selected{% endif %}>D</option>
+                                </select>
+                                <div class="invalid-feedback">
+                                    Por favor, selecione o perfil do cliente.
                                 </div>
                             </div>
-                        </div>
 
-                        <!-- Códigos dos Sistemas -->
-                        <div class="row mt-4">
-                            <div class="col-12">
-                                <h6 class="text-muted mb-3">
-                                    <i class="fas fa-code me-2"></i>
-                                    Códigos dos Sistemas
-                                </h6>
-                            </div>
-
-                            <div class="col-md-3 mb-3">
-                                <label for="codDominio" class="form-label">
-                                    <i class="bi bi-hash me-1"></i>
-                                    CÓD. DOMÍNIO
-                                </label>
-                                <input type="text" class="form-control" id="codDominio" name="codDominio" 
-                                       value="{{ client.codDominio if client else '' }}"
-                                       placeholder="Código Domínio">
-                            </div>
-
-                            <div class="col-md-3 mb-3">
-                                <label for="codFortesCt" class="form-label">
-                                    <i class="bi bi-hash me-1"></i>
-                                    CÓD. FORTES CT
-                                </label>
-                                <input type="text" class="form-control" id="codFortesCt" name="codFortesCt" 
-                                       value="{{ client.codFortesCt if client else '' }}"
-                                       placeholder="Código CT">
-                            </div>
-
-                            <div class="col-md-3 mb-3">
-                                <label for="codFortesFs" class="form-label">
-                                    <i class="bi bi-hash me-1"></i>
-                                    CÓD. FORTES FS
-                                </label>
-                                <input type="text" class="form-control" id="codFortesFs" name="codFortesFs" 
-                                       value="{{ client.codFortesFs if client else '' }}"
-                                       placeholder="Código FS">
-                            </div>
-
-                            <div class="col-md-3 mb-3">
-                                <label for="codFortesPs" class="form-label">
-                                    <i class="bi bi-hash me-1"></i>
-                                    CÓD. FORTES PS
-                                </label>
-                                <input type="text" class="form-control" id="codFortesPs" name="codFortesPs" 
-                                       value="{{ client.codFortesPs if client else '' }}"
-                                       placeholder="Código PS">
-                            </div>
-                        </div>
-
-                        <!-- Sistema e Módulos -->
-                        <div class="row">
-                            <div class="col-md-6 mb-3">
+                            <!-- Sistema Utilizado -->
+                            <div class="col-md-2 mb-3">
                                 <label for="sistemaUtilizado" class="form-label">
                                     <i class="bi bi-pc-display me-1"></i>
-                                    SISTEMA UTILIZADO
+                                    Sistema Utilizado
                                 </label>
                                 <input type="text" class="form-control" id="sistemaUtilizado" name="sistemaUtilizado" 
                                        value="{{ client.sistemaUtilizado if client else '' }}"
                                        placeholder="Nome do sistema principal">
                             </div>
 
-                            <div class="col-md-6 mb-3">
-                                <label for="moduloSpedTrier" class="form-label">
-                                    <i class="bi bi-puzzle me-1"></i>
-                                    MÓDULO SPED TRIER
+                            <!-- Gera arquivo do Sped -->
+                            <div class="col-md-2 mb-3">
+                                <label for="geraArquivoSped" class="form-label">
+                                    <i class="bi bi-file-earmark-code me-1"></i>
+                                    Gera arquivo do Sped
                                 </label>
-                                <input type="text" class="form-control" id="moduloSpedTrier" name="moduloSpedTrier" 
-                                       value="{{ client.moduloSpedTrier if client else '' }}"
-                                       placeholder="Módulo específico do SPED">
+                                <select class="form-select" id="geraArquivoSped" name="geraArquivoSped">
+                                    <option value="">Selecionar SIM/NÃO</option>
+                                    <option value="SIM" {% if client and client.geraArquivoSped == 'SIM' %}selected{% endif %}>SIM</option>
+                                    <option value="NÃO" {% if client and client.geraArquivoSped == 'NÃO' %}selected{% endif %}>NÃO</option>
+                                </select>
                             </div>
                         </div>
+
+                        <!-- Terceira linha: Códigos dos sistemas -->
+                        <div class="row">
+                            <div class="col-md-3 mb-3">
+                                <label for="codDominio" class="form-label">
+                                    <i class="bi bi-hash me-1"></i>
+                                    # Cód. Domínio
+                                </label>
+                                <input type="text" class="form-control numbers-only" id="codDominio" name="codDominio" 
+                                       value="{{ client.codDominio if client else '' }}"
+                                       placeholder="Código Domínio" pattern="[0-9]*" title="Apenas números">
+                            </div>
+
+                            <div class="col-md-3 mb-3">
+                                <label for="codFortesCt" class="form-label">
+                                    <i class="bi bi-hash me-1"></i>
+                                    # Cód. Fortes CT
+                                </label>
+                                <input type="text" class="form-control numbers-only" id="codFortesCt" name="codFortesCt" 
+                                       value="{{ client.codFortesCt if client else '' }}"
+                                       placeholder="Código CT" pattern="[0-9]*" title="Apenas números">
+                            </div>
+
+                            <div class="col-md-3 mb-3">
+                                <label for="codFortesFs" class="form-label">
+                                    <i class="bi bi-hash me-1"></i>
+                                    # Cód. Fortes FS
+                                </label>
+                                <input type="text" class="form-control numbers-only" id="codFortesFs" name="codFortesFs" 
+                                       value="{{ client.codFortesFs if client else '' }}"
+                                       placeholder="Código FS" pattern="[0-9]*" title="Apenas números">
+                            </div>
+
+                            <div class="col-md-3 mb-3">
+                                <label for="codFortesPs" class="form-label">
+                                    <i class="bi bi-hash me-1"></i>
+                                    # Cód. Fortes PS
+                                </label>
+                                <input type="text" class="form-control numbers-only" id="codFortesPs" name="codFortesPs" 
+                                       value="{{ client.codFortesPs if client else '' }}"
+                                       placeholder="Código PS" pattern="[0-9]*" title="Apenas números">
+                            </div>
+                        </div>
+                    </div>
                     </div>
                 </div>
 
-                <!-- Bloco 3: Contatos -->
+                <!-- Bloco 3: Quadro Societário -->
                 <div class="card mb-4">
                     <div class="card-header bg-info text-white">
                         <h5 class="mb-0">
-                            <i class="bi bi-telephone me-2"></i>
-                            Bloco 3: Contatos
+                            <i class="bi bi-people me-2"></i>
+                            Bloco 3: Quadro Societário
                         </h5>
                     </div>
                     <div class="card-body">
+            <!-- Campos removidos: E-MAIL SECUNDÁRIO, RESPONSÁVEL IMEDIATO -->
                         <div class="row">
-                            <!-- E-MAIL SECUNDÁRIO -->
-                            <div class="col-md-6 mb-3">
-                                <label for="emailSecundario" class="form-label">E-MAIL SECUNDÁRIO</label>
-                                <input type="email" class="form-control" id="emailSecundario" name="emailSecundario" 
-                                       value="{{ client.emailSecundario if client else '' }}" 
-                                       placeholder="FINANCEIRO@EMPRESA.COM.BR">
-                            </div>
-                            <!-- RESPONSÁVEL IMEDIATO -->
-                            <div class="col-md-6 mb-3">
-                                <label for="responsavelImediato" class="form-label">RESPONSÁVEL IMEDIATO</label>
-                                <input type="text" class="form-control" id="responsavelImediato" name="responsavelImediato" 
-                                       value="{{ client.responsavelImediato if client else '' }}" 
-                                       placeholder="NOME DO RESPONSÁVEL PELA EMPRESA">
-                            </div>
-                        </div>
-                        <div class="row">
-                            <!-- SÓCIOS DA EMPRESA -->
+                            <!-- BLOCO 3: QUADRO SOCIETÁRIO -->
                             <div class="col-12 mb-3">
                                 <div class="d-flex justify-content-between align-items-center mb-3">
                                     <label class="form-label fw-bold">
@@ -470,410 +488,358 @@
                                 <div id="sociosContainer">
                                     <!-- Sócio 1 (sempre presente) -->
                                     <div class="card border-light mb-2 socio-card" id="socio_1">
-                                        <div class="card-body py-2">
+                                        <div class="card-body py-3">
                                             <div class="row align-items-center">
-                                                <div class="col-md-3">
+                                                <div class="col-md-3 mb-2">
                                                     <label class="form-label small mb-1">Nome do Sócio</label>
                                                     <input type="text" class="form-control form-control-sm" 
                                                            name="socio_1_nome" id="socio_1_nome"
+                                                           value="{{ client.socio_1_nome if client else '' }}"
                                                            placeholder="Nome completo do sócio">
                                                 </div>
-                                                <div class="col-md-2">
+                                                <div class="col-md-2 mb-2">
                                                     <label class="form-label small mb-1">CPF</label>
                                                     <input type="text" class="form-control form-control-sm cpf-mask" 
                                                            name="socio_1_cpf" id="socio_1_cpf"
+                                                           value="{{ client.socio_1_cpf if client else '' }}"
                                                            placeholder="000.000.000-00">
                                                 </div>
-                                                <div class="col-md-3">
-                                                    <label class="form-label small mb-1">E-mail</label>
-                                                    <input type="email" class="form-control form-control-sm" 
-                                                           name="socio_1_email" id="socio_1_email"
-                                                           placeholder="socio@email.com">
+                                                <div class="col-md-2 mb-2">
+                                                    <label class="form-label small mb-1">Data de Nascimento</label>
+                                                    <input type="date" class="form-control form-control-sm" 
+                                                           name="socio_1_data_nascimento" id="socio_1_data_nascimento"
+                                                           value="{{ client.socio_1_data_nascimento if client else '' }}">
                                                 </div>
-                                                <div class="col-md-2">
-                                                    <label class="form-label small mb-1">Telefone</label>
-                                                    <input type="tel" class="form-control form-control-sm phone-mask" 
-                                                           name="socio_1_telefone" id="socio_1_telefone"
-                                                           placeholder="(85) 99999-9999">
-                                                </div>
-                                                <div class="col-md-2">
-                                                    <label class="form-label small mb-1">% Participação</label>
+                                                <div class="col-md-2 mb-2">
+                                                    <label class="form-label small mb-1">% de Quotas</label>
                                                     <input type="number" class="form-control form-control-sm" 
                                                            name="socio_1_participacao" id="socio_1_participacao"
+                                                           value="{{ client.socio_1_participacao if client else '' }}"
                                                            placeholder="50.00" step="0.01" min="0" max="100">
+                                                </div>
+                                                <div class="col-md-3 mb-2">
+                                                    <div class="row">
+                                                        <div class="col-6">
+                                                            <div class="form-check">
+                                                                <input class="form-check-input representante-legal" type="radio" 
+                                                                       name="representante_legal" value="socio_1" 
+                                                                       id="rep_legal_1"
+                                                                       {% if client and client.socio_1_resp_legal %}checked{% endif %}>
+                                                                <label class="form-check-label small" for="rep_legal_1">
+                                                                    Representante Legal
+                                                                </label>
+                                                            </div>
+                                                        </div>
+                                                        <div class="col-6">
+                                                            <div class="form-check">
+                                                                <input class="form-check-input socio-admin" type="checkbox" 
+                                                                       name="socio_1_administrador" value="1" 
+                                                                       id="admin_1"
+                                                                       {% if client and client.socio_1_administrador %}checked{% endif %}>
+                                                                <label class="form-check-label small" for="admin_1">
+                                                                    Sócio Administrador
+                                                                </label>
+                                                            </div>
+                                                        </div>
+                                                    </div>
                                                 </div>
                                             </div>
                                         </div>
                                     </div>
                                 </div>
-                                
-                                <!-- E-MAILS DOS SÓCIOS (campo adicional para compatibilidade) -->
-                                <div class="mt-3">
-                                    <label for="emailsSocios" class="form-label small">E-MAILS ADICIONAIS DOS SÓCIOS</label>
-                                    <textarea class="form-control" id="emailsSocios" name="emailsSocios" rows="2" 
-                                              placeholder="Outros e-mails dos sócios separados por vírgula">{{ client.emailsSocios if client else '' }}</textarea>
-                                    <div class="form-text">Use este campo apenas para e-mails adicionais não cadastrados acima</div>
-                                </div>
+                <!-- Campo removido: E-MAILS ADICIONAIS DOS SÓCIOS -->
                             </div>
                         </div>
                     </div>
                 </div>
 
-                <!-- Bloco 4: Contatos Contador -->
+                <!-- Bloco 4: Contatos -->
                 <div class="card mb-4">
                     <div class="card-header bg-warning text-dark">
                         <h5 class="mb-0">
                             <i class="bi bi-person-badge me-2"></i>
-                            Bloco 4: Contatos Contador
+                            Bloco 4: Contatos
                         </h5>
                     </div>
                     <div class="card-body">
                         <div class="row">
-                            <!-- CONTATO CONTADOR -->
-                            <div class="col-md-4 mb-3">
-                                <label for="contatoContador" class="form-label">CONTATO CONTADOR</label>
-                                <input type="text" class="form-control" id="contatoContador" name="contatoContador" 
-                                       value="{{ client.contatoContador if client else '' }}" 
-                                       placeholder="NOME DO CONTADOR RESPONSÁVEL">
-                            </div>
-                            <!-- TELEFONE CONTADOR -->
-                            <div class="col-md-4 mb-3">
-                                <label for="telefoneContador" class="form-label">TELEFONE CONTADOR</label>
-                                <input type="tel" class="form-control" id="telefoneContador" name="telefoneContador" 
-                                       value="{{ client.telefoneContador if client else '' }}" 
-                                       placeholder="(85) 99999-9999">
-                            </div>
-                            <!-- E-MAIL CONTADOR -->
-                            <div class="col-md-4 mb-3">
-                                <label for="emailContador" class="form-label">E-MAIL CONTADOR</label>
-                                <input type="email" class="form-control" id="emailContador" name="emailContador" 
-                                       value="{{ client.emailContador if client else '' }}" 
-                                       placeholder="CONTADOR@CONTROLCONTABILIDADE.COM.BR">
+                            <!-- CONTATOS DA EMPRESA -->
+                            <div class="col-12 mb-3">
+                                <div class="d-flex justify-content-between align-items-center mb-3">
+                                    <label class="form-label fw-bold">
+                                        <i class="bi bi-telephone-fill me-1"></i>CONTATOS DA EMPRESA
+                                    </label>
+                                    <button type="button" class="btn btn-outline-primary btn-sm" onclick="adicionarContato()">
+                                        <i class="bi bi-plus-circle me-1"></i>Adicionar Contato
+                                    </button>
+                                </div>
+                                
+                                <!-- Container para os contatos -->
+                                <div id="contatosContainer">
+                                    <!-- Contato 1 (sempre presente) -->
+                                    <div class="card border-light mb-2 contato-card" id="contato_1">
+                                        <div class="card-body py-3">
+                                            <div class="row align-items-center">
+                                                <div class="col-md-3 mb-2">
+                                                    <label class="form-label small mb-1">Nome</label>
+                                                    <input type="text" class="form-control form-control-sm" 
+                                                           name="contato_1_nome" id="contato_1_nome"
+                                                           placeholder="Nome completo do contato">
+                                                </div>
+                                                <div class="col-md-3 mb-2">
+                                                    <label class="form-label small mb-1">Cargo</label>
+                                                    <input type="text" class="form-control form-control-sm" 
+                                                           name="contato_1_cargo" id="contato_1_cargo"
+                                                           placeholder="Ex: Gerente, Diretor, Sócio">
+                                                </div>
+                                                <div class="col-md-3 mb-2">
+                                                    <label class="form-label small mb-1">Telefone</label>
+                                                    <input type="tel" class="form-control form-control-sm phone-mask" 
+                                                           name="contato_1_telefone" id="contato_1_telefone"
+                                                           placeholder="(85) 99999-9999">
+                                                </div>
+                                                <div class="col-md-3 mb-2">
+                                                    <label class="form-label small mb-1">E-mail</label>
+                                                    <input type="email" class="form-control form-control-sm" 
+                                                           name="contato_1_email" id="contato_1_email"
+                                                           placeholder="contato@empresa.com">
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
                             </div>
                         </div>
                     </div>
                 </div>
 
-                <!-- Bloco 5: Sistemas e Acessos -->
+                <!-- Bloco 5: Senhas -->
                 <div class="card mb-4">
                     <div class="card-header bg-primary text-white">
                         <h5 class="mb-0">
-                            <i class="bi bi-laptop me-2"></i>Bloco 5: Sistemas e Acessos
+                            <i class="bi bi-key me-2"></i>Bloco 5: Senhas
                         </h5>
                     </div>
                     <div class="card-body">
-                        <div class="row">
-                            <!-- SISTEMA PRINCIPAL UTILIZADO -->
-                            <div class="col-md-6 mb-3">
-                                <label for="sistemaPrincipal" class="form-label">SISTEMA PRINCIPAL UTILIZADO</label>
-                                <select class="form-select" id="sistemaPrincipal" name="sistemaPrincipal">
-                                    <option value="">Selecione...</option>
-                                    <option value="Dominio" {{ 'selected' if client and client.sistemaPrincipal == 'Dominio' else '' }}>Domínio</option>
-                                    <option value="Fortes" {{ 'selected' if client and client.sistemaPrincipal == 'Fortes' else '' }}>Fortes</option>
-                                    <option value="Outros" {{ 'selected' if client and client.sistemaPrincipal == 'Outros' else '' }}>Outros</option>
-                                </select>
+                        <!-- Linha 1: CPF/CNPJ SN, Código Acesso SN, Acesso EmpWeb, Senha EmpWeb -->
+                        <div class="row mb-3">
+                            <div class="col-md-3 mb-2">
+                                <label for="cpfCnpjSn" class="form-label small">CPF/CNPJ SN</label>
+                                <input type="text" class="form-control form-control-sm" 
+                                       id="cpfCnpjSn" name="cpfCnpjSn" 
+                                       value="{{ client.cpfCnpjSn if client else '' }}" 
+                                       placeholder="CPF/CNPJ Simples Nacional">
                             </div>
-                            <!-- VERSÃO DO SISTEMA -->
-                            <div class="col-md-6 mb-3">
-                                <label for="versaoSistema" class="form-label">VERSÃO DO SISTEMA</label>
-                                <input type="text" class="form-control" id="versaoSistema" name="versaoSistema" 
-                                       value="{{ client.versaoSistema if client else '' }}" 
-                                       placeholder="EX: 2024.1, V3.2, ETC.">
+                            <div class="col-md-3 mb-2">
+                                <label for="codigoAcessoSn" class="form-label small">Código Acesso SN</label>
+                                <input type="text" class="form-control form-control-sm" 
+                                       id="codigoAcessoSn" name="codigoAcessoSn" 
+                                       value="{{ client.codigoAcessoSn if client else '' }}" 
+                                       placeholder="Código de acesso">
                             </div>
-                        </div>
-                        <div class="row">
-                            <!-- CPF ou CNPJ para Acesso -->
-                            <div class="col-md-6 mb-3">
-                                <label for="cpfCnpjAcesso" class="form-label">CPF/CNPJ PARA ACESSO</label>
-                                <input type="text" class="form-control" id="cpfCnpjAcesso" name="cpfCnpjAcesso" 
-                                       value="{{ client.cpfCnpjAcesso if client else '' }}" 
-                                       placeholder="CPF OU CNPJ USADO NOS ACESSOS">
-                            </div>
-                            <!-- Código de Acesso Simples Nacional -->
-                            <div class="col-md-6 mb-3">
-                                <label for="codAcessoSimples" class="form-label">CÓDIGO ACESSO SIMPLES NACIONAL</label>
-                                <input type="text" class="form-control" id="codAcessoSimples" name="codAcessoSimples" 
-                                       value="{{ client.codAcessoSimples if client else '' }}" 
-                                       placeholder="CÓDIGO DE ACESSO SN">
-                            </div>
-                        </div>
-                        <div class="row">
-                            <!-- Portal Cliente Ativo -->
-                            <div class="col-md-4 mb-3">
-                                <div class="form-check">
-                                    <input class="form-check-input" type="checkbox" id="portalClienteAtivo" name="portalClienteAtivo" 
-                                           {% if client and client.portalClienteAtivo %}checked{% endif %}>
-                                    <label class="form-check-label" for="portalClienteAtivo">
-                                        <i class="bi bi-globe me-1 text-info"></i>
-                                        <strong>Portal Cliente Ativo</strong>
-                                    </label>
-                                </div>
-                            </div>
-                            <!-- Integração Domínio -->
-                            <div class="col-md-4 mb-3">
-                                <div class="form-check">
-                                    <input class="form-check-input" type="checkbox" id="integracaoDominio" name="integracaoDominio" 
-                                           {% if client and client.integracaoDominio %}checked{% endif %}>
-                                    <label class="form-check-label" for="integracaoDominio">
-                                        <i class="bi bi-link-45deg me-1 text-success"></i>
-                                        <strong>Integração Domínio</strong>
-                                    </label>
-                                </div>
-                            </div>
-                            <!-- Sistema Onvio -->
-                            <div class="col-md-4 mb-3">
-                                <div class="form-check">
-                                    <input class="form-check-input" type="checkbox" id="sistemaOnvio" name="sistemaOnvio" 
-                                           {% if client and client.sistemaOnvio %}checked{% endif %}>
-                                    <label class="form-check-label" for="sistemaOnvio">
-                                        <i class="bi bi-cloud-check me-1 text-primary"></i>
-                                        <strong>Sistema Onvio</strong>
-                                    </label>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-
-                <!-- Bloco 6: Senhas e Credenciais -->
-                <div class="card mb-4">
-                    <div class="card-header bg-danger text-white">
-                        <h5 class="mb-0">
-                            <i class="bi bi-key me-2"></i>Bloco 6: Senhas e Credenciais
-                        </h5>
-                    </div>
-                    <div class="card-body">
-                        <div class="alert alert-warning" role="alert">
-                            <i class="bi bi-exclamation-triangle me-2"></i>
-                            <strong>Atenção!</strong> Informações sensíveis. Mantenha a confidencialidade.
-                        </div>
-                        
-                        <div class="row">
-                            <!-- ACESSO ISS -->
-                            <div class="col-md-6 mb-3">
-                                <label for="acessoIss" class="form-label">ACESSO ISS</label>
-                                <input type="text" class="form-control" id="acessoIss" name="acessoIss" 
-                                       value="{{ client.acessoIss if client else '' }}" 
-                                       placeholder="LOGIN ISS">
-                            </div>
-                            <!-- SENHA ISS -->
-                            <div class="col-md-6 mb-3">
-                                <label for="senhaIss" class="form-label">SENHA ISS</label>
-                                <div class="input-group">
-                                    <input type="password" class="form-control" id="senhaIss" name="senhaIss" 
-                                           value="{{ client.senhaIss if client else '' }}">
-                                    <button class="btn btn-outline-secondary toggle-password-btn" 
-                                            type="button" 
-                                            onclick="togglePasswordVisibility('senhaIss', this)"
-                                            title="Mostrar/Ocultar senha">
-                                        <i class="fas fa-eye"></i>
-                                    </button>
-                                </div>
-                            </div>
-                        </div>
-                        <div class="row">
-                            <!-- ACESSO SEFIN -->
-                            <div class="col-md-6 mb-3">
-                                <label for="acessoSefin" class="form-label">ACESSO SEFIN</label>
-                                <input type="text" class="form-control" id="acessoSefin" name="acessoSefin" 
-                                       value="{{ client.acessoSefin if client else '' }}" 
-                                       placeholder="LOGIN SEFIN">
-                            </div>
-                            <!-- SENHA SEFIN -->
-                            <div class="col-md-6 mb-3">
-                                <label for="senhaSefin" class="form-label">SENHA SEFIN</label>
-                                <div class="input-group">
-                                    <input type="password" class="form-control" id="senhaSefin" name="senhaSefin" 
-                                           value="{{ client.senhaSefin if client else '' }}">
-                                    <button class="btn btn-outline-secondary toggle-password-btn" 
-                                            type="button" 
-                                            onclick="togglePasswordVisibility('senhaSefin', this)"
-                                            title="Mostrar/Ocultar senha">
-                                        <i class="fas fa-eye"></i>
-                                    </button>
-                                </div>
-                            </div>
-                        </div>
-                        <div class="row">
-                            <!-- ACESSO SEUMA -->
-                            <div class="col-md-6 mb-3">
-                                <label for="acessoSeuma" class="form-label">ACESSO SEUMA</label>
-                                <input type="text" class="form-control" id="acessoSeuma" name="acessoSeuma" 
-                                       value="{{ client.acessoSeuma if client else '' }}" 
-                                       placeholder="LOGIN SEUMA">
-                            </div>
-                            <!-- SENHA SEUMA -->
-                            <div class="col-md-6 mb-3">
-                                <label for="senhaSeuma" class="form-label">SENHA SEUMA</label>
-                                <div class="input-group">
-                                    <input type="password" class="form-control" id="senhaSeuma" name="senhaSeuma" 
-                                           value="{{ client.senhaSeuma if client else '' }}">
-                                    <button class="btn btn-outline-secondary toggle-password-btn" 
-                                            type="button" 
-                                            onclick="togglePasswordVisibility('senhaSeuma', this)"
-                                            title="Mostrar/Ocultar senha">
-                                        <i class="fas fa-eye"></i>
-                                    </button>
-                                </div>
-                            </div>
-                        </div>
-                        <div class="row">
-                            <!-- ACESSO EMPWEB -->
-                            <div class="col-md-6 mb-3">
-                                <label for="acessoEmpWeb" class="form-label">ACESSO EMPWEB</label>
-                                <input type="text" class="form-control" id="acessoEmpWeb" name="acessoEmpWeb" 
+                            <div class="col-md-3 mb-2">
+                                <label for="acessoEmpWeb" class="form-label small">Acesso EmpWeb</label>
+                                <input type="text" class="form-control form-control-sm" 
+                                       id="acessoEmpWeb" name="acessoEmpWeb" 
                                        value="{{ client.acessoEmpWeb if client else '' }}" 
                                        placeholder="Login EmpWeb">
                             </div>
-                            <!-- SENHA EMPWEB -->
-                            <div class="col-md-6 mb-3">
-                                <label for="senhaEmpWeb" class="form-label">SENHA EMPWEB</label>
-                                <div class="input-group">
-                                    <input type="password" class="form-control" id="senhaEmpWeb" name="senhaEmpWeb" 
-                                           value="{{ client.senhaEmpWeb if client else '' }}">
-                                    <button class="btn btn-outline-secondary toggle-password-btn" 
-                                            type="button" 
-                                            onclick="togglePasswordVisibility('senhaEmpWeb', this)"
-                                            title="Mostrar/Ocultar senha">
-                                        <i class="fas fa-eye"></i>
-                                    </button>
-                                </div>
+                            <div class="col-md-3 mb-2">
+                                <label for="senhaEmpWeb" class="form-label small">Senha EmpWeb</label>
+                                <input type="text" class="form-control form-control-sm" 
+                                       id="senhaEmpWeb" name="senhaEmpWeb" 
+                                       value="{{ client.senhaEmpWeb if client else '' }}" 
+                                       placeholder="Senha EmpWeb">
                             </div>
                         </div>
-                        <div class="row">
-                            <!-- Outros acessos importantes -->
-                            <div class="col-md-6 mb-3">
-                                <label for="emailGestor" class="form-label">E-MAIL GESTOR</label>
-                                <input type="email" class="form-control" id="emailGestor" name="emailGestor" 
-                                       value="{{ client.emailGestor if client else '' }}" 
-                                       placeholder="gestor@empresa.com.br">
+
+                        <!-- Linha 2: Acesso ISS, Acesso SEFIN, Acesso SEUMA, Acesso SEMACE -->
+                        <div class="row mb-3">
+                            <div class="col-md-3 mb-2">
+                                <label for="acessoIss" class="form-label small">Acesso ISS</label>
+                                <input type="text" class="form-control form-control-sm" 
+                                       id="acessoIss" name="acessoIss" 
+                                       value="{{ client.acessoIss if client else '' }}" 
+                                       placeholder="Login ISS">
                             </div>
-                            <div class="col-md-6 mb-3">
-                                <label for="senhaEmailGestor" class="form-label">SENHA E-MAIL GESTOR</label>
-                                <div class="input-group">
-                                    <input type="password" class="form-control" id="senhaEmailGestor" name="senhaEmailGestor" 
-                                           value="{{ client.senhaEmailGestor if client else '' }}">
-                                    <button class="btn btn-outline-secondary toggle-password-btn" 
-                                            type="button" 
-                                            onclick="togglePasswordVisibility('senhaEmailGestor', this)"
-                                            title="Mostrar/Ocultar senha">
-                                        <i class="fas fa-eye"></i>
-                                    </button>
-                                </div>
+                            <div class="col-md-3 mb-2">
+                                <label for="acessoSefin" class="form-label small">Acesso SEFIN</label>
+                                <input type="text" class="form-control form-control-sm" 
+                                       id="acessoSefin" name="acessoSefin" 
+                                       value="{{ client.acessoSefin if client else '' }}" 
+                                       placeholder="Login SEFIN">
+                            </div>
+                            <div class="col-md-3 mb-2">
+                                <label for="acessoSeuma" class="form-label small">Acesso SEUMA</label>
+                                <input type="text" class="form-control form-control-sm" 
+                                       id="acessoSeuma" name="acessoSeuma" 
+                                       value="{{ client.acessoSeuma if client else '' }}" 
+                                       placeholder="Login SEUMA">
+                            </div>
+                            <div class="col-md-3 mb-2">
+                                <label for="acessoSemace" class="form-label small">Acesso SEMACE</label>
+                                <input type="text" class="form-control form-control-sm" 
+                                       id="acessoSemace" name="acessoSemace" 
+                                       value="{{ client.acessoSemace if client else '' }}" 
+                                       placeholder="Login SEMACE">
+                            </div>
+                        </div>
+
+                        <!-- Linha 3: Acesso IBAMA, Acesso FAP/INSS, Acesso CRF, Senha SEMACE -->
+                        <div class="row mb-3">
+                            <div class="col-md-3 mb-2">
+                                <label for="acessoIbama" class="form-label small">Acesso IBAMA</label>
+                                <input type="text" class="form-control form-control-sm" 
+                                       id="acessoIbama" name="acessoIbama" 
+                                       value="{{ client.acessoIbama if client else '' }}" 
+                                       placeholder="Login IBAMA">
+                            </div>
+                            <div class="col-md-3 mb-2">
+                                <label for="acessoFapInss" class="form-label small">Acesso FAP/INSS</label>
+                                <input type="text" class="form-control form-control-sm" 
+                                       id="acessoFapInss" name="acessoFapInss" 
+                                       value="{{ client.acessoFapInss if client else '' }}" 
+                                       placeholder="Login FAP/INSS">
+                            </div>
+                            <div class="col-md-3 mb-2">
+                                <label for="acessoCrf" class="form-label small">Acesso CRF</label>
+                                <input type="text" class="form-control form-control-sm" 
+                                       id="acessoCrf" name="acessoCrf" 
+                                       value="{{ client.acessoCrf if client else '' }}" 
+                                       placeholder="Login CRF">
+                            </div>
+                            <div class="col-md-3 mb-2">
+                                <label for="senhaSemace" class="form-label small">Senha SEMACE</label>
+                                <input type="text" class="form-control form-control-sm" 
+                                       id="senhaSemace" name="senhaSemace" 
+                                       value="{{ client.senhaSemace if client else '' }}" 
+                                       placeholder="Senha SEMACE">
+                            </div>
+                        </div>
+
+                        <!-- Linha 4: ANVISA Gestor, ANVISA Empresa -->
+                        <div class="row mb-3">
+                            <div class="col-md-6 mb-2">
+                                <label for="anvisaGestor" class="form-label small">ANVISA Gestor</label>
+                                <input type="text" class="form-control form-control-sm" 
+                                       id="anvisaGestor" name="anvisaGestor" 
+                                       value="{{ client.anvisaGestor if client else '' }}" 
+                                       placeholder="Login ANVISA Gestor">
+                            </div>
+                            <div class="col-md-6 mb-2">
+                                <label for="anvisaEmpresa" class="form-label small">ANVISA Empresa</label>
+                                <input type="text" class="form-control form-control-sm" 
+                                       id="anvisaEmpresa" name="anvisaEmpresa" 
+                                       value="{{ client.anvisaEmpresa if client else '' }}" 
+                                       placeholder="Login ANVISA Empresa">
                             </div>
                         </div>
                     </div>
                 </div>
 
-                <!-- Bloco 7: Procurações -->
+                <!-- Bloco 6: Procurações -->
                 <div class="card mb-4">
-                    <div class="card-header bg-secondary text-white">
+                    <div class="card-header bg-danger text-white">
                         <h5 class="mb-0">
-                            <i class="bi bi-file-earmark-text me-2"></i>Bloco 7: Procurações
+                            <i class="bi bi-file-earmark-text me-2"></i>Bloco 6: Procurações
                         </h5>
                     </div>
                     <div class="card-body">
-                        <div class="row">
-                            <!-- Procuração RFB (Receita Federal) -->
-                            <div class="col-md-4 mb-3">
-                                <div class="form-check">
-                                    <input class="form-check-input" type="checkbox" id="procRfb" name="procRfb" 
-                                           {{ 'checked' if client and client.procRfb else '' }}>
-                                    <label class="form-check-label" for="procRfb">
-                                        Procuração RFB (Receita Federal)
+                        <!-- Procurações em uma única linha -->
+                        <div class="row mb-3">
+                            <!-- Proc. Receita -->
+                            <div class="col-md mb-2">
+                                <div class="form-check mb-2">
+                                    <input class="form-check-input" type="checkbox" 
+                                           id="procReceita" name="procReceita" 
+                                           onchange="toggleProcuracaoData('procReceita', 'dataProcReceita')"
+                                           {% if client and client.procReceita %}checked{% endif %}>
+                                    <label class="form-check-label small" for="procReceita">
+                                        <strong>Proc. Receita</strong>
                                     </label>
                                 </div>
-                                <div class="mt-2">
-                                    <label for="procRfbData" class="form-label">DATA DA PROCURAÇÃO</label>
-                                    <input type="date" class="form-control" id="procRfbData" name="procRfbData" 
-                                           value="{{ client.procRfbData if client else '' }}">
-                                </div>
+                                <input type="text" class="form-control form-control-sm date-mask" 
+                                       id="dataProcReceita" name="dataProcReceita" 
+                                       value="{{ client.dataProcReceita if client else '' }}" 
+                                       placeholder="DD/MM/AAAA">
                             </div>
-                            <!-- Procuração RC (Receita Estadual) -->
-                            <div class="col-md-4 mb-3">
-                                <div class="form-check">
-                                    <input class="form-check-input" type="checkbox" id="procRc" name="procRc" 
-                                           {{ 'checked' if client and client.procRc else '' }}>
-                                    <label class="form-check-label" for="procRc">
-                                        Procuração RC (Receita Estadual)
+
+                            <!-- Proc. DTe -->
+                            <div class="col-md mb-2">
+                                <div class="form-check mb-2">
+                                    <input class="form-check-input" type="checkbox" 
+                                           id="procDte" name="procDte" 
+                                           onchange="toggleProcuracaoData('procDte', 'dataProcDte')"
+                                           {% if client and client.procDte %}checked{% endif %}>
+                                    <label class="form-check-label small" for="procDte">
+                                        <strong>Proc. DTe</strong>
                                     </label>
                                 </div>
-                                <div class="mt-2">
-                                    <label for="procRcData" class="form-label">DATA DA PROCURAÇÃO</label>
-                                    <input type="date" class="form-control" id="procRcData" name="procRcData" 
-                                           value="{{ client.procRcData if client else '' }}">
-                                </div>
+                                <input type="text" class="form-control form-control-sm date-mask" 
+                                       id="dataProcDte" name="dataProcDte" 
+                                       value="{{ client.dataProcDte if client else '' }}" 
+                                       placeholder="DD/MM/AAAA">
                             </div>
-                            <!-- Procuração CX (Caixa Econômica) -->
-                            <div class="col-md-4 mb-3">
-                                <div class="form-check">
-                                    <input class="form-check-input" type="checkbox" id="procCx" name="procCx" 
-                                           {{ 'checked' if client and client.procCx else '' }}>
-                                    <label class="form-check-label" for="procCx">
-                                        Procuração CX (Caixa Econômica)
+
+                            <!-- Proc. Caixa -->
+                            <div class="col-md mb-2">
+                                <div class="form-check mb-2">
+                                    <input class="form-check-input" type="checkbox" 
+                                           id="procCaixa" name="procCaixa" 
+                                           onchange="toggleProcuracaoData('procCaixa', 'dataProcCaixa')"
+                                           {% if client and client.procCaixa %}checked{% endif %}>
+                                    <label class="form-check-label small" for="procCaixa">
+                                        <strong>Proc. Caixa</strong>
                                     </label>
                                 </div>
-                                <div class="mt-2">
-                                    <label for="procCxData" class="form-label">DATA DA PROCURAÇÃO</label>
-                                    <input type="date" class="form-control" id="procCxData" name="procCxData" 
-                                           value="{{ client.procCxData if client else '' }}">
-                                </div>
+                                <input type="text" class="form-control form-control-sm date-mask" 
+                                       id="dataProcCaixa" name="dataProcCaixa" 
+                                       value="{{ client.dataProcCaixa if client else '' }}" 
+                                       placeholder="DD/MM/AAAA">
                             </div>
-                        </div>
-                        <div class="row">
-                            <!-- Procuração SW (Previdência Social) -->
-                            <div class="col-md-4 mb-3">
-                                <div class="form-check">
-                                    <input class="form-check-input" type="checkbox" id="procSw" name="procSw" 
-                                           {{ 'checked' if client and client.procSw else '' }}>
-                                    <label class="form-check-label" for="procSw">
-                                        Procuração SW (Previdência Social)
+
+                            <!-- Proc. Emp. Web -->
+                            <div class="col-md mb-2">
+                                <div class="form-check mb-2">
+                                    <input class="form-check-input" type="checkbox" 
+                                           id="procEmpWeb" name="procEmpWeb" 
+                                           onchange="toggleProcuracaoData('procEmpWeb', 'dataProcEmpWeb')"
+                                           {% if client and client.procEmpWeb %}checked{% endif %}>
+                                    <label class="form-check-label small" for="procEmpWeb">
+                                        <strong>Proc. Emp. Web</strong>
                                     </label>
                                 </div>
-                                <div class="mt-2">
-                                    <label for="procSwData" class="form-label">DATA DA PROCURAÇÃO</label>
-                                    <input type="date" class="form-control" id="procSwData" name="procSwData" 
-                                           value="{{ client.procSwData if client else '' }}">
-                                </div>
+                                <input type="text" class="form-control form-control-sm date-mask" 
+                                       id="dataProcEmpWeb" name="dataProcEmpWeb" 
+                                       value="{{ client.dataProcEmpWeb if client else '' }}" 
+                                       placeholder="DD/MM/AAAA">
                             </div>
-                            <!-- Procuração Municipal -->
-                            <div class="col-md-4 mb-3">
-                                <div class="form-check">
-                                    <input class="form-check-input" type="checkbox" id="procMunicipal" name="procMunicipal" 
-                                           {{ 'checked' if client and client.procMunicipal else '' }}>
-                                    <label class="form-check-label" for="procMunicipal">
-                                        Procuração Municipal
+
+                            <!-- Proc. DET -->
+                            <div class="col-md mb-2">
+                                <div class="form-check mb-2">
+                                    <input class="form-check-input" type="checkbox" 
+                                           id="procDet" name="procDet" 
+                                           onchange="toggleProcuracaoData('procDet', 'dataProcDet')"
+                                           {% if client and client.procDet %}checked{% endif %}>
+                                    <label class="form-check-label small" for="procDet">
+                                        <strong>Proc. DET</strong>
                                     </label>
                                 </div>
-                                <div class="mt-2">
-                                    <label for="procMunicipalData" class="form-label">DATA DA PROCURAÇÃO</label>
-                                    <input type="date" class="form-control" id="procMunicipalData" name="procMunicipalData" 
-                                           value="{{ client.procMunicipalData if client else '' }}">
-                                </div>
-                            </div>
-                            <!-- outras procurações -->
-                            <div class="col-md-4 mb-3">
-                                <label for="outrasProc" class="form-label">OUTRAS PROCURAÇÕES</label>
-                                <textarea class="form-control" id="outrasProc" name="outrasProc" rows="3" 
-                                          placeholder="Descreva outras procurações...">{{ client.outrasProc if client else '' }}</textarea>
-                            </div>
-                        </div>
-                        <div class="row">
-                            <!-- observações sobre procurações -->
-                            <div class="col-12 mb-3">
-                                <label for="obsProcuracoes" class="form-label">OBSERVAÇÕES SOBRE PROCURAÇÕES</label>
-                                <textarea class="form-control" id="obsProcuracoes" name="obsProcuracoes" rows="3" 
-                                          placeholder="Observações gerais sobre as procurações...">{{ client.obsProcuracoes if client else '' }}</textarea>
+                                <input type="text" class="form-control form-control-sm date-mask" 
+                                       id="dataProcDet" name="dataProcDet" 
+                                       value="{{ client.dataProcDet if client else '' }}" 
+                                       placeholder="DD/MM/AAAA">
                             </div>
                         </div>
                     </div>
                 </div>
 
-                <!-- Bloco 8: Observações e Dados Adicionais -->
+                <!-- Bloco 7: Observações e Dados Adicionais -->
                 <div class="card mb-4">
                     <div class="card-header bg-dark text-white">
                         <h5 class="mb-0">
-                            <i class="bi bi-sticky-note me-2"></i>Bloco 8: Observações e Dados Adicionais
+                            <i class="bi bi-sticky-note me-2"></i>Bloco 7: Observações e Dados Adicionais
                         </h5>
                     </div>
                     <div class="card-body">
@@ -935,6 +901,16 @@
                                 <input type="datetime-local" class="form-control" id="ultimaAtualizacao" name="ultimaAtualizacao" 
                                        value="{{ client.ultimaAtualizacao[:19] if client and client.ultimaAtualizacao else '' }}" readonly>
                                 <div class="form-text">Atualizado automaticamente</div>
+                            </div>
+                        </div>
+                        <div class="row">
+                            <!-- Histórico de Alterações -->
+                            <div class="col-md-12 mb-3">
+                                <label for="historicoAlteracoes" class="form-label">HISTÓRICO DE ALTERAÇÕES</label>
+                                <textarea class="form-control" id="historicoAlteracoes" name="historicoAlteracoes" 
+                                          rows="3" placeholder="Registro de mudanças importantes..."
+                                >{{ client.historicoAlteracoes if client else '' }}</textarea>
+                                <div class="form-text">Registre alterações importantes para controle interno</div>
                             </div>
                         </div>
                         <div class="row">
@@ -1009,56 +985,11 @@
 {% endif %}
 
 <script>
-// Validação do formulário
-(function() {
-    'use strict';
-    window.addEventListener('load', function() {
-        var forms = document.getElementsByClassName('needs-validation');
-        var validation = Array.prototype.filter.call(forms, function(form) {
-            form.addEventListener('submit', function(event) {
-                if (form.checkValidity() === false) {
-                    event.preventDefault();
-                    event.stopPropagation();
-                }
-                form.classList.add('was-validated');
-            }, false);
-        });
-    }, false);
-})();
+// =============================================================================
+// (Removido bloco duplicado de DOMContentLoaded; lógica consolidada abaixo)
+// =============================================================================
 
-// Formatação inteligente de CPF/CNPJ
-document.getElementById('cpfCnpj').addEventListener('input', function(e) {
-    let value = e.target.value.replace(/\D/g, ''); // Remove tudo que não é dígito
-    
-    if (value.length <= 11) {
-        // Formato CPF: 999.999.999-99
-        value = value.replace(/(\d{3})(\d)/, '$1.$2');
-        value = value.replace(/(\d{3})(\d)/, '$1.$2');
-        value = value.replace(/(\d{3})(\d{1,2})$/, '$1-$2');
-    } else if (value.length <= 14) {
-        // Formato CNPJ: 99.999.999/9999-99
-        value = value.replace(/^(\d{2})(\d)/, '$1.$2');
-        value = value.replace(/^(\d{2})\.(\d{3})(\d)/, '$1.$2.$3');
-        value = value.replace(/\.(\d{3})(\d)/, '.$1/$2');
-        value = value.replace(/(\d{4})(\d)/, '$1-$2');
-    }
-    
-    e.target.value = value;
-    
-    // Feedback visual para o usuário
-    const label = document.querySelector('label[for="cpfCnpj"]');
-    const cleanValue = value.replace(/\D/g, '');
-    
-    if (cleanValue.length === 11) {
-        label.innerHTML = '<i class="bi bi-person me-1"></i>CPF <span class="text-danger">*</span>';
-    } else if (cleanValue.length === 14) {
-        label.innerHTML = '<i class="bi bi-building me-1"></i>CNPJ <span class="text-danger">*</span>';
-    } else {
-        label.innerHTML = '<i class="bi bi-card-text me-1"></i>CPF/CNPJ <span class="text-danger">*</span>';
-    }
-});
-
-// Formatação de telefones
+// Aplicar máscaras aos campos existentes
 function formatPhone(input) {
     let value = input.value.replace(/\D/g, '');
     if (value.length <= 11) {
@@ -1068,10 +999,13 @@ function formatPhone(input) {
     input.value = value;
 }
 
-// Aplicar formatação de telefone
-document.getElementById('telefoneContador').addEventListener('input', function() {
-    formatPhone(this);
-});
+// Aplicar formatação de telefone (se existir o campo específico)
+const telCont = document.getElementById('telefoneContador');
+if (telCont) {
+    telCont.addEventListener('input', function() {
+        formatPhone(this);
+    });
+}
 
 // Formatação de CPF
 function formatCPF(input) {
@@ -1084,8 +1018,116 @@ function formatCPF(input) {
     input.value = value;
 }
 
+// Formatação de Data (DD/MM/AAAA)
+function formatDate(input) {
+    let value = input.value.replace(/\D/g, '');
+    if (value.length <= 8) {
+        value = value.replace(/(\d{2})(\d)/, '$1/$2');
+        value = value.replace(/(\d{2})\/(\d{2})(\d)/, '$1/$2/$3');
+    }
+    input.value = value;
+}
+
 // Aplicar máscaras aos campos existentes
 document.addEventListener('DOMContentLoaded', function() {
+    console.log('🚀 DOM carregado - iniciando configurações');
+    
+    // =============================================================
+    // CONFIGURAR EVENT LISTENER DO CPF/CNPJ (PRIMEIRA PRIORIDADE)
+    // =============================================================
+    console.log('🔗 Configurando event listener do CPF/CNPJ...');
+    const cpfCnpjInput = document.getElementById('cpfCnpj');
+    const domesticaSelect = document.getElementById('domestica');
+    
+    console.log('📍 Campo CPF/CNPJ encontrado:', !!cpfCnpjInput);
+    console.log('🏠 Campo Doméstica encontrado:', !!domesticaSelect);
+    
+    if (cpfCnpjInput) {
+        const onCpfCnpjChange = function(e) {
+            console.log('🎯 CPF/CNPJ INPUT EVENT DISPARADO!');
+            console.log('📝 Valor recebido:', e.target.value);
+            
+            let value = e.target.value.replace(/\D/g, ''); // Remove tudo que não é dígito
+            console.log('🔢 Valor limpo:', value, 'Length:', value.length);
+            
+            if (value.length <= 11) {
+                // Formato CPF: 999.999.999-99
+                value = value.replace(/(\d{3})(\d)/, '$1.$2');
+                value = value.replace(/(\d{3})(\d)/, '$1.$2');
+                value = value.replace(/(\d{3})(\d{1,2})$/, '$1-$2');
+            } else if (value.length <= 14) {
+                // Formato CNPJ: 99.999.999/9999-99
+                value = value.replace(/^(\d{2})(\d)/, '$1.$2');
+                value = value.replace(/^(\d{2})\.(\d{3})(\d)/, '$1.$2.$3');
+                value = value.replace(/\.(\d{3})(\d)/, '.$1/$2');
+                value = value.replace(/(\d{4})(\d)/, '$1-$2');
+            }
+            
+            e.target.value = value;
+            
+            // Feedback visual para o usuário
+            const label = document.querySelector('label[for="cpfCnpj"]');
+            const cleanValue = value.replace(/\D/g, '');
+            
+            if (cleanValue.length === 11) {
+                label.innerHTML = '<i class="bi bi-person me-1"></i>CPF <span class="text-danger">*</span>';
+                console.log('👤 Label atualizado para CPF');
+            } else if (cleanValue.length === 14) {
+                label.innerHTML = '<i class="bi bi-building me-1"></i>CNPJ <span class="text-danger">*</span>';
+                console.log('🏢 Label atualizado para CNPJ');
+            } else {
+                label.innerHTML = '<i class="bi bi-card-text me-1"></i>CPF/CNPJ <span class="text-danger">*</span>';
+                console.log('📄 Label resetado');
+            }
+            
+            // CONTROLE DO CAMPO DOMÉSTICA
+            if (domesticaSelect) {
+                const numeros = value.replace(/\D/g, '');
+                console.log('🔍 Controlando Doméstica - Números:', numeros, 'Length:', numeros.length);
+                
+                if (numeros.length === 11) {
+                    // CPF completo - Habilitar Doméstica
+                    domesticaSelect.disabled = false;
+                    console.log('✅ CPF COMPLETO - HABILITANDO Doméstica');
+                } else if (numeros.length === 14) {
+                    // CNPJ completo - Desabilitar Doméstica e forçar NÃO
+                    domesticaSelect.disabled = true;
+                    domesticaSelect.value = 'NÃO';
+                    console.log('🏢 CNPJ COMPLETO - DESABILITANDO Doméstica');
+                } else {
+                    // Incompleto - Desabilitar Doméstica
+                    domesticaSelect.disabled = true;
+                    domesticaSelect.value = 'NÃO';
+                    console.log('❌ INCOMPLETO - DESABILITANDO Doméstica');
+                }
+                
+                console.log('📊 Estado final - disabled:', domesticaSelect.disabled, 'value:', domesticaSelect.value);
+            } else {
+                console.error('❌ Campo Doméstica não encontrado!');
+            }
+        };
+        cpfCnpjInput.addEventListener('input', onCpfCnpjChange);
+        cpfCnpjInput.addEventListener('change', onCpfCnpjChange);
+        cpfCnpjInput.addEventListener('blur', function(){
+            // Dispara com evento sintético para reaplicar regras no blur
+            cpfCnpjInput.dispatchEvent(new Event('input'));
+        });
+        
+        console.log('✅ Event listener do CPF/CNPJ configurado com sucesso!');
+        
+        // Configurar estado inicial baseado no valor atual (para edição)
+        if (cpfCnpjInput.value) {
+            console.log('🔄 Configurando estado inicial baseado no valor atual:', cpfCnpjInput.value);
+            cpfCnpjInput.dispatchEvent(new Event('input'));
+        }
+    } else {
+        console.error('❌ Campo CPF/CNPJ não encontrado!');
+    }
+    
+    // =============================================================
+    // RESTANTE DAS CONFIGURAÇÕES
+    // =============================================================
+    
     // Aplicar máscara de CPF
     document.querySelectorAll('.cpf-mask').forEach(function(input) {
         input.addEventListener('input', function() {
@@ -1099,10 +1141,109 @@ document.addEventListener('DOMContentLoaded', function() {
             formatPhone(this);
         });
     });
+
+    // Aplicar máscara de data (DD/MM/AAAA)
+    document.querySelectorAll('.date-mask').forEach(function(input) {
+        input.addEventListener('input', function() {
+            formatDate(this);
+        });
+    });
+
+    // Funcionalidade para campos que só aceitam números
+    document.querySelectorAll('.numbers-only').forEach(function(input) {
+        input.addEventListener('input', function() {
+            this.value = this.value.replace(/[^0-9]/g, '');
+        });
+    });
+
+    // Máscara para data MM/AAAA
+    const dataInicioInput = document.getElementById('dataInicioServicos');
+    if (dataInicioInput) {
+        dataInicioInput.addEventListener('input', function() {
+            let value = this.value.replace(/\D/g, ''); // Remove tudo que não é dígito
+            
+            if (value.length >= 2) {
+                value = value.substring(0, 2) + '/' + value.substring(2, 6);
+            }
+            
+            this.value = value;
+        });
+    }
+
+    // Configurar controle de representante legal (apenas um pode ser selecionado)
+    setTimeout(function() {
+        configurarControleSocios();
+    }, 100);
+
+    // Inicializar estado dos campos de procuração
+    inicializarProcuracoes();
+    console.log('📋 Procurações inicializadas');
+
+    // Inicializar validação de campos obrigatórios
+    inicializarValidacaoCampos();
+    console.log('✅ Validação de campos inicializada');
+
+    // Adicionar validação no submit do formulário
+    const form = document.querySelector('form.needs-validation');
+    if (form) {
+        form.addEventListener('submit', function(e) {
+            console.log('📝 Submit do formulário interceptado');
+            
+            // Sempre adicionar classe para mostrar validação visual
+            form.classList.add('was-validated');
+            
+            if (!validarFormulario(this)) {
+                e.preventDefault();
+                e.stopPropagation();
+                console.log('❌ Submit cancelado devido a erros de validação');
+                return false;
+            }
+            
+            console.log('✅ Formulário válido, enviando...');
+        });
+        
+        console.log('✅ Event listener de submit adicionado');
+    } else {
+        console.error('❌ Formulário não encontrado!');
+    }
+
+    // Carregar dados dos sócios e contatos se estiver editando
+    {% if client %}
+    const dadosCliente = {{ client|tojson }};
+    carregarSocios(dadosCliente);
+    carregarContatos(dadosCliente);
+    {% endif %}
+
+    // Forçar caixa alta nos inputs
+    document.querySelectorAll('.upper-input').forEach(function(input) {
+        input.addEventListener('input', function() {
+            this.value = this.value.toUpperCase();
+        });
+    });
+    console.log('✅ Inputs uppercase configurados');
 });
+
+// Função para configurar controles dos sócios
+function configurarControleSocios() {
+    console.log('👥 Configurando controles dos sócios');
+    
+    // Adicionar eventos para todos os radio buttons de representante legal existentes
+    document.querySelectorAll('.representante-legal').forEach(function(radio) {
+        radio.addEventListener('change', function() {
+            if (this.checked) {
+                console.log('✅ Representante legal selecionado:', this.value);
+            }
+        });
+    });
+    
+    console.log('✅ Controles de sócios configurados');
+}
 
 // Variável global para controlar o número de sócios
 let numeroSocios = 1;
+
+// Variável global para controlar o número de contatos
+let numeroContatos = 1;
 
 // Função para adicionar novo sócio
 function adicionarSocio() {
@@ -1114,39 +1255,56 @@ function adicionarSocio() {
     novoSocio.id = `socio_${numeroSocios}`;
     
     novoSocio.innerHTML = `
-        <div class="card-body py-2">
+        <div class="card-body py-3">
             <div class="row align-items-center">
-                <div class="col-md-3">
+                <div class="col-md-3 mb-2">
                     <label class="form-label small mb-1">Nome do Sócio</label>
                     <input type="text" class="form-control form-control-sm" 
                            name="socio_${numeroSocios}_nome" id="socio_${numeroSocios}_nome"
                            placeholder="Nome completo do sócio">
                 </div>
-                <div class="col-md-2">
+                <div class="col-md-2 mb-2">
                     <label class="form-label small mb-1">CPF</label>
                     <input type="text" class="form-control form-control-sm cpf-mask" 
                            name="socio_${numeroSocios}_cpf" id="socio_${numeroSocios}_cpf"
                            placeholder="000.000.000-00">
                 </div>
-                <div class="col-md-3">
-                    <label class="form-label small mb-1">E-mail</label>
-                    <input type="email" class="form-control form-control-sm" 
-                           name="socio_${numeroSocios}_email" id="socio_${numeroSocios}_email"
-                           placeholder="socio@email.com">
+                <div class="col-md-2 mb-2">
+                    <label class="form-label small mb-1">Data de Nascimento</label>
+                    <input type="date" class="form-control form-control-sm" 
+                           name="socio_${numeroSocios}_data_nascimento" id="socio_${numeroSocios}_data_nascimento">
                 </div>
-                <div class="col-md-2">
-                    <label class="form-label small mb-1">Telefone</label>
-                    <input type="tel" class="form-control form-control-sm phone-mask" 
-                           name="socio_${numeroSocios}_telefone" id="socio_${numeroSocios}_telefone"
-                           placeholder="(85) 99999-9999">
-                </div>
-                <div class="col-md-1">
-                    <label class="form-label small mb-1">% Part.</label>
+                <div class="col-md-2 mb-2">
+                    <label class="form-label small mb-1">% de Quotas</label>
                     <input type="number" class="form-control form-control-sm" 
                            name="socio_${numeroSocios}_participacao" id="socio_${numeroSocios}_participacao"
                            placeholder="50.00" step="0.01" min="0" max="100">
                 </div>
-                <div class="col-md-1">
+                <div class="col-md-2 mb-2">
+                    <div class="row">
+                        <div class="col-12 mb-1">
+                            <div class="form-check">
+                                <input class="form-check-input representante-legal" type="radio" 
+                                       name="representante_legal" value="socio_${numeroSocios}" 
+                                       id="rep_legal_${numeroSocios}">
+                                <label class="form-check-label small" for="rep_legal_${numeroSocios}">
+                                    Representante Legal
+                                </label>
+                            </div>
+                        </div>
+                        <div class="col-12">
+                            <div class="form-check">
+                                <input class="form-check-input socio-admin" type="checkbox" 
+                                       name="socio_${numeroSocios}_administrador" value="1" 
+                                       id="admin_${numeroSocios}">
+                                <label class="form-check-label small" for="admin_${numeroSocios}">
+                                    Sócio Administrador
+                                </label>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-1 mb-2">
                     <label class="form-label small mb-1">&nbsp;</label>
                     <button type="button" class="btn btn-outline-danger btn-sm w-100" 
                             onclick="removerSocio(${numeroSocios})" title="Remover sócio">
@@ -1161,7 +1319,6 @@ function adicionarSocio() {
     
     // Aplicar máscaras aos novos campos
     const novoCpfInput = novoSocio.querySelector('.cpf-mask');
-    const novoTelInput = novoSocio.querySelector('.phone-mask');
     
     if (novoCpfInput) {
         novoCpfInput.addEventListener('input', function() {
@@ -1169,9 +1326,13 @@ function adicionarSocio() {
         });
     }
     
-    if (novoTelInput) {
-        novoTelInput.addEventListener('input', function() {
-            formatPhone(this);
+    // Aplicar eventos para controle de representante legal
+    const radioRepresentante = novoSocio.querySelector('.representante-legal');
+    if (radioRepresentante) {
+        radioRepresentante.addEventListener('change', function() {
+            if (this.checked) {
+                console.log('✅ Representante legal selecionado:', this.value);
+            }
         });
     }
     
@@ -1215,15 +1376,42 @@ function carregarSocios(dadosCliente) {
             // Preencher os campos
             const nomeInput = document.getElementById(`socio_${i}_nome`);
             const cpfInput = document.getElementById(`socio_${i}_cpf`);
-            const emailInput = document.getElementById(`socio_${i}_email`);
-            const telefoneInput = document.getElementById(`socio_${i}_telefone`);
+            const dataNascInput = document.getElementById(`socio_${i}_data_nascimento`);
             const participacaoInput = document.getElementById(`socio_${i}_participacao`);
+            const repLegalInput = document.getElementById(`rep_legal_${i}`);
+            const adminInput = document.getElementById(`admin_${i}`);
             
             if (nomeInput) nomeInput.value = nome || '';
             if (cpfInput) cpfInput.value = dadosCliente[`socio_${i}_cpf`] || '';
-            if (emailInput) emailInput.value = dadosCliente[`socio_${i}_email`] || '';
-            if (telefoneInput) telefoneInput.value = dadosCliente[`socio_${i}_telefone`] || '';
+            if (dataNascInput) dataNascInput.value = dadosCliente[`socio_${i}_data_nascimento`] || '';
             if (participacaoInput) participacaoInput.value = dadosCliente[`socio_${i}_participacao`] || '';
+            if (repLegalInput && dadosCliente.representante_legal === `socio_${i}`) repLegalInput.checked = true;
+            if (adminInput && dadosCliente[`socio_${i}_administrador`]) adminInput.checked = true;
+        }
+    }
+}
+
+function carregarContatos(dadosCliente) {
+    if (!dadosCliente) return;
+    
+    // Procurar por campos de contatos nos dados do cliente
+    for (let i = 1; i <= 10; i++) { // Suporte para até 10 contatos
+        const nome = dadosCliente[`contato_${i}_nome`];
+        if (nome) {
+            if (i > 1) {
+                adicionarContato(); // Adicionar card de contato se não for o primeiro
+            }
+            
+            // Preencher os campos
+            const nomeInput = document.getElementById(`contato_${i}_nome`);
+            const cargoInput = document.getElementById(`contato_${i}_cargo`);
+            const telefoneInput = document.getElementById(`contato_${i}_telefone`);
+            const emailInput = document.getElementById(`contato_${i}_email`);
+            
+            if (nomeInput) nomeInput.value = nome || '';
+            if (cargoInput) cargoInput.value = dadosCliente[`contato_${i}_cargo`] || '';
+            if (telefoneInput) telefoneInput.value = dadosCliente[`contato_${i}_telefone`] || '';
+            if (emailInput) emailInput.value = dadosCliente[`contato_${i}_email`] || '';
         }
     }
 }
@@ -1235,13 +1423,307 @@ function confirmDelete(clientId, clientName) {
     deleteModal.show();
 }
 
-// Carregar dados dos sócios se estiver editando
-{% if client %}
-document.addEventListener('DOMContentLoaded', function() {
-    const dadosCliente = {{ client|tojson }};
-    carregarSocios(dadosCliente);
-});
-{% endif %}
+// Funções para gerenciar contatos
+function adicionarContato() {
+    numeroContatos++;
+    const container = document.getElementById('contatosContainer');
+    
+    const novoContato = document.createElement('div');
+    novoContato.className = 'card border-light mb-2 contato-card';
+    novoContato.id = `contato_${numeroContatos}`;
+    novoContato.innerHTML = `
+        <div class="card-body py-3">
+            <div class="d-flex justify-content-between align-items-center mb-2">
+                <span class="badge bg-secondary">Contato ${numeroContatos}</span>
+                <button type="button" class="btn btn-sm btn-outline-danger" onclick="removerContato(${numeroContatos})" title="Remover contato">
+                    <i class="bi bi-x-lg"></i>
+                </button>
+            </div>
+            <div class="row align-items-center">
+                <div class="col-md-3 mb-2">
+                    <label class="form-label small mb-1">Nome</label>
+                    <input type="text" class="form-control form-control-sm" 
+                           name="contato_${numeroContatos}_nome" id="contato_${numeroContatos}_nome"
+                           placeholder="Nome completo do contato">
+                </div>
+                <div class="col-md-3 mb-2">
+                    <label class="form-label small mb-1">Cargo</label>
+                    <input type="text" class="form-control form-control-sm" 
+                           name="contato_${numeroContatos}_cargo" id="contato_${numeroContatos}_cargo"
+                           placeholder="Ex: Gerente, Diretor, Sócio">
+                </div>
+                <div class="col-md-3 mb-2">
+                    <label class="form-label small mb-1">Telefone</label>
+                    <input type="tel" class="form-control form-control-sm phone-mask" 
+                           name="contato_${numeroContatos}_telefone" id="contato_${numeroContatos}_telefone"
+                           placeholder="(85) 99999-9999">
+                </div>
+                <div class="col-md-3 mb-2">
+                    <label class="form-label small mb-1">E-mail</label>
+                    <input type="email" class="form-control form-control-sm" 
+                           name="contato_${numeroContatos}_email" id="contato_${numeroContatos}_email"
+                           placeholder="contato@empresa.com">
+                </div>
+            </div>
+        </div>
+    `;
+    
+    container.appendChild(novoContato);
+    
+    // Aplicar máscara ao novo campo de telefone
+    const phoneInput = novoContato.querySelector('.phone-mask');
+    if (phoneInput) {
+        phoneInput.addEventListener('input', function() {
+            formatPhone(this);
+        });
+    }
+}
+
+function removerContato(numero) {
+    // Não permitir remover o primeiro contato
+    if (numero === 1) {
+        alert('O primeiro contato não pode ser removido!');
+        return;
+    }
+    
+    const card = document.getElementById(`contato_${numero}`);
+    if (card) {
+        card.remove();
+    }
+}
+
+// Função para controlar habilitação/desabilitação dos campos de procuração
+function toggleProcuracaoData(checkboxId, dataInputId) {
+    console.log('🔄 toggleProcuracaoData chamada:', checkboxId, dataInputId);
+    
+    const checkbox = document.getElementById(checkboxId);
+    const dataInput = document.getElementById(dataInputId);
+    
+    console.log('📦 Elementos encontrados:', {
+        checkbox: checkbox ? 'SIM' : 'NÃO',
+        dataInput: dataInput ? 'SIM' : 'NÃO',
+        checkboxChecked: checkbox ? checkbox.checked : 'N/A'
+    });
+    
+    if (checkbox && dataInput) {
+        if (checkbox.checked) {
+            dataInput.disabled = false;
+            dataInput.focus();
+            console.log('✅ Campo habilitado:', dataInputId);
+        } else {
+            dataInput.disabled = true;
+            dataInput.value = '';
+            console.log('❌ Campo desabilitado:', dataInputId);
+        }
+    } else {
+        console.error('⚠️ Elementos não encontrados!', {checkboxId, dataInputId});
+    }
+}
+
+// Função para inicializar o estado dos campos de procuração
+function inicializarProcuracoes() {
+    console.log('🚀 Inicializando procurações...');
+    
+    const procuracoes = [
+        ['procReceita', 'dataProcReceita'],
+        ['procDte', 'dataProcDte'],
+        ['procCaixa', 'dataProcCaixa'],
+        ['procEmpWeb', 'dataProcEmpWeb'],
+        ['procDet', 'dataProcDet']
+    ];
+    
+    procuracoes.forEach(function([checkboxId, dataInputId]) {
+        const checkbox = document.getElementById(checkboxId);
+        const dataInput = document.getElementById(dataInputId);
+        
+        console.log(`🔍 Verificando ${checkboxId}:`, {
+            checkbox: checkbox ? 'ENCONTRADO' : 'NÃO ENCONTRADO',
+            dataInput: dataInput ? 'ENCONTRADO' : 'NÃO ENCONTRADO',
+            checked: checkbox ? checkbox.checked : 'N/A'
+        });
+        
+        if (checkbox && dataInput) {
+            // Definir estado inicial baseado no checkbox
+            dataInput.disabled = !checkbox.checked;
+            console.log(`✅ ${dataInputId} inicializado - disabled: ${dataInput.disabled}`);
+        } else {
+            console.error(`❌ Erro ao encontrar elementos para ${checkboxId}/${dataInputId}`);
+        }
+    });
+    
+    console.log('✅ Inicialização de procurações concluída');
+}
+
+// Função para inicializar todas as validações de campos
+function inicializarValidacaoCampos() {
+    console.log('🔧 Inicializando validações de campos...');
+    
+    const cpfCnpjInput = document.getElementById('cpfCnpj');
+    const conditionalFields = document.querySelectorAll('.conditional-required');
+    
+    function updateRequiredFields() {
+    const value = cpfCnpjInput.value.replace(/\D/g, '');
+    const isCPF = value.length === 11;
+    const isCNPJ = value.length === 14;
+        
+        console.log('🔄 Atualizando campos obrigatórios:', {
+            value: value,
+            length: value.length,
+            isCPF: isCPF
+        });
+        
+        // Se for CPF (11 dígitos), só obrigar: Nome da Empresa, CPF, Estado, Cidade
+        if (isCPF) {
+            // Ocultar asteriscos condicionais
+            conditionalFields.forEach(span => {
+                span.style.display = 'none';
+            });
+            
+            // Remover required dos campos condicionais
+            ['razaoSocialReceita', 'nomeFantasiaReceita', 'inscEst', 'inscMun', 
+             'segmento', 'atividade', 'regimeEstadual', 'regimeFederal'].forEach(fieldId => {
+                const field = document.getElementById(fieldId);
+                if (field) field.removeAttribute('required');
+            });
+            
+            console.log('👤 Modo CPF: campos opcionais configurados');
+        } else if (isCNPJ) {
+            // Se for CNPJ (14 dígitos), todos os campos são obrigatórios
+            conditionalFields.forEach(span => {
+                span.style.display = 'inline';
+            });
+            
+            // Adicionar required aos campos condicionais
+            ['razaoSocialReceita', 'nomeFantasiaReceita', 'inscEst', 'inscMun', 
+             'segmento', 'atividade', 'regimeEstadual', 'regimeFederal'].forEach(fieldId => {
+                const field = document.getElementById(fieldId);
+                if (field) field.setAttribute('required', 'required');
+            });
+            
+            console.log('🏢 Modo CNPJ: todos os campos obrigatórios');
+        } else {
+            // Incompleto: manter sem obrigatoriedade extra e ocultar asteriscos
+            conditionalFields.forEach(span => {
+                span.style.display = 'none';
+            });
+            ['razaoSocialReceita', 'nomeFantasiaReceita', 'inscEst', 'inscMun', 
+             'segmento', 'atividade', 'regimeEstadual', 'regimeFederal'].forEach(fieldId => {
+                const field = document.getElementById(fieldId);
+                if (field) field.removeAttribute('required');
+            });
+            console.log('⏳ CPF/CNPJ incompleto: requisitos condicionais desativados');
+        }
+    }
+    
+    // Executar ao carregar a página
+    if (cpfCnpjInput) {
+        updateRequiredFields();
+        
+        // Adicionar evento para atualizar quando CPF/CNPJ mudar
+        cpfCnpjInput.addEventListener('input', updateRequiredFields);
+        console.log('✅ Event listener do CPF/CNPJ adicionado');
+    } else {
+        console.error('❌ Campo CPF/CNPJ não encontrado!');
+    }
+}
+
+// Função para validar formulário antes do submit
+function validarFormulario(form) {
+    console.log('🔍 Validando formulário...');
+    
+    const cpfCnpjInput = document.getElementById('cpfCnpj');
+    const nomeEmpresaInput = document.getElementById('nomeEmpresa');
+    const estadoSelect = document.getElementById('estado');
+    const cidadeSelect = document.getElementById('cidade');
+    
+    let erros = [];
+    
+    // Validar Nome da Empresa (sempre obrigatório)
+    if (!nomeEmpresaInput.value.trim()) {
+        erros.push('Nome da Empresa é obrigatório');
+        nomeEmpresaInput.classList.add('is-invalid');
+        nomeEmpresaInput.classList.remove('is-valid');
+    } else {
+        nomeEmpresaInput.classList.remove('is-invalid');
+        nomeEmpresaInput.classList.add('is-valid');
+    }
+    
+    // Validar CPF/CNPJ (sempre obrigatório)
+    const cpfCnpjValue = cpfCnpjInput.value.replace(/\D/g, '');
+    if (!cpfCnpjValue || (cpfCnpjValue.length !== 11 && cpfCnpjValue.length !== 14)) {
+        erros.push('CPF/CNPJ é obrigatório e deve estar completo');
+        cpfCnpjInput.classList.add('is-invalid');
+        cpfCnpjInput.classList.remove('is-valid');
+    } else {
+        cpfCnpjInput.classList.remove('is-invalid');
+        cpfCnpjInput.classList.add('is-valid');
+    }
+    
+    // Validar Estado (sempre obrigatório)
+    if (!estadoSelect.value) {
+        erros.push('Estado é obrigatório');
+        estadoSelect.classList.add('is-invalid');
+        estadoSelect.classList.remove('is-valid');
+    } else {
+        estadoSelect.classList.remove('is-invalid');
+        estadoSelect.classList.add('is-valid');
+    }
+    
+    // Validar Cidade (sempre obrigatório)
+    if (!cidadeSelect.value) {
+        erros.push('Cidade é obrigatória');
+        cidadeSelect.classList.add('is-invalid');
+        cidadeSelect.classList.remove('is-valid');
+    } else {
+        cidadeSelect.classList.remove('is-invalid');
+        cidadeSelect.classList.add('is-valid');
+    }
+    
+    // Validações condicionais para CNPJ
+    const isCNPJ = cpfCnpjValue.length === 14;
+    if (isCNPJ) {
+        const camposObrigatoriosCNPJ = [
+            {id: 'razaoSocialReceita', nome: 'Razão Social'},
+            {id: 'nomeFantasiaReceita', nome: 'Nome Fantasia'},
+            {id: 'inscEst', nome: 'Inscrição Estadual'},
+            {id: 'inscMun', nome: 'Inscrição Municipal'},
+            {id: 'segmento', nome: 'Segmento'},
+            {id: 'atividade', nome: 'Atividade'},
+            {id: 'regimeEstadual', nome: 'Regime Estadual'},
+            {id: 'regimeFederal', nome: 'Regime Federal'}
+        ];
+        
+        camposObrigatoriosCNPJ.forEach(campo => {
+            const input = document.getElementById(campo.id);
+            if (input && !input.value.trim()) {
+                erros.push(`${campo.nome} é obrigatório para CNPJ`);
+                input.classList.add('is-invalid');
+            } else if (input) {
+                input.classList.remove('is-invalid');
+            }
+        });
+    }
+    
+    if (erros.length > 0) {
+        console.error('❌ Erros de validação:', erros);
+        
+        // Mostrar alerta com os erros
+        const mensagem = 'Por favor, corrija os seguintes erros:\n\n' + erros.join('\n');
+        alert(mensagem);
+        
+        // Rolar para o primeiro campo com erro
+        const primeiroErro = form.querySelector('.is-invalid');
+        if (primeiroErro) {
+            primeiroErro.scrollIntoView({ behavior: 'smooth', block: 'center' });
+            primeiroErro.focus();
+        }
+        
+        return false;
+    }
+    
+    console.log('✅ Formulário validado com sucesso');
+    return true;
+}
 
 // Função para alternar a visibilidade das senhas
 function togglePasswordVisibility(inputId, button) {
@@ -1260,5 +1742,15 @@ function togglePasswordVisibility(inputId, button) {
         button.title = 'Mostrar senha';
     }
 }
+
+// === NOVOS SCRIPTS PARA LAYOUT E REGRAS ===
+
+// CSS para caixa alta
+const style = document.createElement('style');
+style.textContent = `
+    .upper-input { text-transform: uppercase; }
+    .conditional-required { display: none; }
+`;
+document.head.appendChild(style);
 </script>
 {% endblock %}
