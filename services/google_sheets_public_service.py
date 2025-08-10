@@ -127,7 +127,7 @@ class GoogleSheetsPublicService:
                     'acessoSemace', 'senhaSemace', 'procRc', 'procCx', 'procSw', 'mesAnoInicio',
                     'responsavelImediato', 'telefoneFixo', 'telefoneCelular', 'emailsSocio',
                     'socio1', 'socio2', 'socio3', 'ativo', 'integradoDominio', 'portalCliente',
-                    'tarefasVinculadas', 'criadoEm'
+                    'criadoEm'
                 ]
                 
                 # Inserir cabeçalho na primeira linha

@@ -529,7 +529,13 @@ document.addEventListener('DOMContentLoaded', function() {
             if (index < 3) { // Debug apenas para as primeiras 3 linhas
                 console.log(`Linha ${index}:`, {
                     nomeFantasia,
-                    statusText
+                    statusText,
+                    statusValue,
+                    matchesStatus: !statusValue || 
+                        (statusValue === 'ativo' && (statusText.includes('ativo') || statusText.includes('✓'))) || 
+                        (statusValue === 'inativo' && (statusText.includes('inativo') || statusText.includes('❌'))) ||
+                        (statusValue === 'suspenso' && (statusText.includes('suspenso') || statusText.includes('⏸'))) ||
+                        (statusValue === 'em_analise' && (statusText.includes('em análise') || statusText.includes('análise') || statusText.includes('⏳')))
                 });
             }
 
@@ -538,10 +544,10 @@ document.addEventListener('DOMContentLoaded', function() {
                                 cnpj.includes(searchTerm);
             
             const matchesStatus = !statusValue || 
-                                (statusValue === 'ativo' && statusText.includes('ativo')) || 
-                                (statusValue === 'inativo' && statusText.includes('inativo')) ||
-                                (statusValue === 'suspenso' && statusText.includes('suspenso')) ||
-                                (statusValue === 'em_analise' && statusText.includes('em análise'));
+                                (statusValue === 'ativo' && (statusText.includes('ativo') || statusText.includes('✓'))) || 
+                                (statusValue === 'inativo' && (statusText.includes('inativo') || statusText.includes('❌'))) ||
+                                (statusValue === 'suspenso' && (statusText.includes('suspenso') || statusText.includes('⏸'))) ||
+                                (statusValue === 'em_analise' && (statusText.includes('em análise') || statusText.includes('análise') || statusText.includes('⏳')));
 
             const isVisible = matchesSearch && matchesStatus;
 

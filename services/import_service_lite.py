@@ -198,15 +198,10 @@ class ImportServiceLite:
             'OUTRAS PROCURAÇÕES': 'outrasProc',
             'OBSERVAÇÕES PROCURAÇÕES': 'obsProcuracoes',
             
-            # Bloco 8: Observações e Dados Adicionais
-            'OBSERVAÇÕES GERAIS': 'observacoesGerais',
-            'TAREFAS VINCULADAS': 'tarefasVinculadas',
+            # Bloco 8: Observações e Dados Adicionais (somente campos mantidos)
             'STATUS DO CLIENTE': 'statusCliente',
             'ÚLTIMA ATUALIZAÇÃO': 'ultimaAtualizacao',
-            'RESPONSÁVEL ATUALIZAÇÃO': 'responsavelAtualizacao',
-            'PRIORIDADE': 'prioridadeCliente',
-            'TAGS/CATEGORIAS': 'tagsCliente',
-            'HISTÓRICO DE ALTERAÇÕES': 'historicoAlteracoes'
+            'RESPONSÁVEL ATUALIZAÇÃO': 'responsavelAtualizacao'
         }
         
         normalized_data = []
@@ -393,15 +388,10 @@ class ImportServiceLite:
                 'outrasProc': row.get('outrasProc', ''),
                 'obsProcuracoes': row.get('obsProcuracoes', ''),
                 
-                # Bloco 8: Observações e Dados Adicionais
-                'observacoesGerais': row.get('observacoesGerais', ''),
-                'tarefasVinculadas': int(row.get('tarefasVinculadas', 0)) if str(row.get('tarefasVinculadas', 0)).isdigit() else 0,
+                # Bloco 8: Observações e Dados Adicionais (somente campos mantidos)
                 'statusCliente': row.get('statusCliente', 'ATIVO'),
                 'ultimaAtualizacao': row.get('ultimaAtualizacao', ''),
                 'responsavelAtualizacao': row.get('responsavelAtualizacao', ''),
-                'prioridadeCliente': row.get('prioridadeCliente', 'NORMAL'),
-                'tagsCliente': row.get('tagsCliente', ''),
-                'historicoAlteracoes': row.get('historicoAlteracoes', ''),
                 
                 # Campos internos do sistema
                 'ativo': row.get('ativo', True),

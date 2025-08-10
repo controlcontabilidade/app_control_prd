@@ -1985,25 +1985,11 @@ def index():
         print(f"✅ {len(clients)} clientes carregados")
         print(f"💾 Memória atual: {UltraMemoryOptimizer.get_memory_usage() if MEMORY_OPTIMIZER_AVAILABLE else 'N/A'}")
         
-        # OTIMIZAÇÃO MEMÓRIA: Stats ULTRA-simplificadas
+        # OTIMIZAÇÃO MEMÓRIA: Stats calculadas corretamente
         try:
-            # Usar apenas contadores básicos para economizar memória
-            stats = {
-                'total_clientes': len(clients),
-                'clientes_ativos': sum(1 for c in clients if c.get('ativo', True)),
-                'ct': sum(1 for c in clients if c.get('ct')),
-                'fs': sum(1 for c in clients if c.get('fs')),
-                'dp': sum(1 for c in clients if c.get('dp')),
-                # Remover cálculos complexos que consomem memória
-                'empresas': len(clients),  # Simplificado
-                'domesticas': 0,  # Simplificado
-                'mei': 0,  # Simplificado
-                'simples_nacional': 0,  # Simplificado
-                'lucro_presumido': 0,  # Simplificado
-                'lucro_real': 0,  # Simplificado
-                'bpo': sum(1 for c in clients if c.get('bpoFinanceiro'))
-            }
-            print(f"📈 Estatísticas ULTRA-simplificadas calculadas")
+            # Calcular estatísticas reais mantendo otimização de memória
+            stats = calculate_dashboard_stats_optimized(clients)
+            print(f"📈 Estatísticas calculadas: {stats['total_clientes']} total, {stats['mei']} MEI, {stats['simples_nacional']} SN, {stats['lucro_presumido']} LP, {stats['lucro_real']} LR")
         except Exception as stats_error:
             print(f"⚠️ Erro ao calcular stats: {stats_error}")
             stats = {
@@ -2520,26 +2506,16 @@ def save_client():
             'outrasProc': request.form.get('outrasProc', ''),
             'obsProcuracoes': request.form.get('obsProcuracoes', ''),
             
-            # Bloco 7: Observações e Dados Adicionais
-            'observacoesGerais': request.form.get('observacoesGerais', ''),
-            'tarefasVinculadas': int(request.form.get('tarefasVinculadas', '0') or '0'),
-            'dataInicioServicos': request.form.get('dataInicioServicos', ''),
+            # Bloco 7: Observações e Dados Adicionais (apenas campos mantidos)
             'statusCliente': request.form.get('statusCliente', 'ativo'),
             'ultimaAtualizacao': datetime.now().isoformat(),
-            'responsavelAtualizacao': session.get('usuario', ''),
-            'prioridadeCliente': request.form.get('prioridadeCliente', 'normal'),
-            'tagsCliente': request.form.get('tagsCliente', ''),
-            'historicoAlteracoes': request.form.get('historicoAlteracoes', ''),
             
             # Campos de compatibilidade (manter existentes)
             'mesAnoInicio': request.form.get('dataInicioServicos', ''),
-            
-            # Status e configurações
-            'ativo': request.form.get('ativo') == 'on',
         })
         
         # Regras complementares
-        # Sincronizar statusCliente com ativo para compatibilidade
+        # Sincronizar statusCliente com ativo para compatibilidade (automático)
         status_cliente = client_data.get('statusCliente', 'ativo')
         client_data['ativo'] = status_cliente == 'ativo'
         
