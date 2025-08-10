@@ -190,12 +190,12 @@ function editarSegmento(id) {
         .then(response => response.json())
         .then(data => {
             if (data.success) {
-                const segmento = data.segmento;
+                const segmento = data.data;
                 document.getElementById('edit_id').value = segmento.id;
                 document.getElementById('edit_nome').value = segmento.nome;
                 document.getElementById('edit_codigo').value = segmento.codigo;
                 document.getElementById('edit_descricao').value = segmento.descricao || '';
-                document.getElementById('edit_ativo').checked = segmento.ativo === 'Sim';
+                document.getElementById('edit_ativo').checked = segmento.ativo === true;
                 
                 document.getElementById('formEditarSegmento').action = `/segmentos/edit/${id}`;
                 new bootstrap.Modal(document.getElementById('editarSegmentoModal')).show();

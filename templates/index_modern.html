@@ -11,7 +11,32 @@
             <div>
                 <h6 class="alert-heading mb-1">🔧 Sistema em Modo de Manutenção</h6>
                 <p class="mb-0">
-                    O sistema está temporariamente usando dados locais devido a problemas de conectividade. 
+                 // Funçã// Funçãofunction clearFilters() {
+    document.getElementById('searchInput').value = '';
+    document.getElementById('statusFilter').value = '';
+    
+    // Mostrar todas as linhas
+    const rows = document.querySelectorAll('#clientsTable tbody tr');
+    rows.forEach(row => row.style.display = '');
+}
+
+// Confirmação de exclusão filtros
+function clearFilters() {
+    document.getElementById('searchInput').value = '';
+    document.getElementById('statusFilter').value = '';
+    
+    // Mostrar todas as linhas
+    const rows = document.querySelectorAll('#clientsTable tbody tr');
+    rows.forEach(row => row.style.display = '');
+}ar filtros
+function clearFilters() {
+    document.getElementById('searchInput').value = '';
+    document.getElementById('statusFilter').value = '';
+    
+    // Mostrar todas as linhas
+    const rows = document.querySelectorAll('#clientsTable tbody tr');
+    rows.forEach(row => row.style.display = '');
+}a está temporariamente usando dados locais devido a problemas de conectividade. 
                     Os dados podem não estar totalmente atualizados.
                     <a href="/api/auth-status" target="_blank" class="alert-link">Verificar Status Técnico</a>
                 </p>
@@ -254,7 +279,7 @@
                     <input type="text" class="form-control" id="searchInput" placeholder="BUSCAR POR EMPRESA, CNPJ OU RAZÃO SOCIAL...">
                 </div>
             </div>
-            <div class="col-md-2">
+            <div class="col-md-4">
                 <select class="form-select" id="statusFilter">
                     <option value="">TODOS OS STATUS</option>
                     <option value="ativo">✅ Ativo</option>
@@ -263,27 +288,10 @@
                     <option value="em_analise">⏳ Em Análise</option>
                 </select>
             </div>
-            <div class="col-md-3">
-                <select class="form-select" id="serviceFilter">
-                    <option value="">Departamentos</option>
-                    <option value="ct">CONTÁBIL</option>
-                    <option value="fs">FISCAL</option>
-                    <option value="dp">PESSOAL</option>
-                    <option value="bpo">BPO FINANCEIRO</option>
-                </select>
-            </div>
-            <div class="col-md-2">
-                <select class="form-select" id="onvioFilter">
-                    <option value="">ONVIO</option>
-                    <option value="sim">COM ONVIO</option>
-                    <option value="nao">SEM ONVIO</option>
-                </select>
-            </div>
             <div class="col-md-1">
                 <button class="btn btn-outline-secondary w-100" onclick="clearFilters()" title="Limpar filtros">
                     <i class="bi bi-arrow-clockwise"></i>
                 </button>
-                </select>
             </div>
         </div>
     </div>
@@ -314,7 +322,6 @@
                         <th style="min-width: 120px;"><i class="bi bi-calculator me-1"></i>REGIME</th>
                         <th style="min-width: 100px;"><i class="bi bi-person-badge me-1"></i>PERFIL</th>
                         <th style="min-width: 120px;"><i class="bi bi-briefcase me-1"></i>SERVIÇOS</th>
-                        <th style="min-width: 80px;"><i class="bi bi-cloud me-1"></i>ONVIO</th>
                         <th style="min-width: 200px;"><i class="bi bi-gear me-1"></i>AÇÕES</th>
                     </tr>
                 </thead>
@@ -404,20 +411,6 @@
                                 {% endif %}
                             </div>
                         </td>
-                        <td class="text-center">
-                            {% set has_any_onvio = client['sistemaOnvio'] or client['sistemaOnvioContabil'] or client['sistemaOnvioFiscal'] or client['sistemaOnvioPessoal'] %}
-                            {% if has_any_onvio %}
-                                <span class="badge bg-success rounded-pill d-flex align-items-center justify-content-center" style="width: 60px; height: 28px;">
-                                    <i class="bi bi-check-circle-fill me-1"></i>
-                                    <small>SIM</small>
-                                </span>
-                            {% else %}
-                                <span class="badge bg-secondary rounded-pill d-flex align-items-center justify-content-center" style="width: 60px; height: 28px;">
-                                    <i class="bi bi-x-circle me-1"></i>
-                                    <small>NÃO</small>
-                                </span>
-                            {% endif %}
-                        </td>
                         <td>
                             <div class="d-flex gap-1 flex-wrap">
                                 <a href="{{ url_for('view_client', client_id=client['id']) }}" 
@@ -501,16 +494,12 @@ document.addEventListener('DOMContentLoaded', function() {
     
     const searchInput = document.getElementById('searchInput');
     const statusFilter = document.getElementById('statusFilter');
-    const serviceFilter = document.getElementById('serviceFilter');
-    const onvioFilter = document.getElementById('onvioFilter');
     const table = document.getElementById('clientsTable');
     const rows = table ? table.querySelectorAll('tbody tr') : [];
 
     console.log('Elementos encontrados:', {
         searchInput: !!searchInput,
         statusFilter: !!statusFilter,
-        serviceFilter: !!serviceFilter,
-        onvioFilter: !!onvioFilter,
         table: !!table,
         totalRows: rows.length
     });
@@ -519,14 +508,10 @@ document.addEventListener('DOMContentLoaded', function() {
         console.log('=== EXECUTANDO FILTRO ===');
         const searchTerm = searchInput.value.toLowerCase();
         const statusValue = statusFilter.value;
-        const serviceValue = serviceFilter.value;
-        const onvioValue = onvioFilter.value;
 
         console.log('Valores dos filtros:', {
             searchTerm,
-            statusValue,
-            serviceValue,
-            onvioValue
+            statusValue
         });
 
         let visibleCount = 0;
@@ -535,10 +520,6 @@ document.addEventListener('DOMContentLoaded', function() {
             const nomeFantasia = row.cells[0].textContent.toLowerCase();
             const razaoSocial = row.cells[1].textContent.toLowerCase();
             const cnpj = row.cells[2].textContent.toLowerCase();
-            const services = row.cells[7].textContent.toLowerCase(); // Coluna de serviços
-            const onvioCell = row.cells[8]; // Coluna de Onvio
-            const onvioBadge = onvioCell.querySelector('.badge');
-            const hasOnvio = onvioBadge && onvioBadge.classList.contains('bg-success');
             
             // Status está na coluna 3 (4ª coluna, índice 3)
             const statusCell = row.cells[3];
@@ -548,9 +529,7 @@ document.addEventListener('DOMContentLoaded', function() {
             if (index < 3) { // Debug apenas para as primeiras 3 linhas
                 console.log(`Linha ${index}:`, {
                     nomeFantasia,
-                    statusText,
-                    services,
-                    hasOnvio
+                    statusText
                 });
             }
 
@@ -563,14 +542,8 @@ document.addEventListener('DOMContentLoaded', function() {
                                 (statusValue === 'inativo' && statusText.includes('inativo')) ||
                                 (statusValue === 'suspenso' && statusText.includes('suspenso')) ||
                                 (statusValue === 'em_analise' && statusText.includes('em análise'));
-            
-            const matchesService = !serviceValue || services.includes(serviceValue);
-            
-            const matchesOnvio = !onvioValue || 
-                               (onvioValue === 'sim' && hasOnvio) || 
-                               (onvioValue === 'nao' && !hasOnvio);
 
-            const isVisible = matchesSearch && matchesStatus && matchesService && matchesOnvio;
+            const isVisible = matchesSearch && matchesStatus;
 
             if (isVisible) {
                 row.style.display = '';
@@ -606,20 +579,6 @@ document.addEventListener('DOMContentLoaded', function() {
         statusFilter.addEventListener('change', filterTable);
     } else {
         console.log('❌ statusFilter não encontrado!');
-    }
-    
-    if (serviceFilter) {
-        console.log('Adicionando listener para serviceFilter');
-        serviceFilter.addEventListener('change', filterTable);
-    } else {
-        console.log('❌ serviceFilter não encontrado!');
-    }
-    
-    if (onvioFilter) {
-        console.log('Adicionando listener para onvioFilter');
-        onvioFilter.addEventListener('change', filterTable);
-    } else {
-        console.log('❌ onvioFilter não encontrado!');
     }
     
     // Verificar status do sistema automaticamente

@@ -584,24 +584,28 @@
                                                     <label class="form-label small mb-1">Nome</label>
                                                     <input type="text" class="form-control form-control-sm" 
                                                            name="contato_1_nome" id="contato_1_nome"
+                                                           value="{{ client.contato_1_nome if client and client.contato_1_nome else '' }}"
                                                            placeholder="Nome completo do contato">
                                                 </div>
                                                 <div class="col-md-3 mb-2">
                                                     <label class="form-label small mb-1">Cargo</label>
                                                     <input type="text" class="form-control form-control-sm" 
                                                            name="contato_1_cargo" id="contato_1_cargo"
+                                                           value="{{ client.contato_1_cargo if client and client.contato_1_cargo else '' }}"
                                                            placeholder="Ex: Gerente, Diretor, Sócio">
                                                 </div>
                                                 <div class="col-md-3 mb-2">
                                                     <label class="form-label small mb-1">Telefone</label>
                                                     <input type="tel" class="form-control form-control-sm phone-mask" 
                                                            name="contato_1_telefone" id="contato_1_telefone"
+                                                           value="{{ client.contato_1_telefone if client and client.contato_1_telefone else '' }}"
                                                            placeholder="(85) 99999-9999">
                                                 </div>
                                                 <div class="col-md-3 mb-2">
                                                     <label class="form-label small mb-1">E-mail</label>
                                                     <input type="email" class="form-control form-control-sm" 
                                                            name="contato_1_email" id="contato_1_email"
+                                                           value="{{ client.contato_1_email if client and client.contato_1_email else '' }}"
                                                            placeholder="contato@empresa.com">
                                                 </div>
                                             </div>
@@ -719,19 +723,19 @@
 
                         <!-- Linha 4: ANVISA Gestor, ANVISA Empresa -->
                         <div class="row mb-3">
-                            <div class="col-md-6 mb-2">
+                            <div class="col-md-3 mb-2">
                                 <label for="anvisaGestor" class="form-label small">ANVISA Gestor</label>
                                 <input type="text" class="form-control form-control-sm" 
                                        id="anvisaGestor" name="anvisaGestor" 
                                        value="{{ client.anvisaGestor if client else '' }}" 
-                                       placeholder="Login ANVISA Gestor">
+                                       placeholder="ANVISA Gestor">
                             </div>
-                            <div class="col-md-6 mb-2">
+                            <div class="col-md-3 mb-2">
                                 <label for="anvisaEmpresa" class="form-label small">ANVISA Empresa</label>
                                 <input type="text" class="form-control form-control-sm" 
                                        id="anvisaEmpresa" name="anvisaEmpresa" 
                                        value="{{ client.anvisaEmpresa if client else '' }}" 
-                                       placeholder="Login ANVISA Empresa">
+                                       placeholder="ANVISA Empresa">
                             </div>
                         </div>
                     </div>
