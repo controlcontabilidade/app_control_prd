@@ -63,7 +63,6 @@ class GoogleSheetsService:
             'SIM' if client.get('ativo', True) else 'NAO',
             'SIM' if client.get('integradoDominio') else 'NAO',
             'SIM' if client.get('portalCliente') else 'NAO',
-            str(client.get('tarefasVinculadas', 0)),
             client.get('criadoEm', '')
         ]
     
@@ -126,8 +125,7 @@ class GoogleSheetsService:
             'ativo': get_cell(47, 'SIM') == 'SIM',
             'integradoDominio': get_cell(48) == 'SIM',
             'portalCliente': get_cell(49) == 'SIM',
-            'tarefasVinculadas': int(get_cell(50, '0') or '0'),
-            'criadoEm': get_cell(51)
+            'criadoEm': get_cell(50)
         }
     
     def get_clients(self) -> List[Dict]:

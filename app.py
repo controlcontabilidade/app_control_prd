@@ -1193,26 +1193,49 @@ def import_page():
 @app.route('/import/upload', methods=['POST'])
 @admin_required
 def upload_and_import():
-    """Processa upload e importa arquivo Excel"""
-    print("📤 === INICIANDO UPLOAD E IMPORTAÇÃO ===")
+    """Processa upload e importa arquivo Excel com logs detalhados"""
+    print("📤 === INICIANDO UPLOAD E IMPORTAÇÃO APRIMORADA ===")
+    
+    import_logs = []
+    import_stats = {'success': 0, 'errors': 0, 'total': 0, 'details': []}
+    
+    # Obter serviço de importação
+    import_service = get_import_service()
+    print(f"🔧 Import service obtido: {import_service is not None}")
+    if import_service:
+        print(f"✅ Serviço disponível: {import_service.is_available()}")
+    
+    def add_log(message, level='info'):
+        timestamp = datetime.now().strftime('%H:%M:%S')
+        log_entry = {'timestamp': timestamp, 'message': message, 'level': level}
+        import_logs.append(log_entry)
+        print(f"[{timestamp}] {level.upper()}: {message}")
     
     try:
+        add_log("Iniciando processo de importação", "info")
+        
         # Verificar se arquivo foi enviado
         if 'file' not in request.files:
+            add_log("Erro: Nenhum arquivo foi enviado na requisição", "error")
             flash('Nenhum arquivo selecionado', 'error')
             return redirect(url_for('import_page'))
         
         file = request.files['file']
+        add_log(f"Arquivo recebido: {file.filename}", "info")
         
         # Verificar se arquivo tem nome
         if file.filename == '':
+            add_log("Erro: Nome do arquivo está vazio", "error")
             flash('Nenhum arquivo selecionado', 'error')
             return redirect(url_for('import_page'))
         
         # Verificar extensão do arquivo
         if not allowed_file(file.filename):
+            add_log(f"Erro: Extensão inválida para arquivo {file.filename}", "error")
             flash('Apenas arquivos .xlsx e .xls são permitidos', 'error')
             return redirect(url_for('import_page'))
+        
+        add_log("Validação inicial do arquivo: APROVADA", "success")
         
         # Salvar arquivo temporariamente
         filename = secure_filename(file.filename)
@@ -1220,63 +1243,118 @@ def upload_and_import():
         filename = f"{timestamp}_{filename}"
         file_path = os.path.join(app.config['UPLOAD_FOLDER'], filename)
         
-        print(f"💾 Salvando arquivo: {file_path}")
+        add_log(f"Salvando arquivo temporário: {filename}", "info")
         file.save(file_path)
+        
+        file_size = os.path.getsize(file_path)
+        add_log(f"Arquivo salvo com sucesso ({file_size} bytes)", "success")
         
         # Validar estrutura do arquivo
         if import_service and import_service.is_available():
-            print("🔍 Validando estrutura do arquivo...")
-            is_valid, validation_message = import_service.validate_excel_structure(file_path)
+            add_log("Serviço de importação disponível", "success")
+            add_log("Iniciando validação da estrutura do arquivo", "info")
             
-            if not is_valid:
+            try:
+                is_valid, validation_message = import_service.validate_excel_structure(file_path)
+                
+                if not is_valid:
+                    add_log(f"Validação falhou: {validation_message}", "error")
+                    # Remover arquivo
+                    if os.path.exists(file_path):
+                        os.remove(file_path)
+                        add_log("Arquivo temporário removido", "info")
+                    
+                    flash(f'Estrutura do arquivo inválida: {validation_message}', 'error')
+                    return redirect(url_for('import_page'))
+                
+                add_log("Estrutura do arquivo: VÁLIDA", "success")
+                add_log("Iniciando processo de importação dos dados", "info")
+                
+                # Executar importação
+                sucessos, erros, lista_erros = import_service.import_from_excel(file_path)
+                
+                import_stats['success'] = sucessos
+                import_stats['errors'] = erros
+                import_stats['total'] = sucessos + erros
+                import_stats['details'] = lista_erros
+                
+                add_log(f"Importação concluída: {sucessos} sucessos, {erros} erros", "info")
+                
+                # Remover arquivo temporário
+                if os.path.exists(file_path):
+                    os.remove(file_path)
+                    add_log("Arquivo temporário removido", "info")
+                
+                # Mostrar resultados detalhados
+                if sucessos > 0:
+                    add_log(f"Clientes importados com sucesso: {sucessos}", "success")
+                    flash(f'✅ Importação concluída: {sucessos} clientes importados com sucesso!', 'success')
+                
+                if erros > 0:
+                    add_log(f"Erros encontrados durante importação: {erros}", "warning")
+                    flash(f'⚠️ {erros} erro(s) encontrado(s) - veja detalhes abaixo', 'warning')
+                    
+                    # Mostrar detalhes dos erros
+                    for i, erro in enumerate(lista_erros[:10]):  # Limitar a 10 erros
+                        add_log(f"Erro {i+1}: {erro}", "error")
+                        flash(f'❌ {erro}', 'error')
+                    
+                    if len(lista_erros) > 10:
+                        flash(f'... e mais {len(lista_erros) - 10} erro(s)', 'error')
+                        add_log(f"Total de {len(lista_erros)} erros (mostrando apenas os primeiros 10)", "warning")
+                
+                if sucessos == 0 and erros == 0:
+                    add_log("Nenhum cliente foi processado - arquivo pode estar vazio", "warning")
+                    flash('Nenhum cliente foi processado', 'warning')
+                
+                # Log de resumo final
+                add_log("=== RESUMO DA IMPORTAÇÃO ===", "info")
+                add_log(f"Total de registros processados: {import_stats['total']}", "info")
+                add_log(f"Sucessos: {import_stats['success']}", "success")
+                add_log(f"Erros: {import_stats['errors']}", "error" if import_stats['errors'] > 0 else "info")
+                
+            except Exception as import_error:
+                add_log(f"Erro durante validação/importação: {str(import_error)}", "error")
                 # Remover arquivo
                 if os.path.exists(file_path):
                     os.remove(file_path)
-                flash(f'Estrutura do arquivo inválida: {validation_message}', 'error')
-                return redirect(url_for('import_page'))
-            
-            print("✅ Estrutura válida, iniciando importação...")
-            
-            # Executar importação
-            sucessos, erros, lista_erros = import_service.import_from_excel(file_path)
-            
-            # Remover arquivo temporário
-            if os.path.exists(file_path):
-                os.remove(file_path)
-            
-            # Mostrar resultados
-            if sucessos > 0:
-                flash(f'✅ Importação concluída: {sucessos} clientes importados com sucesso!', 'success')
-            
-            if erros > 0:
-                flash(f'⚠️ {erros} erro(s) encontrado(s)', 'warning')
-                # Limitar erros mostrados para não sobrecarregar
-                erros_mostrados = lista_erros[:5]
-                for erro in erros_mostrados:
-                    flash(f'❌ {erro}', 'error')
+                    add_log("Arquivo temporário removido após erro", "info")
                 
-                if len(lista_erros) > 5:
-                    flash(f'... e mais {len(lista_erros) - 5} erro(s)', 'error')
-            
-            if sucessos == 0 and erros == 0:
-                flash('Nenhum cliente foi processado', 'warning')
+                flash(f'Erro durante importação: {str(import_error)}', 'error')
+                return redirect(url_for('import_page'))
         
         else:
+            add_log("Serviço de importação não disponível - dependências faltando", "error")
             # Remover arquivo
             if os.path.exists(file_path):
                 os.remove(file_path)
-            flash('Serviço de importação não disponível. Pandas não está instalado.', 'error')
+                add_log("Arquivo temporário removido", "info")
+            
+            flash('Serviço de importação não disponível. Pandas/OpenPyXL não estão instalados.', 'error')
+            return redirect(url_for('import_page'))
     
     except Exception as e:
-        print(f"❌ Erro durante importação: {e}")
-        flash(f'Erro durante importação: {str(e)}', 'error')
+        add_log(f"Erro crítico durante importação: {str(e)}", "error")
+        print(f"❌ Erro crítico: {e}")
+        flash(f'Erro crítico durante importação: {str(e)}', 'error')
         
         # Limpar arquivo se houver erro
         try:
             if 'file_path' in locals() and os.path.exists(file_path):
                 os.remove(file_path)
-        except:
-            pass
+                add_log("Arquivo temporário removido após erro crítico", "info")
+        except Exception as cleanup_error:
+            add_log(f"Erro ao limpar arquivo temporário: {str(cleanup_error)}", "warning")
+    
+    finally:
+        # Log final
+        add_log("Processo de importação finalizado", "info")
+        print("📤 === IMPORTAÇÃO FINALIZADA ===")
+        
+        # Em um ambiente real, você poderia salvar os logs em sessão ou banco de dados
+        # para mostrar na interface posteriormente
+    
+    return redirect(url_for('index'))
     
     return redirect(url_for('index'))
 
@@ -1985,25 +2063,11 @@ def index():
         print(f"✅ {len(clients)} clientes carregados")
         print(f"💾 Memória atual: {UltraMemoryOptimizer.get_memory_usage() if MEMORY_OPTIMIZER_AVAILABLE else 'N/A'}")
         
-        # OTIMIZAÇÃO MEMÓRIA: Stats ULTRA-simplificadas
+        # OTIMIZAÇÃO MEMÓRIA: Stats calculadas corretamente
         try:
-            # Usar apenas contadores básicos para economizar memória
-            stats = {
-                'total_clientes': len(clients),
-                'clientes_ativos': sum(1 for c in clients if c.get('ativo', True)),
-                'ct': sum(1 for c in clients if c.get('ct')),
-                'fs': sum(1 for c in clients if c.get('fs')),
-                'dp': sum(1 for c in clients if c.get('dp')),
-                # Remover cálculos complexos que consomem memória
-                'empresas': len(clients),  # Simplificado
-                'domesticas': 0,  # Simplificado
-                'mei': 0,  # Simplificado
-                'simples_nacional': 0,  # Simplificado
-                'lucro_presumido': 0,  # Simplificado
-                'lucro_real': 0,  # Simplificado
-                'bpo': sum(1 for c in clients if c.get('bpoFinanceiro'))
-            }
-            print(f"📈 Estatísticas ULTRA-simplificadas calculadas")
+            # Calcular estatísticas reais mantendo otimização de memória
+            stats = calculate_dashboard_stats_optimized(clients)
+            print(f"📈 Estatísticas calculadas: {stats['total_clientes']} total, {stats['mei']} MEI, {stats['simples_nacional']} SN, {stats['lucro_presumido']} LP, {stats['lucro_real']} LR")
         except Exception as stats_error:
             print(f"⚠️ Erro ao calcular stats: {stats_error}")
             stats = {
@@ -2520,26 +2584,16 @@ def save_client():
             'outrasProc': request.form.get('outrasProc', ''),
             'obsProcuracoes': request.form.get('obsProcuracoes', ''),
             
-            # Bloco 7: Observações e Dados Adicionais
-            'observacoesGerais': request.form.get('observacoesGerais', ''),
-            'tarefasVinculadas': int(request.form.get('tarefasVinculadas', '0') or '0'),
-            'dataInicioServicos': request.form.get('dataInicioServicos', ''),
+            # Bloco 7: Observações e Dados Adicionais (apenas campos mantidos)
             'statusCliente': request.form.get('statusCliente', 'ativo'),
             'ultimaAtualizacao': datetime.now().isoformat(),
-            'responsavelAtualizacao': session.get('usuario', ''),
-            'prioridadeCliente': request.form.get('prioridadeCliente', 'normal'),
-            'tagsCliente': request.form.get('tagsCliente', ''),
-            'historicoAlteracoes': request.form.get('historicoAlteracoes', ''),
             
             # Campos de compatibilidade (manter existentes)
             'mesAnoInicio': request.form.get('dataInicioServicos', ''),
-            
-            # Status e configurações
-            'ativo': request.form.get('ativo') == 'on',
         })
         
         # Regras complementares
-        # Sincronizar statusCliente com ativo para compatibilidade
+        # Sincronizar statusCliente com ativo para compatibilidade (automático)
         status_cliente = client_data.get('statusCliente', 'ativo')
         client_data['ativo'] = status_cliente == 'ativo'
         

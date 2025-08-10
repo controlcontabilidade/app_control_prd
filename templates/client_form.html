@@ -407,11 +407,6 @@
                     <input type="month" class="form-control" id="mesAnoInicio" name="mesAnoInicio" 
                            value="{{ client.mesAnoInicio if client else '' }}">
                 </div>
-                <div class="col-md-6 mb-3">
-                    <label for="tarefasVinculadas" class="form-label">Tarefas Vinculadas</label>
-                    <input type="number" class="form-control" id="tarefasVinculadas" name="tarefasVinculadas" 
-                           value="{{ client.tarefasVinculadas if client else '0' }}" min="0">
-                </div>
                 <div class="col-md-4 mb-3">
                     <div class="form-check form-switch">
                         <input class="form-check-input" type="checkbox" id="ativo" name="ativo" 

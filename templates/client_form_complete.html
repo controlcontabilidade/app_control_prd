@@ -848,24 +848,8 @@
                     </div>
                     <div class="card-body">
                         <div class="row">
-                            <!-- observações gerais -->
-                            <div class="col-12 mb-3">
-                                <label for="observacoesGerais" class="form-label">OBSERVAÇÕES GERAIS</label>
-                                <textarea class="form-control" id="observacoesGerais" name="observacoesGerais" rows="4" 
-                                          placeholder="Observações gerais sobre o cliente, particularidades, histórico, etc.">{{ client.observacoesGerais if client else '' }}</textarea>
-                            </div>
-                        </div>
-                        <div class="row">
-                            <!-- tarefas vinculadas -->
-                            <div class="col-md-4 mb-3">
-                                <label for="tarefasVinculadas" class="form-label">TAREFAS VINCULADAS</label>
-                                <input type="number" class="form-control" id="tarefasVinculadas" name="tarefasVinculadas" 
-                                       value="{{ client.tarefasVinculadas if client else '' }}" 
-                                       placeholder="0" min="0">
-                                <div class="form-text">Número de tarefas vinculadas ao cliente</div>
-                            </div>
                             <!-- status do cliente -->
-                            <div class="col-md-4 mb-3">
+                            <div class="col-md-6 mb-3">
                                 <label for="statusCliente" class="form-label">STATUS DO CLIENTE</label>
                                 <select class="form-select" id="statusCliente" name="statusCliente">
                                     <option value="ativo" {{ 'selected' if client and client.statusCliente == 'ativo' else '' }}>Ativo</option>
@@ -874,57 +858,12 @@
                                     <option value="em_analise" {{ 'selected' if client and client.statusCliente == 'em_analise' else '' }}>Em Análise</option>
                                 </select>
                             </div>
-                            <!-- prioridade -->
-                            <div class="col-md-4 mb-3">
-                                <label for="prioridadeCliente" class="form-label">PRIORIDADE</label>
-                                <select class="form-select" id="prioridadeCliente" name="prioridadeCliente">
-                                    <option value="normal" {{ 'selected' if client and client.prioridadeCliente == 'normal' else '' }}>Normal</option>
-                                    <option value="alta" {{ 'selected' if client and client.prioridadeCliente == 'alta' else '' }}>Alta</option>
-                                    <option value="urgente" {{ 'selected' if client and client.prioridadeCliente == 'urgente' else '' }}>Urgente</option>
-                                    <option value="baixa" {{ 'selected' if client and client.prioridadeCliente == 'baixa' else '' }}>Baixa</option>
-                                </select>
-                            </div>
-                        </div>
-                        <div class="row">
-                            <!-- Cliente Ativo (checkbox para compatibilidade) -->
-                            <div class="col-md-6 mb-3">
-                                <label class="form-label">CLIENTE ATIVO NO SISTEMA</label>
-                                <div class="form-check mt-2">
-                                    <input class="form-check-input" type="checkbox" id="ativo" name="ativo" 
-                                           {% if not client or client.ativo or client.statusCliente == 'ativo' %}checked{% endif %}>
-                                    <label class="form-check-label" for="ativo">
-                                        <i class="bi bi-check-circle me-1 text-success"></i>
-                                        <strong>Marcar como cliente ativo</strong>
-                                    </label>
-                                </div>
-                                <div class="form-text">Este campo controla se o cliente aparece como ativo nos relatórios</div>
-                            </div>
                             <!-- Data da última atualização -->
                             <div class="col-md-6 mb-3">
                                 <label for="ultimaAtualizacao" class="form-label">Última atualização</label>
                                 <input type="datetime-local" class="form-control" id="ultimaAtualizacao" name="ultimaAtualizacao" 
                                        value="{{ client.ultimaAtualizacao[:19] if client and client.ultimaAtualizacao else '' }}" readonly>
                                 <div class="form-text">Atualizado automaticamente</div>
-                            </div>
-                        </div>
-                        <div class="row">
-                            <!-- Histórico de Alterações -->
-                            <div class="col-md-12 mb-3">
-                                <label for="historicoAlteracoes" class="form-label">HISTÓRICO DE ALTERAÇÕES</label>
-                                <textarea class="form-control" id="historicoAlteracoes" name="historicoAlteracoes" 
-                                          rows="3" placeholder="Registro de mudanças importantes..."
-                                >{{ client.historicoAlteracoes if client else '' }}</textarea>
-                                <div class="form-text">Registre alterações importantes para controle interno</div>
-                            </div>
-                        </div>
-                        <div class="row">
-                            <!-- tags/categorias -->
-                            <div class="col-md-12 mb-3">
-                                <label for="tagsCliente" class="form-label">TAGS/CATEGORIAS</label>
-                                <input type="text" class="form-control" id="tagsCliente" name="tagsCliente" 
-                                       value="{{ client.tagsCliente if client else '' }}" 
-                                       placeholder="empresa_grande, complexo, especial">
-                                <div class="form-text">Separar tags por vírgula</div>
                             </div>
                         </div>
                     </div>

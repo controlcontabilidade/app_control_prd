@@ -1,4 +1,4 @@
-﻿<!DOCTYPE html>
+<!DOCTYPE html>
 <html lang="pt-BR">
 <head>
     <meta charset="UTF-8">
@@ -18,6 +18,10 @@
             --border: #e2e8f0;
             --text-primary: #0f172a;
             --text-secondary: #475569;
+            --success: #10b981;
+            --warning: #f59e0b;
+            --error: #ef4444;
+            --info: #3b82f6;
         }
         
         body {
@@ -27,7 +31,7 @@
         }
         
         .main-container {
-            max-width: 800px;
+            max-width: 1200px;
             margin: 0 auto;
             padding: 2rem;
         }
@@ -115,6 +119,146 @@
             margin: 1rem 0;
             display: none;
         }
+        
+        /* Sistema de Logs */
+        .log-container {
+            background: #f8fafc;
+            border: 1px solid var(--border);
+            border-radius: 8px;
+            max-height: 400px;
+            overflow-y: auto;
+            display: none;
+        }
+        
+        .log-header {
+            background: #e2e8f0;
+            border-bottom: 1px solid var(--border);
+            padding: 0.75rem 1rem;
+            font-weight: 600;
+            position: sticky;
+            top: 0;
+            z-index: 10;
+        }
+        
+        .log-content {
+            padding: 0;
+        }
+        
+        .log-entry {
+            padding: 0.5rem 1rem;
+            border-bottom: 1px solid #f1f5f9;
+            font-family: 'Courier New', monospace;
+            font-size: 0.875rem;
+            display: flex;
+            align-items: center;
+        }
+        
+        .log-entry:last-child {
+            border-bottom: none;
+        }
+        
+        .log-entry.success {
+            background: #f0fdf4;
+            color: var(--success);
+        }
+        
+        .log-entry.error {
+            background: #fef2f2;
+            color: var(--error);
+        }
+        
+        .log-entry.warning {
+            background: #fffbeb;
+            color: var(--warning);
+        }
+        
+        .log-entry.info {
+            background: #eff6ff;
+            color: var(--info);
+        }
+        
+        .log-icon {
+            margin-right: 0.5rem;
+            font-weight: bold;
+        }
+        
+        .log-timestamp {
+            color: #64748b;
+            font-size: 0.75rem;
+            margin-right: 0.5rem;
+        }
+        
+        /* Progress Bar */
+        .progress-container {
+            display: none;
+            margin: 1rem 0;
+        }
+        
+        .progress {
+            height: 8px;
+            border-radius: 4px;
+            background: #f1f5f9;
+        }
+        
+        .progress-bar {
+            border-radius: 4px;
+            transition: width 0.3s ease;
+        }
+        
+        /* Summary Cards */
+        .summary-cards {
+            display: none;
+            margin-top: 1rem;
+        }
+        
+        .summary-card {
+            background: white;
+            border-radius: 8px;
+            padding: 1rem;
+            text-align: center;
+            border: 1px solid var(--border);
+        }
+        
+        .summary-number {
+            font-size: 2rem;
+            font-weight: 700;
+            margin-bottom: 0.5rem;
+        }
+        
+        .summary-label {
+            color: var(--text-secondary);
+            font-size: 0.875rem;
+        }
+        
+        .summary-card.success .summary-number {
+            color: var(--success);
+        }
+        
+        .summary-card.error .summary-number {
+            color: var(--error);
+        }
+        
+        .summary-card.warning .summary-number {
+            color: var(--warning);
+        }
+        
+        /* Error Details */
+        .error-details {
+            display: none;
+            margin-top: 1rem;
+        }
+        
+        .error-item {
+            background: #fef2f2;
+            border: 1px solid #fca5a5;
+            border-radius: 6px;
+            padding: 0.75rem;
+            margin-bottom: 0.5rem;
+        }
+        
+        .error-item strong {
+            color: var(--error);
+        }
     </style>
 </head>
 <body>
@@ -123,7 +267,7 @@
         <div class="d-flex justify-content-between align-items-center mb-4">
             <div>
                 <h1 class="h3 mb-1">📤 Importar Clientes</h1>
-                <p class="text-secondary mb-0">Importe sua base de clientes de planilha Excel</p>
+                <p class="text-secondary mb-0">Importe sua base de clientes de planilha Excel com logs detalhados</p>
             </div>
             <a href="{{ url_for('index') }}" class="btn btn-outline-secondary">
                 <i class="bi bi-arrow-left"></i> Voltar
@@ -158,129 +302,301 @@
             </div>
         </div>
 
-        <div class="import-card">
-            <div class="card-body p-4">
-                
-                <!-- Passo 1: Template -->
-                <div class="mb-4">
-                    <h5 class="card-title mb-3">
-                        <i class="bi bi-download text-primary"></i>
-                        passo 1: baixar template
-                    </h5>
-                    <p class="text-secondary mb-3">
-                        Baixe o template excel com as colunas corretas e um exemplo de preenchimento.
-                    </p>
-                    <a href="{{ url_for('download_template') }}" class="btn btn-outline-primary">
-                        <i class="bi bi-file-earmark-excel"></i>
-                        baixar template excel
-                    </a>
-                </div>
-
-                <hr>
-
-                <!-- Passo 2: Instruções -->
-                <div class="mb-4">
-                    <h5 class="card-title mb-3">
-                        <i class="bi bi-pencil text-primary"></i>
-                        passo 2: preencher dados
-                    </h5>
-                    <div class="requirements">
-                        <h6><i class="bi bi-info-circle"></i> Requisitos Importantes:</h6>
-                        <ul class="mb-0">
-                            <li><strong>Nome da Empresa:</strong> Campo obrigatório</li>
-                            <li><strong>Campos SIM/NÃO:</strong> Use exatamente "SIM" ou "NÃO" (não use "Sim", "sim", "não", etc.)</li>
-                            <li><strong>CNPJ:</strong> Use formato 00.000.000/0001-00</li>
-                            <li><strong>Não altere os cabeçalhos</strong> das colunas</li>
-                            <li><strong>Remova a linha de exemplo</strong> antes de adicionar seus dados</li>
-                        </ul>
+        <div class="row">
+            <!-- Coluna de Upload (esquerda) -->
+            <div class="col-lg-6">
+                <!-- Passo 1: Download do Template -->
+                <div class="import-card mb-4">
+                    <div class="card-header">
+                        <h5 class="mb-0">
+                            <i class="bi bi-download text-primary me-2"></i>
+                            passo 1: baixar template
+                        </h5>
+                    </div>
+                    <div class="card-body">
+                        <p class="mb-3">Baixe o template Excel com todas as colunas necessárias:</p>
+                        <a href="{{ url_for('download_template') }}" class="btn btn-outline-primary">
+                            <i class="bi bi-file-earmark-excel"></i> Baixar Template Excel
+                        </a>
                     </div>
                 </div>
 
-                <hr>
-
-                <!-- Passo 3: Upload -->
-                <div class="mb-4">
-                    <h5 class="card-title mb-3">
-                        <i class="bi bi-upload text-primary"></i>
-                        passo 3: importar arquivo
-                    </h5>
-                    
-                    <form action="{{ url_for('upload_and_import') }}" method="POST" enctype="multipart/form-data" id="importForm">
-                        <div class="upload-zone" id="uploadZone">
-                            <div class="upload-icon">
-                                <i class="bi bi-cloud-arrow-up"></i>
-                            </div>
-                            <h6>Clique aqui ou arraste seu arquivo Excel</h6>
-                            <p class="text-muted mb-3">Arquivos .xlsx e .xls são aceitos (máximo 16MB)</p>
-                            <input type="file" 
-                                   name="file" 
-                                   id="fileInput" 
-                                   accept=".xlsx,.xls" 
-                                   style="display: none;" 
-                                   required>
-                            <button type="button" class="btn btn-primary" onclick="document.getElementById('fileInput').click()">
-                                <i class="bi bi-folder2-open"></i>
-                                selecionar arquivo
-                            </button>
+                <!-- Passo 2: Instruções -->
+                <div class="import-card mb-4">
+                    <div class="card-header">
+                        <h5 class="mb-0">
+                            <i class="bi bi-pencil text-warning me-2"></i>
+                            passo 2: preencher dados
+                        </h5>
+                    </div>
+                    <div class="card-body">
+                        <div class="requirements">
+                            <h6><i class="bi bi-info-circle text-info me-2"></i>Instruções Importantes:</h6>
+                            <ul class="mb-0">
+                                <li><strong>NOME DA EMPRESA:</strong> Campo obrigatório</li>
+                                <li><strong>RAZÃO SOCIAL NA RECEITA:</strong> Campo obrigatório</li>
+                                <li><strong>CNPJ:</strong> Formato: 12.345.678/0001-99</li>
+                                <li><strong>CT, FS, DP:</strong> Usar SIM ou NÃO</li>
+                                <li><strong>STATUS DO CLIENTE:</strong> ativo, inativo, suspenso, em_analise</li>
+                                <li>Mantenha os cabeçalhos originais</li>
+                                <li>Não deixe linhas vazias entre os dados</li>
+                            </ul>
                         </div>
-                        
-                        <div class="file-info" id="fileInfo">
-                            <div class="d-flex justify-content-between align-items-center">
-                                <div>
-                                    <i class="bi bi-file-earmark-excel text-success"></i>
-                                    <span id="fileName"></span>
-                                    <small class="text-muted">(<span id="fileSize"></span>)</small>
-                                </div>
-                                <button type="button" class="btn btn-sm btn-outline-danger" onclick="clearFile()">
-                                    <i class="bi bi-x"></i>
-                                </button>
-                            </div>
-                        </div>
-                        
-                        <div class="d-grid gap-2 mt-3">
-                            <button type="submit" class="btn btn-success btn-lg" id="importBtn" disabled>
-                                <i class="bi bi-upload"></i>
-                                iniciar importação
-                            </button>
-                        </div>
-                    </form>
+                    </div>
                 </div>
 
-                <!-- Avisos -->
-                <div class="alert alert-warning">
-                    <i class="bi bi-exclamation-triangle"></i>
-                    <strong>Importante:</strong> 
-                    A importação criará novos clientes com IDs únicos. 
-                    Certifique-se de que os dados estão corretos antes de importar.
+                <!-- Passo 3: Upload -->
+                <div class="import-card">
+                    <div class="card-header">
+                        <h5 class="mb-0">
+                            <i class="bi bi-upload text-success me-2"></i>
+                            passo 3: importar arquivo
+                        </h5>
+                    </div>
+                    <div class="card-body">
+                        <form action="{{ url_for('upload_and_import') }}" method="POST" enctype="multipart/form-data" id="importForm">
+                            <div class="upload-zone" id="uploadZone">
+                                <div class="upload-icon">
+                                    <i class="bi bi-cloud-arrow-up"></i>
+                                </div>
+                                <h6>Clique aqui ou arraste seu arquivo Excel</h6>
+                                <p class="text-muted mb-3">Arquivos .xlsx e .xls são aceitos (máximo 16MB)</p>
+                                <input type="file" 
+                                       name="file" 
+                                       id="fileInput" 
+                                       accept=".xlsx,.xls" 
+                                       style="display: none;" 
+                                       required>
+                                <button type="button" class="btn btn-primary" onclick="document.getElementById('fileInput').click()">
+                                    Selecionar Arquivo
+                                </button>
+                            </div>
+
+                            <!-- Informações do arquivo selecionado -->
+                            <div class="file-info" id="fileInfo">
+                                <div class="d-flex justify-content-between align-items-center">
+                                    <div>
+                                        <strong>Arquivo:</strong> <span id="fileName"></span><br>
+                                        <small class="text-muted">Tamanho: <span id="fileSize"></span></small>
+                                    </div>
+                                    <button type="button" class="btn btn-sm btn-outline-danger" onclick="clearFile()">
+                                        <i class="bi bi-x"></i> Remover
+                                    </button>
+                                </div>
+                            </div>
+
+                            <!-- Progress Bar -->
+                            <div class="progress-container" id="progressContainer">
+                                <div class="d-flex justify-content-between align-items-center mb-2">
+                                    <small class="text-muted">Progresso da Importação</small>
+                                    <small class="text-muted" id="progressText">0%</small>
+                                </div>
+                                <div class="progress">
+                                    <div class="progress-bar bg-primary" id="progressBar" style="width: 0%"></div>
+                                </div>
+                            </div>
+
+                            <div class="d-grid mt-3">
+                                <button type="submit" class="btn btn-success" id="importBtn" disabled>
+                                    <i class="bi bi-upload"></i> Iniciar Importação
+                                </button>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Coluna de Logs (direita) -->
+            <div class="col-lg-6">
+                <!-- Container de Logs -->
+                <div class="import-card">
+                    <div class="log-container" id="logContainer">
+                        <div class="log-header">
+                            <i class="bi bi-terminal me-2"></i>
+                            Logs de Importação
+                            <button type="button" class="btn btn-sm btn-outline-secondary float-end" onclick="clearLogs()">
+                                <i class="bi bi-trash"></i> Limpar
+                            </button>
+                        </div>
+                        <div class="log-content" id="logContent">
+                            <div class="log-entry info">
+                                <span class="log-icon">ℹ️</span>
+                                <span class="log-timestamp">[Aguardando]</span>
+                                <span>Sistema pronto para importação...</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Cards de Resumo -->
+                <div class="summary-cards" id="summaryCards">
+                    <div class="row g-3 mt-3">
+                        <div class="col-4">
+                            <div class="summary-card success">
+                                <div class="summary-number" id="successCount">0</div>
+                                <div class="summary-label">Sucessos</div>
+                            </div>
+                        </div>
+                        <div class="col-4">
+                            <div class="summary-card error">
+                                <div class="summary-number" id="errorCount">0</div>
+                                <div class="summary-label">Erros</div>
+                            </div>
+                        </div>
+                        <div class="col-4">
+                            <div class="summary-card warning">
+                                <div class="summary-number" id="totalCount">0</div>
+                                <div class="summary-label">Total</div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Detalhes de Erros -->
+                <div class="error-details" id="errorDetails">
+                    <h6 class="mt-4 mb-3">
+                        <i class="bi bi-exclamation-triangle text-danger me-2"></i>
+                        Detalhes dos Erros
+                    </h6>
+                    <div id="errorList"></div>
                 </div>
             </div>
         </div>
     </div>
 
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    
     <script>
+        // Elementos do DOM
         const fileInput = document.getElementById('fileInput');
         const uploadZone = document.getElementById('uploadZone');
         const fileInfo = document.getElementById('fileInfo');
         const fileName = document.getElementById('fileName');
         const fileSize = document.getElementById('fileSize');
         const importBtn = document.getElementById('importBtn');
+        const importForm = document.getElementById('importForm');
+        const logContainer = document.getElementById('logContainer');
+        const logContent = document.getElementById('logContent');
+        const progressContainer = document.getElementById('progressContainer');
+        const progressBar = document.getElementById('progressBar');
+        const progressText = document.getElementById('progressText');
+        const summaryCards = document.getElementById('summaryCards');
+        const errorDetails = document.getElementById('errorDetails');
+        const errorList = document.getElementById('errorList');
 
-        // Click na zona de upload
-        uploadZone.addEventListener('click', () => {
-            fileInput.click();
-        });
+        // Contadores
+        let importStats = {
+            success: 0,
+            errors: 0,
+            total: 0,
+            errorDetails: []
+        };
 
-        // Drag and drop
+        // Sistema de Logs
+        function addLog(message, type = 'info', showTimestamp = true) {
+            const logEntry = document.createElement('div');
+            logEntry.className = `log-entry ${type}`;
+            
+            const timestamp = showTimestamp ? `[${new Date().toLocaleTimeString()}]` : '';
+            const icon = getLogIcon(type);
+            
+            logEntry.innerHTML = `
+                <span class="log-icon">${icon}</span>
+                <span class="log-timestamp">${timestamp}</span>
+                <span>${message}</span>
+            `;
+            
+            logContent.appendChild(logEntry);
+            logContainer.scrollTop = logContainer.scrollHeight;
+            
+            // Mostrar container de logs se estiver oculto
+            if (logContainer.style.display === 'none') {
+                logContainer.style.display = 'block';
+            }
+        }
+
+        function getLogIcon(type) {
+            const icons = {
+                'success': '✅',
+                'error': '❌',
+                'warning': '⚠️',
+                'info': 'ℹ️'
+            };
+            return icons[type] || 'ℹ️';
+        }
+
+        function clearLogs() {
+            logContent.innerHTML = `
+                <div class="log-entry info">
+                    <span class="log-icon">ℹ️</span>
+                    <span class="log-timestamp">[${new Date().toLocaleTimeString()}]</span>
+                    <span>Logs limpos - Sistema pronto...</span>
+                </div>
+            `;
+            resetStats();
+        }
+
+        // Sistema de Progresso
+        function updateProgress(percent, message = '') {
+            progressBar.style.width = percent + '%';
+            progressText.textContent = percent + '%';
+            
+            if (message) {
+                addLog(message, 'info');
+            }
+            
+            if (progressContainer.style.display === 'none') {
+                progressContainer.style.display = 'block';
+            }
+        }
+
+        // Sistema de Estatísticas
+        function updateStats() {
+            document.getElementById('successCount').textContent = importStats.success;
+            document.getElementById('errorCount').textContent = importStats.errors;
+            document.getElementById('totalCount').textContent = importStats.total;
+            
+            if (summaryCards.style.display === 'none') {
+                summaryCards.style.display = 'block';
+            }
+        }
+
+        function resetStats() {
+            importStats = { success: 0, errors: 0, total: 0, errorDetails: [] };
+            updateStats();
+            summaryCards.style.display = 'none';
+            errorDetails.style.display = 'none';
+            progressContainer.style.display = 'none';
+        }
+
+        function showErrorDetails() {
+            if (importStats.errorDetails.length > 0) {
+                errorList.innerHTML = '';
+                importStats.errorDetails.forEach((error, index) => {
+                    const errorItem = document.createElement('div');
+                    errorItem.className = 'error-item';
+                    errorItem.innerHTML = `
+                        <strong>Erro ${index + 1}:</strong> ${error.message}
+                        ${error.line ? `<br><small>Linha: ${error.line}</small>` : ''}
+                    `;
+                    errorList.appendChild(errorItem);
+                });
+                errorDetails.style.display = 'block';
+            }
+        }
+
+        // Upload de arquivo
+        uploadZone.addEventListener('click', () => fileInput.click());
+        
         uploadZone.addEventListener('dragover', (e) => {
             e.preventDefault();
             uploadZone.classList.add('dragover');
         });
-
+        
         uploadZone.addEventListener('dragleave', () => {
             uploadZone.classList.remove('dragover');
         });
-
+        
         uploadZone.addEventListener('drop', (e) => {
             e.preventDefault();
             uploadZone.classList.remove('dragover');
@@ -292,25 +608,27 @@
             }
         });
 
-        // Seleção de arquivo
         fileInput.addEventListener('change', handleFileSelect);
 
         function handleFileSelect() {
             const file = fileInput.files[0];
+            
             if (file) {
+                addLog(`Arquivo selecionado: ${file.name}`, 'info');
+                
                 // Verificar extensão
                 const validExtensions = ['.xlsx', '.xls'];
                 const fileExtension = '.' + file.name.split('.').pop().toLowerCase();
                 
                 if (!validExtensions.includes(fileExtension)) {
-                    alert('Apenas arquivos Excel (.xlsx, .xls) são permitidos!');
+                    addLog('Erro: Apenas arquivos Excel (.xlsx, .xls) são permitidos!', 'error');
                     clearFile();
                     return;
                 }
                 
                 // Verificar tamanho (16MB)
                 if (file.size > 16 * 1024 * 1024) {
-                    alert('Arquivo muito grande! Máximo 16MB permitido.');
+                    addLog('Erro: Arquivo muito grande! Máximo 16MB permitido.', 'error');
                     clearFile();
                     return;
                 }
@@ -321,6 +639,9 @@
                 fileInfo.style.display = 'block';
                 uploadZone.style.display = 'none';
                 importBtn.disabled = false;
+                
+                addLog(`Arquivo válido: ${formatFileSize(file.size)}`, 'success');
+                addLog('Pronto para importar!', 'info');
             }
         }
 
@@ -329,6 +650,7 @@
             fileInfo.style.display = 'none';
             uploadZone.style.display = 'block';
             importBtn.disabled = true;
+            addLog('Arquivo removido', 'warning');
         }
 
         function formatFileSize(bytes) {
@@ -339,19 +661,32 @@
             return parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + ' ' + sizes[i];
         }
 
-        // Validação do formulário
-        document.getElementById('importForm').addEventListener('submit', function(e) {
+        // Submit do formulário (versão de produção)
+        importForm.addEventListener('submit', function(e) {
             if (!fileInput.files[0]) {
                 e.preventDefault();
-                alert('Por favor, selecione um arquivo para importar.');
+                addLog('❌ Erro: Nenhum arquivo selecionado!', 'error');
                 return false;
             }
             
-            // Mostrar loading
+            // Desabilitar botão e mostrar loading
             importBtn.innerHTML = '<span class="spinner-border spinner-border-sm me-2"></span>Importando...';
             importBtn.disabled = true;
             
+            // Mostrar logs
+            logContainer.style.display = 'block';
+            addLog('🚀 Iniciando processo de importação real...', 'info');
+            updateProgress(10, 'Enviando arquivo...');
+            
+            // Permitir submit normal para processamento real no backend
             return true;
+        });
+
+        // Inicializar
+        document.addEventListener('DOMContentLoaded', function() {
+            addLog('Sistema de importação inicializado', 'success', false);
+            addLog('Selecione um arquivo Excel para começar', 'info', false);
+            logContainer.style.display = 'block';
         });
     </script>
 </body>

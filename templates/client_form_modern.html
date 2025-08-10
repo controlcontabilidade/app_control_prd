@@ -698,23 +698,6 @@
         </div>
         <div class="card-body">
             <div class="row">
-                <!-- observações gerais -->
-                <div class="col-12 mb-3">
-                    <label for="observacoesGerais" class="form-label">OBSERVAÇÕES GERAIS</label>
-                    <textarea class="form-control" id="observacoesGerais" name="observacoesGerais" rows="4" 
-                               "placeholder= +                               placeholder="observações gerais sobre o cliente, particularidades, histórico, etc.">{{ client.observacoesGerais if client else '' }}</textarea>{{ client.observacoesGerais if client else '' }}</textarea>
-                </div>
-            
-            <div class="row">
-                <!-- tarefas vinculadas -->
-                <div class="col-md-4 mb-3">
-                    <label for="tarefasVinculadas" class="form-label">TAREFAS VINCULADAS</label>
-                    <input type="number" class="form-control" id="tarefasVinculadas" name="tarefasVinculadas" 
-                           value="{{ client.tarefasVinculadas if client else '' }}" 
-                            "placeholder= +                            placeholder="0" min="0">
-                    <div class="form-text">Número de tarefas vinculadas ao cliente</div>
-                </div>
-                
                 <!-- Data de Início dos Serviços -->
                 <div class="col-md-4 mb-3">
                     <label for="dataInicioServicos" class="form-label">DATA INÍCIO DOS SERVIÇOS</label>
@@ -733,7 +716,6 @@
                     </select>
                 </div>
             
-            <div class="row">
                 <!-- Data da última atualização -->
                 <div class="col-md-4 mb-3">
                     <label for="ultimaAtualizacao" class="form-label">última atualização</label>
@@ -741,42 +723,15 @@
                            value="{{ client.ultimaAtualizacao if client else '' }}" readonly>
                     <div class="form-text">Atualizado automaticamente</div>
                 </div>
-                
+            </div>
+            
+            <div class="row">
                 <!-- responsável pela atualização -->
-                <div class="col-md-4 mb-3">
+                <div class="col-md-12 mb-3">
                     <label for="responsavelAtualizacao" class="form-label">RESPONSÁVEL PELA ATUALIZAÇÃO</label>
                     <input type="text" class="form-control" id="responsavelAtualizacao" name="responsavelAtualizacao" 
                            value="{{ session.usuario if session.usuario else '' }}" readonly>
                     <div class="form-text">Usuário logado no sistema</div>
-                </div>
-                
-                <!-- prioridade -->
-                <div class="col-md-4 mb-3">
-                    <label for="PRIORIDADECliente" class="form-label">PRIORIDADE</label>
-                    <select class="form-select" id="prioridadeCliente" name="prioridadeCliente">
-                        <option value="normal" {{ 'selected' if client and client.prioridadeCliente == 'normal' else '' }}>Normal</option>
-                        <option value="alta" {{ 'selected' if client and client.prioridadeCliente == 'alta' else '' }}>Alta</option>
-                        <option value="urgente" {{ 'selected' if client and client.prioridadeCliente == 'urgente' else '' }}>Urgente</option>
-                        <option value="baixa" {{ 'selected' if client and client.prioridadeCliente == 'baixa' else '' }}>Baixa</option>
-                    </select>
-                </div>
-            
-            <div class="row">
-                <!-- tags/categorias -->
-                <div class="col-md-6 mb-3">
-                    <label for="tagsCliente" class="form-label">TAGS/CATEGORIAS</label>
-                    <input type="text" class="form-control" id="tagsCliente" name="tagsCliente" 
-                           value="{{ client.tagsCliente if client else '' }}" 
-                            "placeholder= +                            placeholder="empresa_grande, complexo, especial">
-                    <div class="form-text">Separar tags por vírgula</div>
-                </div>
-                
-                <!-- histórico de alterações -->
-                <div class="col-md-6 mb-3">
-                    <label for="historicoAlteracoes" class="form-label">HISTÓRICO DE ALTERAÇÕES</label>
-                    <textarea class="form-control" id="historicoAlteracoes" name="historicoAlteracoes" rows="3" 
-                               "placeholder= +                               placeholder="Registro das principais alterações..." readonly>{{ client.historicoAlteracoes if client else '' }}</textarea>{{ client.historicoAlteracoes if client else '' }}</textarea>
-                    <div class="form-text">Atualizado automaticamente pelo sistema</div>
                 </div>
 
     <!-- Botões de ação -->

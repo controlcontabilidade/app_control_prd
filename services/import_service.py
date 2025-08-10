@@ -91,7 +91,8 @@ class ImportService:
             'RESPONSÁVEL IMEDIATO': 'responsavelImediato',
             'TELEFONE FIXO': 'telefoneFixo',
             'TELEFONE CELULAR': 'telefoneCelular',
-            'E-MAILS': 'emailsSocio'
+            'E-MAILS': 'emailsSocio',
+            'STATUS DO CLIENTE': 'statusCliente'
         }
         
         # Renomear colunas
@@ -173,7 +174,7 @@ class ImportService:
             'id': self.generate_unique_id(),
             'criadoEm': datetime.now().isoformat(),
             'ativo': True,  # Por padrão, clientes importados são ativos
-            'tarefasVinculadas': 0,
+            'statusCliente': client_data.get('statusCliente', 'ativo'),  # Campo statusCliente com fallback
             'bpoFinanceiro': False,  # Valor padrão
             'integradoDominio': False,  # Valor padrão 
             'portalCliente': False,  # Valor padrão
