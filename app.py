@@ -6,27 +6,36 @@ import gc  # Para otimização de memória
 from datetime import datetime
 from functools import wraps
 
-# Importar otimizador de memória ULTRA-AGRESSIVO
+# Importar otimizador de memória LITE para Render
 try:
-    from ultra_memory_optimizer import UltraMemoryOptimizer, ULTRA_MEMORY_SETTINGS, get_ultra_optimized_batch_size
+    from memory_optimizer_lite import RenderMemoryOptimizer, RENDER_MEMORY_SETTINGS, get_optimized_batch_size
     MEMORY_OPTIMIZER_AVAILABLE = True
-    print("🧠 Ultra Memory Optimizer carregado")
+    print("🚀 Render Memory Optimizer carregado")
+    # Usar aliases para compatibilidade
+    UltraMemoryOptimizer = RenderMemoryOptimizer
+    ULTRA_MEMORY_SETTINGS = RENDER_MEMORY_SETTINGS
+    get_ultra_optimized_batch_size = get_optimized_batch_size
 except ImportError:
     try:
-        from memory_optimizer import MemoryOptimizer, MEMORY_OPTIMIZED_SETTINGS, get_optimized_batch_size
+        from ultra_memory_optimizer import UltraMemoryOptimizer, ULTRA_MEMORY_SETTINGS, get_ultra_optimized_batch_size
         MEMORY_OPTIMIZER_AVAILABLE = True
-        print("🧠 Memory Optimizer carregado")
-        # Usar versão padrão se ultra não estiver disponível
-        UltraMemoryOptimizer = MemoryOptimizer
-        ULTRA_MEMORY_SETTINGS = MEMORY_OPTIMIZED_SETTINGS
-        get_ultra_optimized_batch_size = get_optimized_batch_size
+        print("🧠 Ultra Memory Optimizer carregado")
     except ImportError:
-        MEMORY_OPTIMIZER_AVAILABLE = False
-        print("⚠️ Memory Optimizer não disponível")
-        
-        # Definir função fallback
-        def get_ultra_optimized_batch_size():
-            return 5  # Valor extremamente baixo para fallback
+        try:
+            from memory_optimizer import MemoryOptimizer, MEMORY_OPTIMIZED_SETTINGS, get_optimized_batch_size
+            MEMORY_OPTIMIZER_AVAILABLE = True
+            print("🧠 Memory Optimizer carregado")
+            # Usar versão padrão se ultra não estiver disponível
+            UltraMemoryOptimizer = MemoryOptimizer
+            ULTRA_MEMORY_SETTINGS = MEMORY_OPTIMIZED_SETTINGS
+            get_ultra_optimized_batch_size = get_optimized_batch_size
+        except ImportError:
+            MEMORY_OPTIMIZER_AVAILABLE = False
+            print("⚠️ Memory Optimizer não disponível")
+            
+            # Definir função fallback
+            def get_ultra_optimized_batch_size():
+                return 3  # Valor MUITO baixo para fallback
 
 from services.google_sheets_service import GoogleSheetsService
 from services.local_storage_service import LocalStorageService
@@ -50,15 +59,15 @@ from werkzeug.utils import secure_filename
 app = Flask(__name__)
 app.secret_key = os.environ.get('SECRET_KEY', 'your-secret-key-here-change-in-production')
 
-# Aplicar otimizações de memória ULTRA-AGRESSIVAS se disponível
+# Aplicar otimizações de memória RENDER-OTIMIZADAS se disponível
 if MEMORY_OPTIMIZER_AVAILABLE:
     UltraMemoryOptimizer.setup_extreme_memory_optimization()
     UltraMemoryOptimizer.optimize_flask_config(app)
     
     # Configurações específicas do Render
-    if os.environ.get('FLASK_ENV') == 'production':
-        from ultra_memory_optimizer import setup_render_extreme_optimizations
-        setup_render_extreme_optimizations()
+    if os.environ.get('RENDER'):  # Detectar ambiente Render
+        UltraMemoryOptimizer.setup_render_optimizations()
+        print("🎯 Otimizações específicas Render aplicadas")
 else:
     print("⚠️ Usando configurações básicas de memória")
 
@@ -113,43 +122,49 @@ def format_datetime_filter(value):
     """Formata data e hora ISO para formato brasileiro"""
     return format_date_filter(value, '%d/%m/%Y %H:%M')
 
-# Configurações para upload de arquivos - EXTREMAMENTE OTIMIZADO
-# Reduzido DRASTICAMENTE para economizar RAM no Render
-MAX_UPLOAD_SIZE = 512 * 1024 if os.environ.get('FLASK_ENV') == 'production' else 2 * 1024 * 1024  # 512KB produção, 2MB desenvolvimento
+# Configurações para upload de arquivos - OTIMIZADO PARA RENDER
+# Reduzido DRASTICAMENTE para economizar RAM no Render (256KB)
+MAX_UPLOAD_SIZE = 256 * 1024 if os.environ.get('RENDER') else 1 * 1024 * 1024  # 256KB Render, 1MB desenvolvimento
 app.config['MAX_CONTENT_LENGTH'] = MAX_UPLOAD_SIZE
 app.config['UPLOAD_FOLDER'] = 'uploads'
 ALLOWED_EXTENSIONS = {'xlsx', 'xls'}
 
 print(f"📁 Upload configurado: {MAX_UPLOAD_SIZE / 1024:.0f}KB máximo")
 
-# Configurações EXTREMAS para produção - FOCO EM IDLE MEMORY
-if os.environ.get('FLASK_ENV') == 'production':
-    # Garbage collection EXTREMAMENTE agressivo
-    gc.set_threshold(25, 1, 1)  # Ainda mais agressivo
-    app.config['SEND_FILE_MAX_AGE_DEFAULT'] = 30  # Cache de apenas 30 segundos
+# Configurações RENDER-ESPECÍFICAS para produção - FOCO EM MEMÓRIA MÍNIMA
+if os.environ.get('RENDER'):
+    # Garbage collection EXTREMAMENTE agressivo para Render
+    gc.set_threshold(10, 1, 1)  # Muito mais agressivo que antes
+    app.config['SEND_FILE_MAX_AGE_DEFAULT'] = 0  # Zero cache para economizar memória
     
     # Configurações JSON EXTREMAS
     app.config['JSON_SORT_KEYS'] = False
     app.config['JSONIFY_PRETTYPRINT_REGULAR'] = False
     app.config['JSONIFY_MIMETYPE'] = 'application/json'
     
-    # Limitar DRASTICAMENTE workers e conexões
+    # Limitar DRASTICAMENTE workers e conexões para Render
     os.environ.setdefault('WEB_CONCURRENCY', '1')  # 1 worker APENAS
-    os.environ.setdefault('WORKER_CONNECTIONS', '5')  # Extremamente reduzido
+    os.environ.setdefault('WORKER_CONNECTIONS', '3')  # Extremamente reduzido
     os.environ.setdefault('WORKER_TIMEOUT', '15')  # Timeout muito baixo
-    os.environ.setdefault('MAX_REQUESTS', '10')  # Restart worker frequentemente
+    os.environ.setdefault('MAX_REQUESTS', '25')  # Restart worker mais frequentemente
+    os.environ.setdefault('PRELOAD_APP', 'true')  # Preload para economizar memória
     
-    # Configurações de sessão extremamente otimizadas
-    app.config['PERMANENT_SESSION_LIFETIME'] = 600  # 10 minutos apenas
+    # Configurações de sessão extremamente otimizadas para Render
+    app.config['PERMANENT_SESSION_LIFETIME'] = 300  # 5 minutos apenas
     app.config['SESSION_COOKIE_SECURE'] = True
     app.config['SESSION_COOKIE_HTTPONLY'] = True
     
-    # Desabilitar TUDO que consome memória
+    # Desabilitar TUDO que consome memória desnecessariamente
     app.config['PRESERVE_CONTEXT_ON_EXCEPTION'] = False
     app.config['EXPLAIN_TEMPLATE_LOADING'] = False
     app.config['PROPAGATE_EXCEPTIONS'] = None
     
-    print("🧠 Configurações EXTREMAS de produção aplicadas - ZERO DESPERDÍCIO DE MEMÓRIA")
+    print("🎯 Configurações RENDER aplicadas - MEMÓRIA MÍNIMA")
+elif os.environ.get('FLASK_ENV') == 'production':
+    # Configurações genéricas de produção (não Render)
+    gc.set_threshold(25, 1, 1)
+    app.config['SEND_FILE_MAX_AGE_DEFAULT'] = 30
+    print("🧠 Configurações genéricas de produção aplicadas")
 
 # Criar pasta de uploads se não existir
 if not os.path.exists(app.config['UPLOAD_FOLDER']):
@@ -158,22 +173,22 @@ if not os.path.exists(app.config['UPLOAD_FOLDER']):
 def allowed_file(filename):
     return '.' in filename and filename.rsplit('.', 1)[1].lower() in ALLOWED_EXTENSIONS
 
-# Hook EXTREMO para limpeza de memória após cada requisição
+# Hook EXTREMO para limpeza de memória após cada requisição - RENDER OTIMIZADO
 @app.after_request
 def cleanup_memory_after_request(response):
-    """Limpa memória EXTREMAMENTE após cada requisição"""
-    if MEMORY_OPTIMIZER_AVAILABLE and os.environ.get('FLASK_ENV') == 'production':
-        # Usar otimizador ultra-agressivo
+    """Limpa memória EXTREMAMENTE após cada requisição - otimizado para Render"""
+    if MEMORY_OPTIMIZER_AVAILABLE and os.environ.get('RENDER'):
+        # Usar otimizador específico para Render
         UltraMemoryOptimizer.cleanup_after_request()
         
-        # Limpeza adicional para ambientes críticos de memória
+        # Limpeza adicional para ambientes críticos de memória (Render)
         try:
             # Forçar limpeza de cache Python interno
             if hasattr(sys, '_clear_type_cache'):
                 sys._clear_type_cache()
             
-            # Coleta de lixo múltipla
-            for _ in range(2):
+            # Coleta de lixo múltipla para Render
+            for _ in range(3):  # Mais agressivo no Render
                 gc.collect()
                 
             # Força limpeza de weakrefs
@@ -181,6 +196,10 @@ def cleanup_memory_after_request(response):
             weakref.getweakrefs(object())
         except:
             pass
+    elif os.environ.get('FLASK_ENV') == 'production':
+        # Limpeza básica para outros ambientes de produção
+        for _ in range(2):
+            gc.collect()
     
     return response
 
