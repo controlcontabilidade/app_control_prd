@@ -149,10 +149,11 @@ if os.environ.get('RENDER'):
     os.environ.setdefault('MAX_REQUESTS', '25')  # Restart worker mais frequentemente
     os.environ.setdefault('PRELOAD_APP', 'true')  # Preload para economizar memória
     
-    # Configurações de sessão extremamente otimizadas para Render
-    app.config['PERMANENT_SESSION_LIFETIME'] = 300  # 5 minutos apenas
+    # Configurações de sessão otimizadas para Render
+    app.config['PERMANENT_SESSION_LIFETIME'] = 43200  # 12 horas (43200 segundos)
     app.config['SESSION_COOKIE_SECURE'] = True
     app.config['SESSION_COOKIE_HTTPONLY'] = True
+    app.config['SESSION_COOKIE_SAMESITE'] = 'Lax'  # Melhor compatibilidade
     
     # Desabilitar TUDO que consome memória desnecessariamente
     app.config['PRESERVE_CONTEXT_ON_EXCEPTION'] = False
@@ -164,7 +165,15 @@ elif os.environ.get('FLASK_ENV') == 'production':
     # Configurações genéricas de produção (não Render)
     gc.set_threshold(25, 1, 1)
     app.config['SEND_FILE_MAX_AGE_DEFAULT'] = 30
+    app.config['PERMANENT_SESSION_LIFETIME'] = 43200  # 12 horas também em produção
     print("🧠 Configurações genéricas de produção aplicadas")
+else:
+    # Configurações para desenvolvimento local
+    app.config['PERMANENT_SESSION_LIFETIME'] = 43200  # 12 horas em desenvolvimento
+    app.config['SESSION_COOKIE_SECURE'] = False  # HTTP permitido em desenvolvimento
+    app.config['SESSION_COOKIE_HTTPONLY'] = True
+    app.config['SESSION_COOKIE_SAMESITE'] = 'Lax'
+    print("🔧 Configurações de desenvolvimento aplicadas - Sessão 12h")
 
 # Criar pasta de uploads se não existir
 if not os.path.exists(app.config['UPLOAD_FOLDER']):
