@@ -774,38 +774,38 @@ class GoogleSheetsServiceAccountService:
             'ANVISA GESTOR',                     # 72. Login ANVISA gestor
             'ANVISA EMPRESA',                    # 73. Login ANVISA empresa
             
-            # Bloco 6: Procurações (AJUSTADO após redução do Bloco 5)
-            'PROCURAÇÃO RFB',                    # 74. Tem procuração RFB? (SIM/NÃO)
-            'DATA PROCURAÇÃO RFB',               # 75. Data da procuração RFB
-            'PROCURAÇÃO RECEITA ESTADUAL',       # 76. Tem procuração RE? (SIM/NÃO)
-            'DATA PROCURAÇÃO RC',                # 77. Data da procuração RC
-            'PROCURAÇÃO CAIXA ECONÔMICA',        # 78. Tem procuração CEF? (SIM/NÃO)
-            'DATA PROCURAÇÃO CX',                # 79. Data da procuração CX
-            'PROCURAÇÃO PREVIDÊNCIA SOCIAL',     # 80. Tem procuração INSS? (SIM/NÃO)
-            'DATA PROCURAÇÃO SW',                # 87. Data da procuração SW
-            'PROCURAÇÃO MUNICIPAL',              # 88. Tem procuração municipal? (SIM/NÃO)
-            'DATA PROCURAÇÃO MUNICIPAL',         # 89. Data da procuração municipal
-            'OUTRAS PROCURAÇÕES',                # 90. Outras procurações
-            'OBSERVAÇÕES PROCURAÇÕES',           # 91. Obs sobre procurações
+            # Bloco 6: Procurações (CORRIGIDO - alinhado com formulário)
+            'PROCURAÇÃO RECEITA',                # 74. Tem procuração Receita? (SIM/NÃO)
+            'DATA PROCURAÇÃO RECEITA',           # 75. Data da procuração Receita
+            'PROCURAÇÃO DTe',                    # 76. Tem procuração DTe? (SIM/NÃO)
+            'DATA PROCURAÇÃO DTe',               # 77. Data da procuração DTe
+            'PROCURAÇÃO CAIXA',                  # 78. Tem procuração Caixa? (SIM/NÃO)
+            'DATA PROCURAÇÃO CAIXA',             # 79. Data da procuração Caixa
+            'PROCURAÇÃO EMP WEB',                # 80. Tem procuração Emp Web? (SIM/NÃO)
+            'DATA PROCURAÇÃO EMP WEB',           # 81. Data da procuração Emp Web
+            'PROCURAÇÃO DET',                    # 82. Tem procuração DET? (SIM/NÃO)
+            'DATA PROCURAÇÃO DET',               # 83. Data da procuração DET
+            'OUTRAS PROCURAÇÕES',                # 84. Outras procurações
+            'OBSERVAÇÕES PROCURAÇÕES',           # 85. Obs sobre procurações
             
             # Bloco 7: Observações e Dados Adicionais
-            'OBSERVAÇÕES GERAIS',                # 92. Observações livres
-            'TAREFAS VINCULADAS',                # 93. Número de tarefas pendentes
-            'DATA INÍCIO SERVIÇOS',              # 94. Data início (duplicate for compatibility)
-            'STATUS DO CLIENTE',                 # 95. ATIVO, INATIVO, SUSPENSO
-            'ÚLTIMA ATUALIZAÇÃO',                # 96. Timestamp última modificação
-            'RESPONSÁVEL ATUALIZAÇÃO',           # 97. Quem fez a última alteração
-            'PRIORIDADE',                        # 98. ALTA, NORMAL, BAIXA
-            'TAGS/CATEGORIAS',                   # 99. Tags do cliente
-            'HISTÓRICO DE ALTERAÇÕES',           # 100. Log de alterações
+            'OBSERVAÇÕES GERAIS',                # 86. Observações livres
+            'TAREFAS VINCULADAS',                # 87. Número de tarefas pendentes
+            'DATA INÍCIO SERVIÇOS',              # 88. Data início (duplicate for compatibility)
+            'STATUS DO CLIENTE',                 # 89. ATIVO, INATIVO, SUSPENSO
+            'ÚLTIMA ATUALIZAÇÃO',                # 90. Timestamp última modificação
+            'RESPONSÁVEL ATUALIZAÇÃO',           # 91. Quem fez a última alteração
+            'PRIORIDADE',                        # 92. ALTA, NORMAL, BAIXA
+            'TAGS/CATEGORIAS',                   # 93. Tags do cliente
+            'HISTÓRICO DE ALTERAÇÕES',           # 94. Log de alterações
             
             # Campos internos do sistema
-            'DONO/RESPONSÁVEL',                  # 101. Dono/Responsável
-            'CLIENTE ATIVO',                     # 102. Cliente ativo? (SIM/NÃO)
-            'DATA DE CRIAÇÃO',                   # 103. Data de criação do registro
-            'ID',                                # 104. ID único do cliente
-            'DOMÉSTICA',                         # 105. Indica se é doméstica (SIM/NÃO)
-            'GERA ARQUIVO DO SPED',              # 106. Gera arquivo do SPED (SIM/NÃO)
+            'DONO/RESPONSÁVEL',                  # 95. Dono/Responsável
+            'CLIENTE ATIVO',                     # 96. Cliente ativo? (SIM/NÃO)
+            'DATA DE CRIAÇÃO',                   # 97. Data de criação do registro
+            'ID',                                # 98. ID único do cliente
+            'DOMÉSTICA',                         # 99. Indica se é doméstica (SIM/NÃO)
+            'GERA ARQUIVO DO SPED',              # 100. Gera arquivo do SPED (SIM/NÃO)
         ]
 
     def ensure_correct_headers(self):
@@ -1017,30 +1017,30 @@ class GoogleSheetsServiceAccountService:
             client.get('anvisaGestor', ''),                   # 72. ANVISA GESTOR
             client.get('anvisaEmpresa', ''),                  # 73. ANVISA EMPRESA
             
-            # Bloco 6: Procurações (AJUSTADO após redução do Bloco 5)
-            'SIM' if client.get('procRfb') else 'NÃO',        # 74. PROCURAÇÃO RFB
-            client.get('procRfbData', ''),                    # 75. DATA PROCURAÇÃO RFB
-            'SIM' if client.get('procRc') else 'NÃO',         # 76. PROCURAÇÃO RECEITA ESTADUAL
-            client.get('procRcData', ''),                     # 77. DATA PROCURAÇÃO RC
-            'SIM' if client.get('procCx') else 'NÃO',         # 78. PROCURAÇÃO CAIXA ECONÔMICA
-            client.get('procCxData', ''),                     # 79. DATA PROCURAÇÃO CX
-            'SIM' if client.get('procSw') else 'NÃO',         # 80. PROCURAÇÃO PREVIDÊNCIA SOCIAL
-            client.get('procSwData', ''),                     # 81. DATA PROCURAÇÃO SW
-            'SIM' if client.get('procMunicipal') else 'NÃO',  # 82. PROCURAÇÃO MUNICIPAL
-            client.get('procMunicipalData', ''),              # 83. DATA PROCURAÇÃO MUNICIPAL
-            client.get('outrasProc', ''),                     # 90. OUTRAS PROCURAÇÕES
-            client.get('obsProcuracoes', ''),                 # 91. OBSERVAÇÕES PROCURAÇÕES
+            # Bloco 6: Procurações (CORRIGIDO - alinhado com formulário)
+            'SIM' if client.get('procReceita') else 'NÃO',   # 74. PROCURAÇÃO RECEITA (RFB)
+            client.get('dataProcReceita', ''),                # 75. DATA PROCURAÇÃO RECEITA
+            'SIM' if client.get('procDte') else 'NÃO',        # 76. PROCURAÇÃO DTe
+            client.get('dataProcDte', ''),                    # 77. DATA PROCURAÇÃO DTe
+            'SIM' if client.get('procCaixa') else 'NÃO',      # 78. PROCURAÇÃO CAIXA
+            client.get('dataProcCaixa', ''),                  # 79. DATA PROCURAÇÃO CAIXA
+            'SIM' if client.get('procEmpWeb') else 'NÃO',     # 80. PROCURAÇÃO EMP WEB
+            client.get('dataProcEmpWeb', ''),                 # 81. DATA PROCURAÇÃO EMP WEB
+            'SIM' if client.get('procDet') else 'NÃO',        # 82. PROCURAÇÃO DET
+            client.get('dataProcDet', ''),                    # 83. DATA PROCURAÇÃO DET
+            client.get('outrasProc', ''),                     # 84. OUTRAS PROCURAÇÕES
+            client.get('obsProcuracoes', ''),                 # 85. OBSERVAÇÕES PROCURAÇÕES
             
             # Bloco 7: Observações e Dados Adicionais
-            client.get('observacoesGerais', ''),              # 92. OBSERVAÇÕES GERAIS
-            client.get('tarefasVinculadas', 0),               # 93. TAREFAS VINCULADAS
-            client.get('dataInicioServicos', ''),             # 94. DATA INÍCIO SERVIÇOS (DUPLICAÇÃO REMOVIDA - já está no índice 18)
-            client.get('statusCliente', 'ATIVO'),             # 95. STATUS DO CLIENTE
-            client.get('ultimaAtualizacao', ''),              # 96. ÚLTIMA ATUALIZAÇÃO
-            client.get('responsavelAtualizacao', ''),         # 97. RESPONSÁVEL ATUALIZAÇÃO
-            client.get('prioridadeCliente', 'NORMAL'),        # 98. PRIORIDADE
-            client.get('tagsCliente', ''),                    # 99. TAGS/CATEGORIAS
-            client.get('historicoAlteracoes', ''),            # 100. HISTÓRICO DE ALTERAÇÕES
+            client.get('observacoesGerais', ''),              # 86. OBSERVAÇÕES GERAIS
+            client.get('tarefasVinculadas', 0),               # 87. TAREFAS VINCULADAS
+            client.get('dataInicioServicos', ''),             # 88. DATA INÍCIO SERVIÇOS (DUPLICAÇÃO REMOVIDA - já está no índice 18)
+            client.get('statusCliente', 'ATIVO'),             # 89. STATUS DO CLIENTE
+            client.get('ultimaAtualizacao', ''),              # 90. ÚLTIMA ATUALIZAÇÃO
+            client.get('responsavelAtualizacao', ''),         # 91. RESPONSÁVEL ATUALIZAÇÃO
+            client.get('prioridadeCliente', 'NORMAL'),        # 92. PRIORIDADE
+            client.get('tagsCliente', ''),                    # 93. TAGS/CATEGORIAS
+            client.get('historicoAlteracoes', ''),            # 94. HISTÓRICO DE ALTERAÇÕES
             # placeholders para manter comprimento; campos finais serão preenchidos por nome
             '',  # placeholder
             '',  # placeholder
@@ -1236,38 +1236,38 @@ class GoogleSheetsServiceAccountService:
             'anvisaGestor': safe_get(row, 71),       # 72-1 = 71 (ANVISA GESTOR)
             'anvisaEmpresa': safe_get(row, 72),      # 73-1 = 72 (ANVISA EMPRESA)
 
-            # Bloco 6: Procurações (AJUSTADO após redução do Bloco 5)
-            'procRfb': bool_from_text(safe_get(row, 73)),      # 74-1 = 73
-            'procRfbData': safe_get(row, 74),                  # 75-1 = 74
-            'procRc': bool_from_text(safe_get(row, 75)),       # 76-1 = 75
-            'procRcData': safe_get(row, 76),                   # 77-1 = 76
-            'procCx': bool_from_text(safe_get(row, 77)),       # 78-1 = 77
-            'procCxData': safe_get(row, 78),                   # 79-1 = 78
-            'procSw': bool_from_text(safe_get(row, 79)),       # 80-1 = 79
-            'procSwData': safe_get(row, 80),                   # 81-1 = 80
-            'procMunicipal': bool_from_text(safe_get(row, 81)), # 82-1 = 81
-            'procMunicipalData': safe_get(row, 88),            # 89-1 = 88
-            'outrasProc': safe_get(row, 89),                   # 90-1 = 89
-            'obsProcuracoes': safe_get(row, 90),               # 91-1 = 90
+            # Bloco 6: Procurações (CORRIGIDO - alinhado com formulário)
+            'procReceita': bool_from_text(safe_get(row, 73)),     # 74-1 = 73 (PROCURAÇÃO RECEITA)
+            'dataProcReceita': safe_get(row, 74),                 # 75-1 = 74 (DATA PROCURAÇÃO RECEITA)
+            'procDte': bool_from_text(safe_get(row, 75)),         # 76-1 = 75 (PROCURAÇÃO DTe)
+            'dataProcDte': safe_get(row, 76),                     # 77-1 = 76 (DATA PROCURAÇÃO DTe)
+            'procCaixa': bool_from_text(safe_get(row, 77)),       # 78-1 = 77 (PROCURAÇÃO CAIXA)
+            'dataProcCaixa': safe_get(row, 78),                   # 79-1 = 78 (DATA PROCURAÇÃO CAIXA)
+            'procEmpWeb': bool_from_text(safe_get(row, 79)),      # 80-1 = 79 (PROCURAÇÃO EMP WEB)
+            'dataProcEmpWeb': safe_get(row, 80),                  # 81-1 = 80 (DATA PROCURAÇÃO EMP WEB)
+            'procDet': bool_from_text(safe_get(row, 81)),         # 82-1 = 81 (PROCURAÇÃO DET)
+            'dataProcDet': safe_get(row, 82),                     # 83-1 = 82 (DATA PROCURAÇÃO DET)
+            'outrasProc': safe_get(row, 83),                      # 84-1 = 83 (OUTRAS PROCURAÇÕES)
+            'obsProcuracoes': safe_get(row, 84),                  # 85-1 = 84 (OBSERVAÇÕES PROCURAÇÕES)
 
-            # Bloco 7: Observações e Dados Adicionais (CORRIGIDO - convertendo índices 1-based para 0-based)
-            'observacoesGerais': safe_get(row, 91),            # 92-1 = 91
-            'tarefasVinculadas': int(safe_get(row, hidx.get('TAREFAS VINCULADAS', 92), 0)) if str(safe_get(row, hidx.get('TAREFAS VINCULADAS', 92), 0)).isdigit() else 0,
-            'dataInicioServicos': safe_get(row, hidx.get('DATA INÍCIO SERVIÇOS', 93)),  # 94-1 = 93
-            'statusCliente': safe_get(row, hidx.get('STATUS DO CLIENTE', 94), 'ATIVO'),
-            'ultimaAtualizacao': safe_get(row, hidx.get('ÚLTIMA ATUALIZAÇÃO', 95)),
-            'responsavelAtualizacao': safe_get(row, hidx.get('RESPONSÁVEL ATUALIZAÇÃO', 96)),
-            'prioridadeCliente': safe_get(row, hidx.get('PRIORIDADE', 97), 'NORMAL'),
-            'tagsCliente': safe_get(row, hidx.get('TAGS/CATEGORIAS', 98)),
-            'historicoAlteracoes': safe_get(row, hidx.get('HISTÓRICO DE ALTERAÇÕES', 99)),
+            # Bloco 7: Observações e Dados Adicionais (CORRIGIDO - índices ajustados)
+            'observacoesGerais': safe_get(row, 85),            # 86-1 = 85
+            'tarefasVinculadas': int(safe_get(row, hidx.get('TAREFAS VINCULADAS', 86), 0)) if str(safe_get(row, hidx.get('TAREFAS VINCULADAS', 86), 0)).isdigit() else 0,
+            'dataInicioServicos': safe_get(row, hidx.get('DATA INÍCIO SERVIÇOS', 87)),  # 88-1 = 87
+            'statusCliente': safe_get(row, hidx.get('STATUS DO CLIENTE', 88), 'ATIVO'),
+            'ultimaAtualizacao': safe_get(row, hidx.get('ÚLTIMA ATUALIZAÇÃO', 89)),
+            'responsavelAtualizacao': safe_get(row, hidx.get('RESPONSÁVEL ATUALIZAÇÃO', 90)),
+            'prioridadeCliente': safe_get(row, hidx.get('PRIORIDADE', 91), 'NORMAL'),
+            'tagsCliente': safe_get(row, hidx.get('TAGS/CATEGORIAS', 92)),
+            'historicoAlteracoes': safe_get(row, hidx.get('HISTÓRICO DE ALTERAÇÕES', 93)),
 
             # Campos internos do sistema (alinhados aos cabeçalhos - índices ajustados)
             'id': id_resolvido,
-            'donoResp': safe_get(row, hidx.get('DONO/RESPONSÁVEL', 101)),
-            'ativo': bool_from_text(safe_get(row, hidx.get('CLIENTE ATIVO', 102), 'SIM'), True),
-            'criadoEm': safe_get(row, hidx.get('DATA DE CRIAÇÃO', 103), safe_get(row, hidx.get('RESERVADO 2', 84), datetime.now().isoformat())),
-            'domestica': safe_get(row, hidx.get('DOMÉSTICA', 105)),
-            'geraArquivoSped': safe_get(row, hidx.get('GERA ARQUIVO DO SPED', 106))
+            'donoResp': safe_get(row, hidx.get('DONO/RESPONSÁVEL', 94)),
+            'ativo': bool_from_text(safe_get(row, hidx.get('CLIENTE ATIVO', 95), 'SIM'), True),
+            'criadoEm': safe_get(row, hidx.get('DATA DE CRIAÇÃO', 96), safe_get(row, hidx.get('RESERVADO 2', 84), datetime.now().isoformat())),
+            'domestica': safe_get(row, hidx.get('DOMÉSTICA', 98)),
+            'geraArquivoSped': safe_get(row, hidx.get('GERA ARQUIVO DO SPED', 99))
         }
 
         # DEBUG e VALIDAÇÃO do ID

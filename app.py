@@ -2256,10 +2256,34 @@ def save_client():
             else:
                 print(f"🔍 {key}: VAZIO")
         
+        # Debug específico para procurações
+        print("🔍 === DEBUG PROCURAÇÕES ===")
+        procuracoes_debug = {
+            'procReceita': request.form.get('procReceita'),
+            'dataProcReceita': request.form.get('dataProcReceita', ''),
+            'procDte': request.form.get('procDte'),
+            'dataProcDte': request.form.get('dataProcDte', ''),
+            'procCaixa': request.form.get('procCaixa'),
+            'dataProcCaixa': request.form.get('dataProcCaixa', ''),
+            'procEmpWeb': request.form.get('procEmpWeb'),
+            'dataProcEmpWeb': request.form.get('dataProcEmpWeb', ''),
+            'procDet': request.form.get('procDet'),
+            'dataProcDet': request.form.get('dataProcDet', ''),
+            'outrasProc': request.form.get('outrasProc', ''),
+            'obsProcuracoes': request.form.get('obsProcuracoes', ''),
+        }
+        for key, value in procuracoes_debug.items():
+            if 'proc' in key.lower() and key != 'outrasProc' and key != 'obsProcuracoes':
+                # Para checkboxes, mostrar se chegou como 'on' ou None
+                converted = value == 'on' if value else False
+                print(f"🔍 {key}: '{value}' -> {converted}")
+            else:
+                print(f"🔍 {key}: '{value}'")
+        
         # Continuar com outros dados
         client_data.update({
             
-            # Bloco 6: Senhas e Credenciais
+            # Bloco 5: Senhas e Credenciais
             'acessoIss': request.form.get('acessoIss', ''),
             'senhaIss': request.form.get('senhaIss', ''),
             'acessoSefin': request.form.get('acessoSefin', ''),
@@ -2281,21 +2305,21 @@ def save_client():
             'acessoSemace': request.form.get('acessoSemace', ''),
             'senhaSemace': request.form.get('senhaSemace', ''),
             
-            # Bloco 7: Procurações
-            'procRfb': request.form.get('procRfb') == 'on',
-            'procRfbData': request.form.get('procRfbData', ''),
-            'procRc': request.form.get('procRc') == 'on',
-            'procRcData': request.form.get('procRcData', ''),
-            'procCx': request.form.get('procCx') == 'on',
-            'procCxData': request.form.get('procCxData', ''),
-            'procSw': request.form.get('procSw') == 'on',
-            'procSwData': request.form.get('procSwData', ''),
-            'procMunicipal': request.form.get('procMunicipal') == 'on',
-            'procMunicipalData': request.form.get('procMunicipalData', ''),
+            # Bloco 6: Procurações (CORRIGIDO - alinhado com formulário)
+            'procReceita': request.form.get('procReceita') == 'on',
+            'dataProcReceita': request.form.get('dataProcReceita', ''),
+            'procDte': request.form.get('procDte') == 'on',
+            'dataProcDte': request.form.get('dataProcDte', ''),
+            'procCaixa': request.form.get('procCaixa') == 'on',
+            'dataProcCaixa': request.form.get('dataProcCaixa', ''),
+            'procEmpWeb': request.form.get('procEmpWeb') == 'on',
+            'dataProcEmpWeb': request.form.get('dataProcEmpWeb', ''),
+            'procDet': request.form.get('procDet') == 'on',
+            'dataProcDet': request.form.get('dataProcDet', ''),
             'outrasProc': request.form.get('outrasProc', ''),
             'obsProcuracoes': request.form.get('obsProcuracoes', ''),
             
-            # Bloco 8: Observações e Dados Adicionais
+            # Bloco 7: Observações e Dados Adicionais
             'observacoesGerais': request.form.get('observacoesGerais', ''),
             'tarefasVinculadas': int(request.form.get('tarefasVinculadas', '0') or '0'),
             'dataInicioServicos': request.form.get('dataInicioServicos', ''),

@@ -110,7 +110,7 @@
                         <div class="col-md-4">
                             <div class="mb-3">
                                 <label for="codigo_cnae" class="form-label">Código CNAE <span class="text-danger">*</span></label>
-                                <input type="text" class="form-control" id="codigo_cnae" name="codigo_cnae" required maxlength="20" placeholder="0000-0/00">
+                                <input type="text" class="form-control" id="codigo_cnae" name="codigoCnae" required maxlength="20" placeholder="0000-0/00">
                             </div>
                         </div>
                     </div>
@@ -122,10 +122,10 @@
                         <div class="col-md-6">
                             <div class="mb-3">
                                 <label for="segmento" class="form-label">Segmento</label>
-                                <select class="form-select" id="segmento" name="segmento">
+                                <select class="form-select" id="segmento" name="segmentoId">
                                     <option value="">Selecione um segmento</option>
                                     {% for segmento in segmentos %}
-                                    <option value="{{ segmento.nome }}">{{ segmento.nome }}</option>
+                                    <option value="{{ segmento.id }}">{{ segmento.nome }}</option>
                                     {% endfor %}
                                 </select>
                             </div>
@@ -185,7 +185,7 @@
                         <div class="col-md-4">
                             <div class="mb-3">
                                 <label for="edit_codigo_cnae" class="form-label">Código CNAE <span class="text-danger">*</span></label>
-                                <input type="text" class="form-control" id="edit_codigo_cnae" name="codigo_cnae" required maxlength="20">
+                                <input type="text" class="form-control" id="edit_codigo_cnae" name="codigoCnae" required maxlength="20">
                             </div>
                         </div>
                     </div>
@@ -197,10 +197,10 @@
                         <div class="col-md-6">
                             <div class="mb-3">
                                 <label for="edit_segmento" class="form-label">Segmento</label>
-                                <select class="form-select" id="edit_segmento" name="segmento">
+                                <select class="form-select" id="edit_segmento" name="segmentoId">
                                     <option value="">Selecione um segmento</option>
                                     {% for segmento in segmentos %}
-                                    <option value="{{ segmento.nome }}">{{ segmento.nome }}</option>
+                                    <option value="{{ segmento.id }}">{{ segmento.nome }}</option>
                                     {% endfor %}
                                 </select>
                             </div>
@@ -252,14 +252,14 @@ function editarAtividade(id) {
         .then(response => response.json())
         .then(data => {
             if (data.success) {
-                const atividade = data.atividade;
+                const atividade = data.data;
                 document.getElementById('edit_id').value = atividade.id;
                 document.getElementById('edit_nome').value = atividade.nome;
-                document.getElementById('edit_codigo_cnae').value = atividade.codigo_cnae;
+                document.getElementById('edit_codigo_cnae').value = atividade.codigoCnae;
                 document.getElementById('edit_descricao').value = atividade.descricao || '';
-                document.getElementById('edit_segmento').value = atividade.segmento || '';
-                document.getElementById('edit_nivel_risco').value = atividade.nivel_risco || '';
-                document.getElementById('edit_ativo').checked = atividade.ativo === 'Sim';
+                document.getElementById('edit_segmento').value = atividade.segmentoId || '';
+                document.getElementById('edit_nivel_risco').value = atividade.nivelRisco || '';
+                document.getElementById('edit_ativo').checked = atividade.ativo === true;
                 
                 document.getElementById('formEditarAtividade').action = `/atividades/edit/${id}`;
                 new bootstrap.Modal(document.getElementById('editarAtividadeModal')).show();

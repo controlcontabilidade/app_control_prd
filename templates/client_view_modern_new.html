@@ -1,5 +1,10 @@
 {% extends "base.html" %}
 
+<!-- Macro para remover máscaras de CPF/CNPJ (manter apenas números) -->
+{% macro remove_mask(text) -%}
+{{ text|replace('.', '')|replace('-', '')|replace('/', '')|replace(' ', '')|replace('(', '')|replace(')', '') if text else '' }}
+{%- endmacro %}
+
 {% block title %}{{ client.nomeEmpresa }} - SIGEC{% endblock %}
 
 {% block content %}
@@ -85,7 +90,7 @@
                     {% if client.cpfCnpj or client.cnpj %}
                     <div class="col-md-6 mb-3">
                         <label class="form-label text-muted">CPF/CNPJ</label>
-                        <p class="mb-0"><code>{{ client.cpfCnpj or client.cnpj }}</code></p>
+                        <p class="mb-0"><code>{{ remove_mask(client.cpfCnpj or client.cnpj) }}</code></p>
                     </div>
                     {% endif %}
                     {% set perfil_val = client.perfil or client.perfilCliente %}
@@ -440,7 +445,7 @@
                 <div class="row mb-3">
                     <div class="col-md-3 mb-2">
                         <label class="form-label text-muted small">CPF/CNPJ SN</label>
-                        <p class="mb-0 border rounded p-2 bg-light"><small>{{ client.cpfCnpjSn if client.cpfCnpjSn else '-' }}</small></p>
+                        <p class="mb-0 border rounded p-2 bg-light"><small>{{ remove_mask(client.cpfCnpjSn) if client.cpfCnpjSn else '-' }}</small></p>
                     </div>
                     <div class="col-md-3 mb-2">
                         <label class="form-label text-muted small">Código Acesso SN</label>
@@ -522,11 +527,11 @@
             <div class="card-body">
                 <div class="row">
                     {% set procuracoes = [
-                        ('RFB (Receita Federal)', client.procRfb, client.procRfbData),
-                        ('Receita Estadual', client.procRc, client.procRcData),
-                        ('Caixa Econômica', client.procCx, client.procCxData),
-                        ('Previdência Social', client.procSw, client.procSwData),
-                        ('Municipal', client.procMunicipal, client.procMunicipalData)
+                        ('Receita Federal', client.procReceita, client.dataProcReceita),
+                        ('DTe', client.procDte, client.dataProcDte),
+                        ('Caixa Econômica', client.procCaixa, client.dataProcCaixa),
+                        ('Emp. Web', client.procEmpWeb, client.dataProcEmpWeb),
+                        ('DET', client.procDet, client.dataProcDet)
                     ] %}
                     {% for nome, ativa, data in procuracoes %}
                         {% if ativa %}
@@ -543,7 +548,7 @@
                             </div>
                         {% endif %}
                     {% endfor %}
-                    {% if not (client.procRfb or client.procRc or client.procCx or client.procSw or client.procMunicipal) %}
+                    {% if not (client.procReceita or client.procDte or client.procCaixa or client.procEmpWeb or client.procDet) %}
                         <div class="col-12">
                             <p class="text-muted text-center">
                                 <i class="fas fa-info-circle me-2"></i>
