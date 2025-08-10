@@ -60,6 +60,8 @@
                         <th>EMAIL</th>
                         <th>USUÁRIO</th>
                         <th>PERFIL</th>
+                        <th>SISTEMAS</th>
+                        <th>PERMISSÕES SIGEC</th>
                         <th>STATUS</th>
                         <th>Último Login</th>
                         <th class="text-center">ações</th>
@@ -92,6 +94,35 @@
                             {% endif %}
                         </td>
                         <td>
+                            {% set sistemas = user.sistemas_acesso.split(',') if user.sistemas_acesso else ['sigec'] %}
+                            {% for sistema in sistemas %}
+                                {% if sistema.strip() == 'sigec' %}
+                                    <span class="badge bg-primary me-1 mb-1">SIGEC</span>
+                                {% elif sistema.strip() == 'operacao-fiscal' %}
+                                    <span class="badge bg-warning me-1 mb-1">Fiscal</span>
+                                {% elif sistema.strip() == 'gestao-operacional' %}
+                                    <span class="badge bg-success me-1 mb-1">Operacional</span>
+                                {% elif sistema.strip() == 'gestao-financeira' %}
+                                    <span class="badge bg-info me-1 mb-1">Financeira</span>
+                                {% endif %}
+                            {% endfor %}
+                        </td>
+                        <td>
+                            <small class="text-muted">
+                                {% if user.permissoes_sigec == 'VISUALIZADOR' %}
+                                    Visualizador
+                                {% elif user.permissoes_sigec == 'INCLUIR_ATAS' %}
+                                    Incluir Atas
+                                {% elif user.permissoes_sigec == 'TOTAL_ATAS' %}
+                                    Total Atas
+                                {% elif user.permissoes_sigec == 'TOTAL_CADASTROS' %}
+                                    Total Cadastros
+                                {% else %}
+                                    Visualizador
+                                {% endif %}
+                            </small>
+                        </td>
+                        <td>
                             {% if user.ativo.lower() == 'sim' %}
                                 <span class="badge bg-success rounded-pill">
                                     <i class="bi bi-check-circle me-1"></i>Ativo
@@ -112,7 +143,7 @@
                         <td class="text-center">
                             <div class="btn-group btn-group-sm">
                                 <button type="button" class="btn btn-outline-primary" 
-                                        onclick="editUser('{{ user.id }}', '{{ user.nome }}', '{{ user.email }}', '{{ user.usuario }}', '{{ user.perfil }}', '{{ user.ativo }}')"
+                                        onclick="editUser('{{ user.id }}', '{{ user.nome }}', '{{ user.email }}', '{{ user.usuario }}', '{{ user.perfil }}', '{{ user.ativo }}', '{{ user.sistemas_acesso or 'sigec' }}', '{{ user.permissoes_sigec or 'VISUALIZADOR' }}')"
                                         title="Editar">
                                     <i class="bi bi-pencil"></i>
                                 </button>
@@ -169,6 +200,48 @@
                             <label for="senha" class="form-label">SENHA</label>
                             <input type="password" class="form-control" id="senha" name="senha" required minlength="6">
                             <div class="form-text">Mínimo 6 caracteres</div>
+                        </div>
+                        
+                        <!-- Novos campos para sistemas e permissões -->
+                        <div class="col-12">
+                            <label class="form-label">SISTEMAS DE ACESSO</label>
+                            <div class="border rounded p-3 bg-light">
+                                <div class="form-check">
+                                    <input class="form-check-input" type="checkbox" value="sigec" id="sistema_sigec" name="sistemas_acesso" checked disabled>
+                                    <label class="form-check-label" for="sistema_sigec">
+                                        <strong>SIGEC</strong> - Sistema Integrado de Gestão Empresarial Contábil (sempre disponível)
+                                    </label>
+                                </div>
+                                <div class="form-check">
+                                    <input class="form-check-input" type="checkbox" value="operacao-fiscal" id="sistema_fiscal" name="sistemas_acesso">
+                                    <label class="form-check-label" for="sistema_fiscal">
+                                        <strong>Operação Fiscal</strong> - Sistema de controle fiscal e tributário
+                                    </label>
+                                </div>
+                                <div class="form-check">
+                                    <input class="form-check-input" type="checkbox" value="gestao-operacional" id="sistema_operacional" name="sistemas_acesso">
+                                    <label class="form-check-label" for="sistema_operacional">
+                                        <strong>Gestão Operacional</strong> - Dashboard operacional
+                                    </label>
+                                </div>
+                                <div class="form-check">
+                                    <input class="form-check-input" type="checkbox" value="gestao-financeira" id="sistema_financeira" name="sistemas_acesso">
+                                    <label class="form-check-label" for="sistema_financeira">
+                                        <strong>Gestão Financeira</strong> - Dashboard financeiro
+                                    </label>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div class="col-12">
+                            <label for="permissoes_sigec" class="form-label">PERMISSÕES NO SIGEC</label>
+                            <select class="form-select" id="permissoes_sigec" name="permissoes_sigec" required>
+                                <option value="VISUALIZADOR">VISUALIZADOR - Apenas visualizar, não criar nem editar</option>
+                                <option value="INCLUIR_ATAS">INCLUIR ATAS DE REUNIÃO - Incluir novas atas, sem editar ou apagar</option>
+                                <option value="TOTAL_ATAS">INCLUIR/EDITAR/EXCLUIR ATAS - Permissão total para atas de reunião</option>
+                                <option value="TOTAL_CADASTROS">INCLUIR/EDITAR/EXCLUIR CADASTROS - Permissão total para todos os cadastros</option>
+                            </select>
+                            <div class="form-text">Define o nível de acesso do usuário no sistema SIGEC</div>
                         </div>
                     </div>
                 </div>
@@ -227,6 +300,48 @@
                             <label for="edit_nova_senha" class="form-label">NOVA SENHA</label>
                             <input type="password" class="form-control" id="edit_nova_senha" name="nova_senha" minlength="6">
                             <div class="form-text">Deixe em branco para manter a senha atual</div>
+                        </div>
+                        
+                        <!-- Novos campos para edição de sistemas e permissões -->
+                        <div class="col-12">
+                            <label class="form-label">SISTEMAS DE ACESSO</label>
+                            <div class="border rounded p-3 bg-light">
+                                <div class="form-check">
+                                    <input class="form-check-input" type="checkbox" value="sigec" id="edit_sistema_sigec" name="sistemas_acesso" checked disabled>
+                                    <label class="form-check-label" for="edit_sistema_sigec">
+                                        <strong>SIGEC</strong> - Sistema Integrado de Gestão Empresarial Contábil (sempre disponível)
+                                    </label>
+                                </div>
+                                <div class="form-check">
+                                    <input class="form-check-input" type="checkbox" value="operacao-fiscal" id="edit_sistema_fiscal" name="sistemas_acesso">
+                                    <label class="form-check-label" for="edit_sistema_fiscal">
+                                        <strong>Operação Fiscal</strong> - Sistema de controle fiscal e tributário
+                                    </label>
+                                </div>
+                                <div class="form-check">
+                                    <input class="form-check-input" type="checkbox" value="gestao-operacional" id="edit_sistema_operacional" name="sistemas_acesso">
+                                    <label class="form-check-label" for="edit_sistema_operacional">
+                                        <strong>Gestão Operacional</strong> - Dashboard operacional
+                                    </label>
+                                </div>
+                                <div class="form-check">
+                                    <input class="form-check-input" type="checkbox" value="gestao-financeira" id="edit_sistema_financeira" name="sistemas_acesso">
+                                    <label class="form-check-label" for="edit_sistema_financeira">
+                                        <strong>Gestão Financeira</strong> - Dashboard financeiro
+                                    </label>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div class="col-12">
+                            <label for="edit_permissoes_sigec" class="form-label">PERMISSÕES NO SIGEC</label>
+                            <select class="form-select" id="edit_permissoes_sigec" name="permissoes_sigec" required>
+                                <option value="VISUALIZADOR">VISUALIZADOR - Apenas visualizar, não criar nem editar</option>
+                                <option value="INCLUIR_ATAS">INCLUIR ATAS DE REUNIÃO - Incluir novas atas, sem editar ou apagar</option>
+                                <option value="TOTAL_ATAS">INCLUIR/EDITAR/EXCLUIR ATAS - Permissão total para atas de reunião</option>
+                                <option value="TOTAL_CADASTROS">INCLUIR/EDITAR/EXCLUIR CADASTROS - Permissão total para todos os cadastros</option>
+                            </select>
+                            <div class="form-text">Define o nível de acesso do usuário no sistema SIGEC</div>
                         </div>
                     </div>
                 </div>
@@ -313,7 +428,7 @@ document.addEventListener('DOMContentLoaded', function() {
     statusFilter.addEventListener('change', filterTable);
 });
 
-function editUser(id, nome, email, usuario, perfil, ativo) {
+function editUser(id, nome, email, usuario, perfil, ativo, sistemas_acesso, permissoes_sigec) {
     // Preenche o formulário de edição com os dados atuais
     document.getElementById('edit_user_id').value = id;
     document.getElementById('edit_nome').value = nome;
@@ -324,6 +439,15 @@ function editUser(id, nome, email, usuario, perfil, ativo) {
     // Corrige o valor do status para corresponder com as opções do select
     const statusValue = ativo.toLowerCase() === 'sim' ? 'Sim' : 'Nao';
     document.getElementById('edit_ativo').value = statusValue;
+    
+    // Popula sistemas de acesso
+    const sistemas = sistemas_acesso ? sistemas_acesso.split(',') : ['sigec'];
+    document.getElementById('edit_sistema_fiscal').checked = sistemas.includes('operacao-fiscal');
+    document.getElementById('edit_sistema_operacional').checked = sistemas.includes('gestao-operacional');
+    document.getElementById('edit_sistema_financeira').checked = sistemas.includes('gestao-financeira');
+    
+    // Popula permissões SIGEC
+    document.getElementById('edit_permissoes_sigec').value = permissoes_sigec || 'VISUALIZADOR';
     
     // Limpa o campo de nova senha
     document.getElementById('edit_nova_senha').value = '';
