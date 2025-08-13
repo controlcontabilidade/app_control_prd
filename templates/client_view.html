@@ -120,84 +120,42 @@
             </div>
             <div class="card-body">
                 <div class="row">
-                    <div class="col-md-4 mb-3">
-                        <div class="service-card p-3 rounded {% if client.ct %}bg-success bg-opacity-10 border border-success{% else %}bg-light border{% endif %}">
-                            <div class="d-flex align-items-center">
-                                <i class="bi bi-calculator-fill fs-4 me-3 {% if client.ct %}text-success{% else %}text-muted{% endif %}"></i>
-                                <div>
-                                    <h6 class="mb-1">Contábil (CT)</h6>
-                                    <span class="badge {% if client.ct %}bg-success{% else %}bg-secondary{% endif %}">
-                                        {% if client.ct %}Ativo{% else %}Inativo{% endif %}
-                                    </span>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                    <div class="col-md-4 mb-3">
-                        <div class="service-card p-3 rounded {% if client.fs %}bg-info bg-opacity-10 border border-info{% else %}bg-light border{% endif %}">
-                            <div class="d-flex align-items-center">
-                                <i class="bi bi-file-earmark-text-fill fs-4 me-3 {% if client.fs %}text-info{% else %}text-muted{% endif %}"></i>
-                                <div>
-                                    <h6 class="mb-1">Fiscal (FS)</h6>
-                                    <span class="badge {% if client.fs %}bg-info{% else %}bg-secondary{% endif %}">
-                                        {% if client.fs %}Ativo{% else %}Inativo{% endif %}
-                                    </span>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                    <div class="col-md-4 mb-3">
-                        <div class="service-card p-3 rounded {% if client.dp %}bg-warning bg-opacity-10 border border-warning{% else %}bg-light border{% endif %}">
-                            <div class="d-flex align-items-center">
-                                <i class="bi bi-people-fill fs-4 me-3 {% if client.dp %}text-warning{% else %}text-muted{% endif %}"></i>
-                                <div>
-                                    <h6 class="mb-1">Departamento Pessoal (DP)</h6>
-                                    <span class="badge {% if client.dp %}bg-warning{% else %}bg-secondary{% endif %}">
-                                        {% if client.dp %}Ativo{% else %}Inativo{% endif %}
-                                    </span>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        </div>
-                <div class="row">
-                    <div class="col-md-4">
-                        <p><strong>CT (Contábil):</strong> 
+                    <div class="col-md-12">
+                        <div class="d-flex flex-wrap gap-2 mb-3">
                             {% if client.ct %}
-                                <span class="badge bg-success">Ativo</span>
+                                <span class="badge bg-success fs-6 px-3 py-2">CT</span>
                             {% else %}
-                                <span class="badge bg-secondary">Inativo</span>
+                                <span class="badge bg-secondary fs-6 px-3 py-2">CT</span>
                             {% endif %}
-                        </p>
-                    </div>
-                    <div class="col-md-4">
-                        <p><strong>FS (Fiscal):</strong> 
                             {% if client.fs %}
-                                <span class="badge bg-success">Ativo</span>
+                                <span class="badge bg-success fs-6 px-3 py-2">FS</span>
                             {% else %}
-                                <span class="badge bg-secondary">Inativo</span>
+                                <span class="badge bg-secondary fs-6 px-3 py-2">FS</span>
                             {% endif %}
-                        </p>
-                    </div>
-                    <div class="col-md-4">
-                        <p><strong>DP (Depto. Pessoal):</strong> 
                             {% if client.dp %}
-                                <span class="badge bg-success">Ativo</span>
+                                <span class="badge bg-success fs-6 px-3 py-2">DP</span>
                             {% else %}
-                                <span class="badge bg-secondary">Inativo</span>
+                                <span class="badge bg-secondary fs-6 px-3 py-2">DP</span>
                             {% endif %}
-                        </p>
+                        </div>
+                        <div class="info-item">
+                            <label class="fw-bold text-muted">STATUS DOMÉSTICA</label>
+                            <p class="mb-0">
+                                {% if client.domestica %}
+                                    <span class="badge bg-info">Sim</span>
+                                {% else %}
+                                    <span class="badge bg-secondary">Não</span>
+                                {% endif %}
+                            </p>
+                        </div>
                     </div>
                 </div>
             </div>
         </div>
-
-        <!-- Códigos e Sistemas -->
+        <!-- Códigos nos Sistemas -->
         <div class="card mb-4">
             <div class="card-header">
-                <h5 class="mb-0">Códigos e Sistemas</h5>
+                <h5 class="mb-0">Códigos nos Sistemas</h5>
             </div>
             <div class="card-body">
                 <div class="row">
@@ -205,10 +163,17 @@
                         <p><strong>CÓDIGO FORTES CT:</strong> {{ client.codFortesCt or '-' }}</p>
                         <p><strong>CÓDIGO FORTES FS:</strong> {{ client.codFortesFs or '-' }}</p>
                         <p><strong>CÓDIGO FORTES PS:</strong> {{ client.codFortesPs or '-' }}</p>
+                        <p><strong>CÓDIGO DOMÍNIO:</strong> {{ client.codDominio or '-' }}</p>
                     </div>
                     <div class="col-md-6">
-                        <p><strong>CÓDIGO DOMÍNIO:</strong> {{ client.codDominio or '-' }}</p>
                         <p><strong>SISTEMA UTILIZADO:</strong> {{ client.sistemaUtilizado or '-' }}</p>
+                        <p><strong>GERA ARQUIVO DO SPED:</strong> 
+                            {% if client.geraArquivoSped %}
+                                <span class="badge bg-success">Sim</span>
+                            {% else %}
+                                <span class="badge bg-secondary">Não</span>
+                            {% endif %}
+                        </p>
                         <p><strong>MÓDULO SPED TRIER:</strong> {{ client.moduloSpedTrier or '-' }}</p>
                     </div>
                 </div>

@@ -11,32 +11,7 @@
             <div>
                 <h6 class="alert-heading mb-1">🔧 Sistema em Modo de Manutenção</h6>
                 <p class="mb-0">
-                 // Funçã// Funçãofunction clearFilters() {
-    document.getElementById('searchInput').value = '';
-    document.getElementById('statusFilter').value = '';
-    
-    // Mostrar todas as linhas
-    const rows = document.querySelectorAll('#clientsTable tbody tr');
-    rows.forEach(row => row.style.display = '');
-}
-
-// Confirmação de exclusão filtros
-function clearFilters() {
-    document.getElementById('searchInput').value = '';
-    document.getElementById('statusFilter').value = '';
-    
-    // Mostrar todas as linhas
-    const rows = document.querySelectorAll('#clientsTable tbody tr');
-    rows.forEach(row => row.style.display = '');
-}ar filtros
-function clearFilters() {
-    document.getElementById('searchInput').value = '';
-    document.getElementById('statusFilter').value = '';
-    
-    // Mostrar todas as linhas
-    const rows = document.querySelectorAll('#clientsTable tbody tr');
-    rows.forEach(row => row.style.display = '');
-}a está temporariamente usando dados locais devido a problemas de conectividade. 
+                    O sistema está temporariamente usando dados locais devido a problemas de conectividade. 
                     Os dados podem não estar totalmente atualizados.
                     <a href="/api/auth-status" target="_blank" class="alert-link">Verificar Status Técnico</a>
                 </p>
@@ -266,12 +241,11 @@ function clearFilters() {
     </div>
 </div>
 
-{% if clients %}
 <!-- Filtros e busca -->
 <div class="card mb-4">
     <div class="card-body">
         <div class="row">
-            <div class="col-md-4">
+            <div class="col-md-6">
                 <div class="input-group">
                     <span class="input-group-text">
                         <i class="bi bi-search"></i>
@@ -279,24 +253,24 @@ function clearFilters() {
                     <input type="text" class="form-control" id="searchInput" placeholder="BUSCAR POR EMPRESA, CNPJ OU RAZÃO SOCIAL...">
                 </div>
             </div>
-            <div class="col-md-4">
-                <select class="form-select" id="statusFilter">
-                    <option value="">TODOS OS STATUS</option>
-                    <option value="ativo">✅ Ativo</option>
-                    <option value="inativo">❌ Inativo</option>
-                    <option value="suspenso">⏸️ Suspenso</option>
-                    <option value="em_analise">⏳ Em Análise</option>
-                </select>
-            </div>
-            <div class="col-md-1">
-                <button class="btn btn-outline-secondary w-100" onclick="clearFilters()" title="Limpar filtros">
-                    <i class="bi bi-arrow-clockwise"></i>
-                </button>
+            <div class="col-md-6">
+                <div class="btn-group w-100" role="group" aria-label="Filtros de Status">
+                    <a href="/?status=ativo" class="btn {{ 'btn-success' if status_filter == 'ativo' else 'btn-outline-success' }}">
+                        <i class="bi bi-check-circle me-1"></i>ATIVOS
+                    </a>
+                    <a href="/?status=inativo" class="btn {{ 'btn-danger' if status_filter == 'inativo' else 'btn-outline-danger' }}">
+                        <i class="bi bi-x-circle me-1"></i>INATIVOS
+                    </a>
+                    <a href="/?status=todos" class="btn {{ 'btn-primary' if status_filter == 'todos' else 'btn-outline-primary' }}">
+                        <i class="bi bi-list me-1"></i>TODOS
+                    </a>
+                </div>
             </div>
         </div>
     </div>
 </div>
 
+{% if clients %}
 <!-- Tabela de clientes -->
 <div class="card">
     <div class="card-header bg-light">
@@ -383,8 +357,8 @@ function clearFilters() {
                             {% endif %}
                         </td>
                         <td>
-                            <span class="badge {% if client['tributacao'] == 'SIMPLES' %}bg-success{% elif client['tributacao'] == 'LUCRO PRESUMIDO' %}bg-warning{% elif client['tributacao'] == 'LUCRO REAL' %}bg-danger{% elif client['tributacao'] == 'MEI' %}bg-info{% else %}bg-secondary{% endif %}">
-                                {{ client['tributacao'] or 'N/D' }}
+                            <span class="badge {% if client['regimeFederal'] == 'SIMPLES' %}bg-success{% elif client['regimeFederal'] == 'LUCRO PRESUMIDO' %}bg-warning{% elif client['regimeFederal'] == 'LUCRO REAL' %}bg-danger{% elif client['regimeFederal'] == 'MEI' %}bg-info{% else %}bg-secondary{% endif %}">
+                                {{ client['regimeFederal'] or 'N/D' }}
                             </span>
                         </td>
                         <td>
@@ -488,31 +462,25 @@ function clearFilters() {
 </div>
 
 <script>
-// Filtros e busca
+// Busca por texto
 document.addEventListener('DOMContentLoaded', function() {
-    console.log('DOM carregado, inicializando filtros...');
+    console.log('DOM carregado, inicializando busca...');
     
     const searchInput = document.getElementById('searchInput');
-    const statusFilter = document.getElementById('statusFilter');
     const table = document.getElementById('clientsTable');
     const rows = table ? table.querySelectorAll('tbody tr') : [];
 
     console.log('Elementos encontrados:', {
         searchInput: !!searchInput,
-        statusFilter: !!statusFilter,
         table: !!table,
         totalRows: rows.length
     });
 
     function filterTable() {
-        console.log('=== EXECUTANDO FILTRO ===');
+        console.log('=== EXECUTANDO BUSCA ===');
         const searchTerm = searchInput.value.toLowerCase();
-        const statusValue = statusFilter.value;
 
-        console.log('Valores dos filtros:', {
-            searchTerm,
-            statusValue
-        });
+        console.log('Termo de busca:', searchTerm);
 
         let visibleCount = 0;
 
@@ -520,38 +488,13 @@ document.addEventListener('DOMContentLoaded', function() {
             const nomeFantasia = row.cells[0].textContent.toLowerCase();
             const razaoSocial = row.cells[1].textContent.toLowerCase();
             const cnpj = row.cells[2].textContent.toLowerCase();
-            
-            // Status está na coluna 3 (4ª coluna, índice 3)
-            const statusCell = row.cells[3];
-            const statusBadge = statusCell.querySelector('.badge');
-            const statusText = statusBadge ? statusBadge.textContent.toLowerCase().trim() : '';
 
-            if (index < 3) { // Debug apenas para as primeiras 3 linhas
-                console.log(`Linha ${index}:`, {
-                    nomeFantasia,
-                    statusText,
-                    statusValue,
-                    matchesStatus: !statusValue || 
-                        (statusValue === 'ativo' && (statusText.includes('ativo') || statusText.includes('✓'))) || 
-                        (statusValue === 'inativo' && (statusText.includes('inativo') || statusText.includes('❌'))) ||
-                        (statusValue === 'suspenso' && (statusText.includes('suspenso') || statusText.includes('⏸'))) ||
-                        (statusValue === 'em_analise' && (statusText.includes('em análise') || statusText.includes('análise') || statusText.includes('⏳')))
-                });
-            }
-
-            const matchesSearch = nomeFantasia.includes(searchTerm) || 
+            const matchesSearch = !searchTerm || 
+                                nomeFantasia.includes(searchTerm) || 
                                 razaoSocial.includes(searchTerm) || 
                                 cnpj.includes(searchTerm);
-            
-            const matchesStatus = !statusValue || 
-                                (statusValue === 'ativo' && (statusText.includes('ativo') || statusText.includes('✓'))) || 
-                                (statusValue === 'inativo' && (statusText.includes('inativo') || statusText.includes('❌'))) ||
-                                (statusValue === 'suspenso' && (statusText.includes('suspenso') || statusText.includes('⏸'))) ||
-                                (statusValue === 'em_analise' && (statusText.includes('em análise') || statusText.includes('análise') || statusText.includes('⏳')));
 
-            const isVisible = matchesSearch && matchesStatus;
-
-            if (isVisible) {
+            if (matchesSearch) {
                 row.style.display = '';
                 visibleCount++;
             } else {
@@ -559,7 +502,7 @@ document.addEventListener('DOMContentLoaded', function() {
             }
         });
         
-        console.log(`Filtro aplicado: ${visibleCount} de ${rows.length} linhas visíveis`);
+        console.log(`Busca aplicada: ${visibleCount} de ${rows.length} linhas visíveis`);
         
         // Atualizar contador de resultados
         updateResultsCounter();
@@ -578,13 +521,6 @@ document.addEventListener('DOMContentLoaded', function() {
         searchInput.addEventListener('input', filterTable);
     } else {
         console.log('❌ searchInput não encontrado!');
-    }
-    
-    if (statusFilter) {
-        console.log('Adicionando listener para statusFilter');
-        statusFilter.addEventListener('change', filterTable);
-    } else {
-        console.log('❌ statusFilter não encontrado!');
     }
     
     // Verificar status do sistema automaticamente
@@ -621,19 +557,16 @@ async function checkSystemStatus() {
 // Verificar status a cada 5 minutos
 setInterval(checkSystemStatus, 5 * 60 * 1000);
 
-// Fun��o para limpar filtros
-function clearFilters() {
+// Função para limpar busca
+function clearSearch() {
     document.getElementById('searchInput').value = '';
-    document.getElementById('statusFilter').value = '';
-    document.getElementById('serviceFilter').value = '';
-    document.getElementById('onvioFilter').value = '';
     
     // Mostrar todas as linhas
     const rows = document.querySelectorAll('#clientsTable tbody tr');
     rows.forEach(row => row.style.display = '');
 }
 
-// Confirma��o de exclus�o
+// Confirmação de exclusão
 function confirmDelete(clientId, clientName) {
     document.getElementById('clientName').textContent = clientName;
     document.getElementById('deleteForm').action = `/client/${clientId}/delete`;

@@ -811,16 +811,17 @@ class GoogleSheetsServiceAccountService:
             'OBSERVAÇÕES PROCURAÇÕES',           # 85. Obs sobre procurações
             
             # Bloco 7: Observações e Dados Adicionais (apenas campos mantidos)
-            'STATUS DO CLIENTE',                 # 86. ATIVO, INATIVO, SUSPENSO
-            'ÚLTIMA ATUALIZAÇÃO',                # 87. Timestamp última modificação
+            'OBSERVAÇÕES',                       # 86. Observações gerais sobre o cliente
+            'STATUS DO CLIENTE',                 # 87. ATIVO, INATIVO, SUSPENSO
+            'ÚLTIMA ATUALIZAÇÃO',                # 88. Timestamp última modificação
             
             # Campos internos do sistema
-            'DONO/RESPONSÁVEL',                  # 88. Dono/Responsável
-            'CLIENTE ATIVO',                     # 89. Cliente ativo? (SIM/NÃO)
-            'DATA DE CRIAÇÃO',                   # 90. Data de criação do registro
-            'ID',                                # 91. ID único do cliente
-            'DOMÉSTICA',                         # 92. Indica se é doméstica (SIM/NÃO)
-            'GERA ARQUIVO DO SPED',              # 93. Gera arquivo do SPED (SIM/NÃO)
+            'DONO/RESPONSÁVEL',                  # 89. Dono/Responsável
+            'CLIENTE ATIVO',                     # 90. Cliente ativo? (SIM/NÃO)
+            'DATA DE CRIAÇÃO',                   # 91. Data de criação do registro
+            'ID',                                # 92. ID único do cliente
+            'DOMÉSTICA',                         # 93. Indica se é doméstica (SIM/NÃO)
+            'GERA ARQUIVO DO SPED',              # 94. Gera arquivo do SPED (SIM/NÃO)
         ]
 
     def ensure_correct_headers(self):
@@ -1047,8 +1048,9 @@ class GoogleSheetsServiceAccountService:
             client.get('obsProcuracoes', ''),                 # 85. OBSERVAÇÕES PROCURAÇÕES
             
             # Bloco 7: Observações e Dados Adicionais (apenas campos mantidos)
-            client.get('statusCliente', 'ATIVO'),             # 86. STATUS DO CLIENTE
-            client.get('ultimaAtualizacao', ''),              # 87. ÚLTIMA ATUALIZAÇÃO
+            client.get('observacoes', ''),                   # 86. OBSERVAÇÕES
+            client.get('statusCliente', 'ATIVO'),             # 87. STATUS DO CLIENTE
+            client.get('ultimaAtualizacao', ''),              # 88. ÚLTIMA ATUALIZAÇÃO
             # placeholders para manter comprimento; campos finais serão preenchidos por nome
             '',  # placeholder
             '',  # placeholder
@@ -1259,7 +1261,9 @@ class GoogleSheetsServiceAccountService:
             'obsProcuracoes': safe_get(row, 84),                  # 85-1 = 84 (OBSERVAÇÕES PROCURAÇÕES)
 
             # Bloco 7: Observações e Dados Adicionais (apenas campos mantidos)
-            'statusCliente': safe_get(row, hidx.get('STATUS DO CLIENTE', 85), 'ATIVO'),
+            # Bloco 7: Observações e Dados Adicionais
+            'observacoes': safe_get(row, hidx.get('OBSERVAÇÕES', 85), ''),
+            'statusCliente': safe_get(row, hidx.get('STATUS DO CLIENTE', 86), 'ATIVO'),
             'ultimaAtualizacao': safe_get(row, hidx.get('ÚLTIMA ATUALIZAÇÃO', 86)),
 
             # Campos internos do sistema (alinhados aos cabeçalhos - índices ajustados)
