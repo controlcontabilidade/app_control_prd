@@ -93,13 +93,6 @@
                         <p class="mb-0"><code>{{ remove_mask(client.cpfCnpj or client.cnpj) }}</code></p>
                     </div>
                     {% endif %}
-                    {% set perfil_val = client.perfil or client.perfilCliente %}
-                    {% if perfil_val %}
-                    <div class="col-md-4 mb-3">
-                        <label class="form-label text-muted">Perfil do Cliente</label>
-                        <p class="mb-0"><span class="badge bg-info">{{ perfil_val }}</span></p>
-                    </div>
-                    {% endif %}
                     {% if client.inscEst %}
                     <div class="col-md-4 mb-3">
                         <label class="form-label text-muted">Inscrição Estadual</label>
@@ -152,104 +145,6 @@
             </div>
         </div>
 
-        <!-- Bloco 2: Serviços Prestados pela Control -->
-        <div class="card mb-4">
-            <div class="card-header bg-success text-white">
-                <h5 class="mb-0">
-                    <i class="fas fa-handshake me-2"></i>
-                    Bloco 2 - Serviços Prestados pela Control
-                </h5>
-            </div>
-            <div class="card-body">
-                <div class="row">
-                    <!-- Serviços Contratados -->
-                    {% if client.bpoFinanceiro or client.ct or client.fs or client.dp %}
-                    <div class="col-md-12 mb-3">
-                        <label class="form-label text-muted">Serviços Contratados</label>
-                        <div class="d-flex gap-2 flex-wrap">
-                            {% if client.bpoFinanceiro %}
-                                <span class="badge bg-info">
-                                    <i class="bi bi-graph-up me-1"></i>BPO Financeiro
-                                </span>
-                            {% endif %}
-                            {% if client.ct %}
-                                <span class="badge bg-primary">
-                                    <i class="bi bi-calculator me-1"></i>Departamento Contábil (CT)
-                                </span>
-                            {% endif %}
-                            {% if client.fs %}
-                                <span class="badge bg-success">
-                                    <i class="bi bi-file-text me-1"></i>Departamento Fiscal (FS)
-                                </span>
-                            {% endif %}
-                            {% if client.dp %}
-                                <span class="badge bg-warning">
-                                    <i class="bi bi-people me-1"></i>Departamento Pessoal (DP)
-                                </span>
-                            {% endif %}
-                        </div>
-                    </div>
-                    {% endif %}
-
-                    <!-- Data de Início dos Serviços -->
-                    {% if client.dataInicioServicos or client.mesAnoInicio %}
-                    <div class="col-md-6 mb-3">
-                        <label class="form-label text-muted">Data de Início dos Serviços</label>
-                        <p class="mb-0"><i class="bi bi-calendar-event me-1"></i>{{ client.dataInicioServicos or client.mesAnoInicio }}</p>
-                    </div>
-                    {% endif %}
-
-                    <!-- Responsável pelos Serviços -->
-                    {% if client.responsavelServicos or client.donoResp %}
-                    <div class="col-md-6 mb-3">
-                        <label class="form-label text-muted">Responsável pelos Serviços</label>
-                        <p class="mb-0"><i class="bi bi-person-badge me-1"></i>{{ client.responsavelServicos or client.donoResp }}</p>
-                    </div>
-                    {% endif %}
-
-                    <!-- Códigos dos Sistemas -->
-                    {% if client.codDominio %}
-                    <div class="col-md-3 mb-3">
-                        <label class="form-label text-muted">Código Domínio</label>
-                        <p class="mb-0"><code>{{ client.codDominio }}</code></p>
-                    </div>
-                    {% endif %}
-                    {% if client.codFortesCt %}
-                    <div class="col-md-3 mb-3">
-                        <label class="form-label text-muted">Código Fortes CT</label>
-                        <p class="mb-0"><code>{{ client.codFortesCt }}</code></p>
-                    </div>
-                    {% endif %}
-                    {% if client.codFortesFs %}
-                    <div class="col-md-3 mb-3">
-                        <label class="form-label text-muted">Código Fortes FS</label>
-                        <p class="mb-0"><code>{{ client.codFortesFs }}</code></p>
-                    </div>
-                    {% endif %}
-                    {% if client.codFortesPs %}
-                    <div class="col-md-3 mb-3">
-                        <label class="form-label text-muted">Código Fortes PS</label>
-                        <p class="mb-0"><code>{{ client.codFortesPs }}</code></p>
-                    </div>
-                    {% endif %}
-
-                    <!-- Doméstica e SPED -->
-                    {% if client.domestica %}
-                    <div class="col-md-6 mb-3">
-                        <label class="form-label text-muted">Doméstica</label>
-                        <p class="mb-0"><span class="badge bg-{{ 'success' if client.domestica == 'SIM' else 'secondary' }}">{{ client.domestica }}</span></p>
-                    </div>
-                    {% endif %}
-                    {% if client.geraArquivoSped %}
-                    <div class="col-md-6 mb-3">
-                        <label class="form-label text-muted">Gera arquivo do SPED</label>
-                        <p class="mb-0"><span class="badge bg-{{ 'success' if client.geraArquivoSped == 'SIM' else 'secondary' }}">{{ client.geraArquivoSped }}</span></p>
-                    </div>
-                    {% endif %}
-                </div>
-            </div>
-        </div>
-
         <!-- Bloco 3: Quadro Societário -->
         <div class="card mb-4">
             <div class="card-header bg-info text-white">
@@ -284,21 +179,28 @@
                             {% endif %}
                             {% set socio_nasc = client.get('socio_' ~ i ~ '_data_nascimento') or client.get('socio_' ~ i ~ '_dataNascimento') or client.get('socio' ~ i ~ '_nascimento') or client.get('socio' ~ i ~ 'DataNascimento') %}
                             {% if socio_nasc %}
-                            <div class="col-md-4 mb-2">
+                            <div class="col-md-3 mb-2">
                                 <label class="form-label text-muted">Data Nascimento</label>
-                                <p class="mb-0">{{ socio_nasc }}</p>
+                                <p class="mb-0">{{ socio_nasc|format_date if socio_nasc else socio_nasc }}</p>
+                            </div>
+                            {% endif %}
+                            {% set socio_cotas = client.get('socio_' ~ i ~ '_cotas') or client.get('socio' ~ i ~ '_quotas') or client.get('socio' ~ i ~ 'Cotas') %}
+                            {% if socio_cotas %}
+                            <div class="col-md-3 mb-2">
+                                <label class="form-label text-muted">Cotas</label>
+                                <p class="mb-0"><strong>{{ socio_cotas }}</strong></p>
                             </div>
                             {% endif %}
                             {% set socio_admin = client.get('socio_' ~ i ~ '_administrador') or client.get('socio' ~ i ~ '_admin') or client.get('socio' ~ i ~ 'Admin') %}
                             {% if socio_admin %}
-                            <div class="col-md-4 mb-2">
+                            <div class="col-md-3 mb-2">
                                 <label class="form-label text-muted">Administrador</label>
                                 <p class="mb-0"><span class="badge bg-success">{{ 'SIM' if socio_admin else 'NÃO' }}</span></p>
                             </div>
                             {% endif %}
                             {% set socio_part = client.get('socio_' ~ i ~ '_participacao') or client.get('socio' ~ i ~ '_cotas') or client.get('socio' ~ i ~ 'Cotas') %}
                             {% if socio_part %}
-                            <div class="col-md-4 mb-2">
+                            <div class="col-md-3 mb-2">
                                 <label class="form-label text-muted">% Participação</label>
                                 <p class="mb-0">{{ socio_part }}%</p>
                             </div>
@@ -334,24 +236,30 @@
             <div class="card-body">
                 <div class="row">
                     <!-- Contato 1 -->
-                    {% if client.contato_1_nome or client.contato_1_telefone or client.contato_1_email %}
+                    {% if client.contato_1_nome or client.contato_1_telefone or client.contato_1_email or client.contato_1_cargo %}
                     <div class="col-md-12 mb-4">
                         <h6 class="border-bottom pb-2 mb-3">Contato 1</h6>
                         <div class="row">
                             {% if client.contato_1_nome %}
-                            <div class="col-md-4 mb-2">
+                            <div class="col-md-3 mb-2">
                                 <label class="form-label text-muted">Nome</label>
                                 <p class="mb-0"><i class="bi bi-person me-1"></i>{{ client.contato_1_nome }}</p>
                             </div>
                             {% endif %}
+                            {% if client.contato_1_cargo %}
+                            <div class="col-md-3 mb-2">
+                                <label class="form-label text-muted">Cargo</label>
+                                <p class="mb-0"><i class="bi bi-briefcase me-1"></i>{{ client.contato_1_cargo }}</p>
+                            </div>
+                            {% endif %}
                             {% if client.contato_1_telefone %}
-                            <div class="col-md-4 mb-2">
+                            <div class="col-md-3 mb-2">
                                 <label class="form-label text-muted">Telefone</label>
                                 <p class="mb-0"><i class="bi bi-telephone me-1"></i>{{ client.contato_1_telefone }}</p>
                             </div>
                             {% endif %}
                             {% if client.contato_1_email %}
-                            <div class="col-md-4 mb-2">
+                            <div class="col-md-3 mb-2">
                                 <label class="form-label text-muted">E-mail</label>
                                 <p class="mb-0"><i class="bi bi-envelope me-1"></i>{{ client.contato_1_email }}</p>
                             </div>
@@ -361,24 +269,30 @@
                     {% endif %}
 
                     <!-- Contato 2 -->
-                    {% if client.contato_2_nome or client.contato_2_telefone or client.contato_2_email %}
+                    {% if client.contato_2_nome or client.contato_2_telefone or client.contato_2_email or client.contato_2_cargo %}
                     <div class="col-md-12 mb-4">
                         <h6 class="border-bottom pb-2 mb-3">Contato 2</h6>
                         <div class="row">
                             {% if client.contato_2_nome %}
-                            <div class="col-md-4 mb-2">
+                            <div class="col-md-3 mb-2">
                                 <label class="form-label text-muted">Nome</label>
                                 <p class="mb-0"><i class="bi bi-person me-1"></i>{{ client.contato_2_nome }}</p>
                             </div>
                             {% endif %}
+                            {% if client.contato_2_cargo %}
+                            <div class="col-md-3 mb-2">
+                                <label class="form-label text-muted">Cargo</label>
+                                <p class="mb-0"><i class="bi bi-briefcase me-1"></i>{{ client.contato_2_cargo }}</p>
+                            </div>
+                            {% endif %}
                             {% if client.contato_2_telefone %}
-                            <div class="col-md-4 mb-2">
+                            <div class="col-md-3 mb-2">
                                 <label class="form-label text-muted">Telefone</label>
                                 <p class="mb-0"><i class="bi bi-telephone me-1"></i>{{ client.contato_2_telefone }}</p>
                             </div>
                             {% endif %}
                             {% if client.contato_2_email %}
-                            <div class="col-md-4 mb-2">
+                            <div class="col-md-3 mb-2">
                                 <label class="form-label text-muted">E-mail</label>
                                 <p class="mb-0"><i class="bi bi-envelope me-1"></i>{{ client.contato_2_email }}</p>
                             </div>
@@ -388,24 +302,30 @@
                     {% endif %}
 
                     <!-- Contato 3 -->
-                    {% if client.contato_3_nome or client.contato_3_telefone or client.contato_3_email %}
+                    {% if client.contato_3_nome or client.contato_3_telefone or client.contato_3_email or client.contato_3_cargo %}
                     <div class="col-md-12 mb-4">
                         <h6 class="border-bottom pb-2 mb-3">Contato 3</h6>
                         <div class="row">
                             {% if client.contato_3_nome %}
-                            <div class="col-md-4 mb-2">
+                            <div class="col-md-3 mb-2">
                                 <label class="form-label text-muted">Nome</label>
                                 <p class="mb-0"><i class="bi bi-person me-1"></i>{{ client.contato_3_nome }}</p>
                             </div>
                             {% endif %}
+                            {% if client.contato_3_cargo %}
+                            <div class="col-md-3 mb-2">
+                                <label class="form-label text-muted">Cargo</label>
+                                <p class="mb-0"><i class="bi bi-briefcase me-1"></i>{{ client.contato_3_cargo }}</p>
+                            </div>
+                            {% endif %}
                             {% if client.contato_3_telefone %}
-                            <div class="col-md-4 mb-2">
+                            <div class="col-md-3 mb-2">
                                 <label class="form-label text-muted">Telefone</label>
                                 <p class="mb-0"><i class="bi bi-telephone me-1"></i>{{ client.contato_3_telefone }}</p>
                             </div>
                             {% endif %}
                             {% if client.contato_3_email %}
-                            <div class="col-md-4 mb-2">
+                            <div class="col-md-3 mb-2">
                                 <label class="form-label text-muted">E-mail</label>
                                 <p class="mb-0"><i class="bi bi-envelope me-1"></i>{{ client.contato_3_email }}</p>
                             </div>
@@ -415,7 +335,7 @@
                     {% endif %}
 
                     <!-- Caso não tenha nenhum contato -->
-                    {% if not (client.contato_1_nome or client.contato_1_telefone or client.contato_1_email or client.contato_2_nome or client.contato_2_telefone or client.contato_2_email or client.contato_3_nome or client.contato_3_telefone or client.contato_3_email) %}
+                    {% if not (client.contato_1_nome or client.contato_1_telefone or client.contato_1_email or client.contato_1_cargo or client.contato_2_nome or client.contato_2_telefone or client.contato_2_email or client.contato_2_cargo or client.contato_3_nome or client.contato_3_telefone or client.contato_3_email or client.contato_3_cargo) %}
                     <div class="col-12">
                         <p class="text-muted text-center">
                             <i class="fas fa-info-circle me-2"></i>
@@ -527,35 +447,32 @@
             <div class="card-body">
                 <div class="row">
                     {% set procuracoes = [
-                        ('Receita Federal', client.procReceita, client.dataProcReceita),
-                        ('DTe', client.procDte, client.dataProcDte),
-                        ('Caixa Econômica', client.procCaixa, client.dataProcCaixa),
-                        ('Emp. Web', client.procEmpWeb, client.dataProcEmpWeb),
-                        ('DET', client.procDet, client.dataProcDet)
+                        ('Proc. Receita', client.procReceita, client.dataProcReceita),
+                        ('Proc. DTe', client.procDte, client.dataProcDte),
+                        ('Proc. Caixa', client.procCaixa, client.dataProcCaixa),
+                        ('Proc. Emp. Web', client.procEmpWeb, client.dataProcEmpWeb),
+                        ('Proc. DET', client.procDet, client.dataProcDet)
                     ] %}
+                    
                     {% for nome, ativa, data in procuracoes %}
-                        {% if ativa %}
-                            <div class="col-md-6 mb-3">
-                                <label class="form-label text-muted">{{ nome }}</label>
-                                <p class="mb-0">
+                        <div class="col-md-6 mb-3">
+                            <label class="form-label text-muted">{{ nome }}</label>
+                            <p class="mb-0">
+                                {% if ativa %}
                                     <span class="badge bg-success me-2">
-                                        <i class="fas fa-check me-1"></i>Ativa
+                                        <i class="fas fa-check me-1"></i>ATIVA
                                     </span>
                                     {% if data %}
-                                        <small class="text-muted">{{ data }}</small>
+                                        <small class="text-muted">{{ data | format_date }}</small>
                                     {% endif %}
-                                </p>
-                            </div>
-                        {% endif %}
-                    {% endfor %}
-                    {% if not (client.procReceita or client.procDte or client.procCaixa or client.procEmpWeb or client.procDet) %}
-                        <div class="col-12">
-                            <p class="text-muted text-center">
-                                <i class="fas fa-info-circle me-2"></i>
-                                Nenhuma procuração cadastrada
+                                {% else %}
+                                    <span class="badge bg-secondary me-2">
+                                        <i class="fas fa-minus me-1"></i>SEM PROCURAÇÃO
+                                    </span>
+                                {% endif %}
                             </p>
                         </div>
-                    {% endif %}
+                    {% endfor %}
                 </div>
                 {% if client.outrasProc %}
                     <div class="row mt-3">
@@ -585,6 +502,17 @@
                 </h5>
             </div>
             <div class="card-body">
+                {% if client.observacoes %}
+                <div class="row mb-4">
+                    <div class="col-12">
+                        <label class="form-label text-muted">Observações</label>
+                        <div class="bg-light p-3 rounded">
+                            <p class="mb-0" style="white-space: pre-wrap;">{{ client.observacoes }}</p>
+                        </div>
+                    </div>
+                </div>
+                {% endif %}
+                
                 <div class="row">
                     <div class="col-md-6 mb-3">
                         <label class="form-label text-muted">Status do Cliente</label>
@@ -603,13 +531,13 @@
                     {% if client.ultimaAtualizacao %}
                     <div class="col-md-6 mb-3">
                         <label class="form-label text-muted">Última Atualização</label>
-                        <p class="mb-0"><i class="fas fa-clock me-1"></i>{{ client.ultimaAtualizacao }}</p>
+                        <p class="mb-0"><i class="fas fa-clock me-1"></i>{{ client.ultimaAtualizacao | format_datetime }}</p>
                     </div>
                     {% endif %}
                     {% if client.criadoEm %}
                     <div class="col-md-6 mb-3">
                         <label class="form-label text-muted">Data de Criação</label>
-                        <p class="mb-0"><i class="fas fa-calendar-plus me-1"></i>{{ client.criadoEm }}</p>
+                        <p class="mb-0"><i class="fas fa-calendar-plus me-1"></i>{{ client.criadoEm | format_datetime }}</p>
                     </div>
                     {% endif %}
                     {% if client.responsavelAtualizacao %}
@@ -654,21 +582,52 @@
                     </div>
                     
                     <div class="info-item d-flex justify-content-between align-items-center mb-3">
-                        <span class="text-muted">Perfil:</span>
-                        <strong class="text-info">{{ client.perfil or client.perfilCliente or '-' }}</strong>
+                        <span class="text-muted">Perfil do Cliente:</span>
+                        <strong class="text-info">
+                            {% if client.perfil or client.perfilCliente %}
+                                {{ client.perfil or client.perfilCliente }}
+                            {% else %}
+                                -
+                            {% endif %}
+                        </strong>
                     </div>
                     
                     <div class="info-item d-flex justify-content-between align-items-center mb-3">
-                        <span class="text-muted">Sistema Onvio:</span>
-                        <strong class="text-{{ 'success' if (client.sistemaOnvio or client.onvio) else 'secondary' }}">
-                            {{ 'SIM' if (client.sistemaOnvio or client.onvio) else 'NÃO' }}
+                        <span class="text-muted">Serviços:</span>
+                        <div class="d-flex gap-1">
+                            {% if client.ct %}
+                                <span class="badge bg-success">CT</span>
+                            {% else %}
+                                <span class="badge bg-secondary">CT</span>
+                            {% endif %}
+                            {% if client.fs %}
+                                <span class="badge bg-success">FS</span>
+                            {% else %}
+                                <span class="badge bg-secondary">FS</span>
+                            {% endif %}
+                            {% if client.dp %}
+                                <span class="badge bg-success">DP</span>
+                            {% else %}
+                                <span class="badge bg-secondary">DP</span>
+                            {% endif %}
+                        </div>
+                    </div>
+                    
+                    <div class="info-item d-flex justify-content-between align-items-center mb-3">
+                        <span class="text-muted">Doméstica:</span>
+                        <strong>
+                            {% if client.domestica %}
+                                <span class="badge bg-info">Sim</span>
+                            {% else %}
+                                <span class="badge bg-secondary">Não</span>
+                            {% endif %}
                         </strong>
                     </div>
                     
                     <hr class="my-3">
                     
                     <div class="info-item d-flex justify-content-between align-items-center mb-2">
-                        <span class="text-muted">Sistema do Cliente:</span>
+                        <span class="text-muted">Códigos nos Sistemas:</span>
                         <strong class="text-primary">
                             {% if client.sistemaPrincipal or client.sistemaUtilizado %}
                                 {{ client.sistemaPrincipal or client.sistemaUtilizado }}
@@ -731,46 +690,6 @@
                             <i class="fas fa-trash me-2"></i>
                             Excluir Cliente
                         </button>
-                    {% endif %}
-                </div>
-            </div>
-        </div>
-
-        <!-- Serviços Contratados -->
-        <div class="card mb-4">
-            <div class="card-header bg-warning text-dark">
-                <h5 class="mb-0">
-                    <i class="fas fa-briefcase me-2"></i>
-                    Serviços Contratados
-                </h5>
-            </div>
-            <div class="card-body">
-                <div class="service-badges">
-                    {% if client.bpoFinanceiro %}
-                        <span class="badge bg-info mb-2 w-100 p-2">
-                            <i class="bi bi-graph-up me-1"></i>BPO Financeiro
-                        </span>
-                    {% endif %}
-                    {% if client.ct %}
-                        <span class="badge bg-primary mb-2 w-100 p-2">
-                            <i class="bi bi-calculator me-1"></i>Contábil (CT)
-                        </span>
-                    {% endif %}
-                    {% if client.fs %}
-                        <span class="badge bg-success mb-2 w-100 p-2">
-                            <i class="bi bi-file-text me-1"></i>Fiscal (FS)
-                        </span>
-                    {% endif %}
-                    {% if client.dp %}
-                        <span class="badge bg-warning mb-2 w-100 p-2">
-                            <i class="bi bi-people me-1"></i>Pessoal (DP)
-                        </span>
-                    {% endif %}
-                    {% if not client.bpoFinanceiro and not client.ct and not client.fs and not client.dp %}
-                        <p class="text-muted text-center mb-0">
-                            <i class="fas fa-info-circle me-2"></i>
-                            Nenhum serviço contratado
-                        </p>
                     {% endif %}
                 </div>
             </div>

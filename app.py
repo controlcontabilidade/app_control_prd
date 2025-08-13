@@ -2023,6 +2023,11 @@ def auth_status():
 @login_required
 def index():
     print("🔍 === ROTA INDEX CHAMADA (ULTRA-MEMORY OPTIMIZED) ===")
+    
+    # Obter filtro de status da URL (padrão: apenas ativos)
+    status_filter = request.args.get('status', 'ativo')
+    print(f"🔍 Filtro de status aplicado: {status_filter}")
+    
     try:
         print("📊 Carregando clientes com lazy loading EXTREMO...")
         
@@ -2048,6 +2053,17 @@ def index():
                 clients = storage.get_clients()
         except ImportError:
             clients = storage.get_clients()
+        
+        # Aplicar filtro de status ANTES da limitação de memória
+        original_count = len(clients)
+        if status_filter == 'ativo':
+            clients = [c for c in clients if c.get('ativo', True) and c.get('statusCliente', 'ativo').lower() == 'ativo']
+            print(f"🔍 Filtro ATIVO aplicado: {len(clients)} de {original_count} clientes")
+        elif status_filter == 'inativo':
+            clients = [c for c in clients if not c.get('ativo', True) or c.get('statusCliente', 'ativo').lower() == 'inativo']
+            print(f"🔍 Filtro INATIVO aplicado: {len(clients)} de {original_count} clientes")
+        elif status_filter == 'todos':
+            print(f"🔍 Filtro TODOS aplicado: {len(clients)} clientes (sem filtro)")
         
         # Limite EXTREMO baseado na memória disponível
         max_clients = ULTRA_MEMORY_SETTINGS.get('MAX_ROWS_PER_REQUEST', 10) if MEMORY_OPTIMIZER_AVAILABLE else 10
@@ -2085,11 +2101,12 @@ def index():
                 gc.collect()
             print(f"💾 Memória pós-GC-EXTREMO: {MemoryOptimizer.get_memory_usage() if MEMORY_OPTIMIZER_AVAILABLE else 'N/A'}")
         
-        return render_template('index_modern.html', clients=clients, stats=stats)
+        return render_template('index_modern.html', clients=clients, stats=stats, status_filter=status_filter)
         
     except Exception as e:
         print(f"❌ ERRO na rota index: {str(e)}")
         print(f"🔍 Tipo do erro: {type(e).__name__}")
+        print(f"🔍 Status filter no except: {status_filter}")
         flash(f'Erro ao carregar clientes: {str(e)}', 'error')
         
         # Em caso de erro, criar stats vazias e forçar limpeza
@@ -2105,7 +2122,7 @@ def index():
             for _ in range(5):
                 gc.collect()
         
-        return render_template('index_modern.html', clients=[], stats=stats)
+        return render_template('index_modern.html', clients=[], stats=stats, status_filter=status_filter)
 
 @app.route('/test')
 @login_required
@@ -2585,6 +2602,7 @@ def save_client():
             'obsProcuracoes': request.form.get('obsProcuracoes', ''),
             
             # Bloco 7: Observações e Dados Adicionais (apenas campos mantidos)
+            'observacoes': request.form.get('observacoes', ''),
             'statusCliente': request.form.get('statusCliente', 'ativo'),
             'ultimaAtualizacao': datetime.now().isoformat(),
             
@@ -2908,3 +2926,5 @@ if __name__ == '__main__':
     print("🚀 Iniciando aplicação Flask...")
     print(f"📊 Armazenamento: {'Google Sheets' if USE_GOOGLE_SHEETS else 'Local'}")
     app.run(debug=True, host='0.0.0.0', port=5000)
+
+

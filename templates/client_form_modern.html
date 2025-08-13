@@ -711,8 +711,6 @@
                     <select class="form-select" id="statusCliente" name="statusCliente">
                         <option value="ativo" {{ 'selected' if client and client.statusCliente == 'ativo' else '' }}>Ativo</option>
                         <option value="inativo" {{ 'selected' if client and client.statusCliente == 'inativo' else '' }}>Inativo</option>
-                        <option value="suspenso" {{ 'selected' if client and client.statusCliente == 'suspenso' else '' }}>Suspenso</option>
-                        <option value="em_analise" {{ 'selected' if client and client.statusCliente == 'em_analise' else '' }}>Em Análise</option>
                     </select>
                 </div>
             
@@ -733,6 +731,24 @@
                            value="{{ session.usuario if session.usuario else '' }}" readonly>
                     <div class="form-text">Usuário logado no sistema</div>
                 </div>
+            </div>
+            
+            <!-- Observações Gerais -->
+            <div class="row">
+                <div class="col-12 mb-3">
+                    <label for="observacoes" class="form-label">
+                        <i class="fas fa-sticky-note me-2"></i>OBSERVAÇÕES GERAIS
+                    </label>
+                    <textarea class="form-control" id="observacoes" name="observacoes" rows="4" 
+                              placeholder="Digite aqui observações gerais sobre o cliente...">{{ client.observacoes if client else '' }}</textarea>
+                    <div class="form-text">
+                        <i class="fas fa-info-circle me-1"></i>
+                        Este campo será exibido no "Ver Detalhes" do cliente para consulta rápida
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
 
     <!-- Botões de ação -->
     <div class="card">
