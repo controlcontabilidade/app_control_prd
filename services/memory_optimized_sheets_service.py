@@ -12,7 +12,7 @@ class MemoryOptimizedGoogleSheetsService:
     Versão ULTRA-OTIMIZADA do GoogleSheetsService para ambientes com pouca memória (Render 512MB)
     """
     
-    def __init__(self, spreadsheet_id: str, range_name: str = 'Clientes!A:CZ'):
+    def __init__(self, spreadsheet_id: str, range_name: str = 'Clientes!A:DD'):
         self.spreadsheet_id = spreadsheet_id
         self.range_name = range_name
         self.service = None
