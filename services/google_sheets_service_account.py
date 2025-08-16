@@ -13,7 +13,7 @@ class GoogleSheetsServiceAccountService:
     Mais simples que OAuth2 - ideal para aplicações server-side
     """
     
-    def __init__(self, spreadsheet_id: str, range_name: str = 'Clientes!A:CH'):
+    def __init__(self, spreadsheet_id: str, range_name: str = 'Clientes!A:DD'):
         self.spreadsheet_id = spreadsheet_id
         self.range_name = range_name
         self.service = None
@@ -226,8 +226,8 @@ class GoogleSheetsServiceAccountService:
             # CORREÇÃO: Verificar se a linha atual na planilha precisa ser expandida
             print("🔧 [SERVICE] Verificando se linha atual precisa ser expandida...")
             try:
-                # Buscar linha atual da planilha
-                current_range = f'Clientes!A{row_index}:CH{row_index}'
+                # Buscar linha atual da planilha - usar DD para pegar todas as 108 colunas
+                current_range = f'Clientes!A{row_index}:DD{row_index}'
                 current_result = self.service.spreadsheets().values().get(
                     spreadsheetId=self.spreadsheet_id,
                     range=current_range
@@ -477,8 +477,8 @@ class GoogleSheetsServiceAccountService:
                 print(f"❌ [GET_CLIENT] Cliente '{search_id}' não encontrado nem via fallback")
                 return None
                 
-            # Buscar os dados da linha específica
-            range_name = f'Clientes!A{row_index}:CH{row_index}'
+            # Buscar os dados da linha específica - usar DD para pegar todas as colunas
+            range_name = f'Clientes!A{row_index}:DD{row_index}'
             print(f"🔍 [GET_CLIENT] Buscando dados do range: {range_name}")
             
             result = self.service.spreadsheets().values().get(
@@ -968,11 +968,11 @@ class GoogleSheetsServiceAccountService:
             'SIM' if client.get('bpoFinanceiro') else 'NÃO',  # 17. SERVIÇO BPO FINANCEIRO
             client.get('dataInicioServicos', ''),             # 18. DATA INÍCIO DOS SERVIÇOS (CORRIGIDO)
             
-            # Códigos dos Sistemas (Bloco 2)
-            client.get('codFortesCt', ''),                    # 19. CÓDIGO FORTES CT
-            client.get('codFortesFs', ''),                    # 20. CÓDIGO FORTES FS
-            client.get('codFortesPs', ''),                    # 21. CÓDIGO FORTES PS
-            client.get('codDominio', ''),                     # 22. CÓDIGO DOMÍNIO
+            # Códigos dos Sistemas (Bloco 2) - FORÇAR COMO TEXTO para preservar zeros à esquerda
+            f"'{str(client.get('codFortesCt', '')).zfill(4)}" if client.get('codFortesCt') else '',  # 19. CÓDIGO FORTES CT
+            f"'{str(client.get('codFortesFs', '')).zfill(4)}" if client.get('codFortesFs') else '',  # 20. CÓDIGO FORTES FS
+            f"'{str(client.get('codFortesPs', '')).zfill(4)}" if client.get('codFortesPs') else '',  # 21. CÓDIGO FORTES PS
+            f"'{str(client.get('codDominio', '')).zfill(4)}" if client.get('codDominio') else '',    # 22. CÓDIGO DOMÍNIO
             client.get('sistemaUtilizado', ''),               # 23. SISTEMA UTILIZADO
             
             # Bloco 3: Quadro Societário (compatibilidade total entre formatos novos e antigos)
@@ -1049,7 +1049,7 @@ class GoogleSheetsServiceAccountService:
             
             # Bloco 7: Observações e Dados Adicionais (apenas campos mantidos)
             client.get('observacoes', ''),                   # 86. OBSERVAÇÕES
-            client.get('statusCliente', 'ATIVO'),             # 87. STATUS DO CLIENTE
+            client.get('statusCliente', 'ATIVO').upper(),        # 87. STATUS DO CLIENTE
             client.get('ultimaAtualizacao', ''),              # 88. ÚLTIMA ATUALIZAÇÃO
             # placeholders para manter comprimento; campos finais serão preenchidos por nome
             '',  # placeholder
@@ -1168,11 +1168,11 @@ class GoogleSheetsServiceAccountService:
             'dp': bool_from_text(safe_get(row, 15)),
             'bpoFinanceiro': bool_from_text(safe_get(row, 16)),
 
-            # Códigos dos Sistemas (Bloco 2)
-            'codFortesCt': safe_get(row, 18),
-            'codFortesFs': safe_get(row, 19),
-            'codFortesPs': safe_get(row, 20),
-            'codDominio': safe_get(row, 21),
+            # Códigos dos Sistemas (Bloco 2) - remover aspas se presentes
+            'codFortesCt': safe_get(row, 18).lstrip("'").zfill(4) if safe_get(row, 18) else '',
+            'codFortesFs': safe_get(row, 19).lstrip("'").zfill(4) if safe_get(row, 19) else '',
+            'codFortesPs': safe_get(row, 20).lstrip("'").zfill(4) if safe_get(row, 20) else '',
+            'codDominio': safe_get(row, 21).lstrip("'").zfill(4) if safe_get(row, 21) else '',
             'sistemaUtilizado': safe_get(row, 22),
 
             # Bloco 3: Quadro Societário - MAPEAMENTO CORRIGIDO PARA TEMPLATE
@@ -1263,17 +1263,24 @@ class GoogleSheetsServiceAccountService:
             # Bloco 7: Observações e Dados Adicionais (apenas campos mantidos)
             # Bloco 7: Observações e Dados Adicionais
             'observacoes': safe_get(row, hidx.get('OBSERVAÇÕES', 85), ''),
-            'statusCliente': safe_get(row, hidx.get('STATUS DO CLIENTE', 86), 'ATIVO'),
-            'ultimaAtualizacao': safe_get(row, hidx.get('ÚLTIMA ATUALIZAÇÃO', 86)),
+            
+            # Status do Cliente - usar índice correto baseado na investigação
+            'statusCliente': safe_get(row, hidx.get('STATUS DO CLIENTE', 86), 'ativo').lower(),
+            'ultimaAtualizacao': safe_get(row, hidx.get('ÚLTIMA ATUALIZAÇÃO', 87)),
 
-            # Campos internos do sistema (alinhados aos cabeçalhos - índices ajustados)
+            # Campos internos do sistema (alinhados aos cabeçalhos - índices corretos da investigação)
             'id': id_resolvido,
-            'donoResp': safe_get(row, hidx.get('DONO/RESPONSÁVEL', 87)),
-            'ativo': bool_from_text(safe_get(row, hidx.get('CLIENTE ATIVO', 88), 'SIM'), True),
-            'criadoEm': safe_get(row, hidx.get('DATA DE CRIAÇÃO', 89), safe_get(row, hidx.get('RESERVADO 2', 84), datetime.now().isoformat())),
-            'domestica': safe_get(row, hidx.get('DOMÉSTICA', 90)),
-            'geraArquivoSped': safe_get(row, hidx.get('GERA ARQUIVO DO SPED', 91))
+            'donoResp': safe_get(row, hidx.get('DONO/RESPONSÁVEL', 88)),
+            
+            # Campo ativo derivado do statusCliente - CORREÇÃO PRINCIPAL
+            'criadoEm': safe_get(row, hidx.get('DATA DE CRIAÇÃO', 90), safe_get(row, hidx.get('RESERVADO 2', 84), datetime.now().isoformat())),
+            'domestica': safe_get(row, hidx.get('DOMÉSTICA', 91)),
+            'geraArquivoSped': safe_get(row, hidx.get('GERA ARQUIVO DO SPED', 92))
         }
+
+        # CORREÇÃO CRÍTICA: Derivar campo 'ativo' a partir do statusCliente
+        status_cliente = result.get('statusCliente', 'ativo').lower()
+        result['ativo'] = status_cliente == 'ativo'
 
         # DEBUG e VALIDAÇÃO do ID
         client_id = result.get('id', '')

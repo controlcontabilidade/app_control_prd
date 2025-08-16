@@ -222,7 +222,7 @@ USE_OAUTH2 = False  # OAuth2 para autenticação manual
 USE_SERVICE_ACCOUNT = True  # Service Account para aplicações server-side (RECOMENDADO)
 GOOGLE_SHEETS_API_KEY = os.environ.get('GOOGLE_SHEETS_API_KEY')
 GOOGLE_SHEETS_ID = os.environ.get('GOOGLE_SHEETS_ID')
-GOOGLE_SHEETS_RANGE = 'Clientes!A:CZ'
+GOOGLE_SHEETS_RANGE = 'Clientes!A:DD'
 
 print(f"🔧 Configurações:")
 print(f"   USE_GOOGLE_SHEETS: {USE_GOOGLE_SHEETS}")
@@ -2276,6 +2276,40 @@ def view_client(client_id):
         if client:
             print(f"🔍 [VIEW] Nome do cliente: {client.get('nomeEmpresa')}")
             print(f"🔍 [VIEW] ID do cliente retornado: '{client.get('id')}'")
+            
+            # DEBUG: Verificar campos de sócio disponíveis
+            print("🔍 [VIEW] ===== DEBUG SÓCIOS =====")
+            for key in client.keys():
+                if 'socio' in key.lower():
+                    print(f"🔍 [VIEW] Campo sócio: {key} = {client[key]}")
+            print("🔍 [VIEW] ========================")
+            
+            # DEBUG: Verificar TODOS os campos do cliente
+            print("🔍 [VIEW] ===== DEBUG TODOS OS CAMPOS =====")
+            print(f"🔍 [VIEW] Total de campos: {len(client.keys())}")
+            for key in sorted(client.keys()):
+                value = client[key]
+                if len(str(value)) > 50:
+                    value_display = str(value)[:47] + "..."
+                else:
+                    value_display = value
+                print(f"🔍 [VIEW] {key}: {value_display}")
+            print("🔍 [VIEW] ===================================")
+            
+            # DEBUG ESPECÍFICO: Testar os diferentes formatos de campo de sócio
+            print("🔍 [VIEW] ===== TESTE ESPECÍFICO SÓCIOS =====")
+            test_patterns = [
+                'socio_1_nome', 'socio1_nome', 'socio1',
+                'socio_1_cpf', 'socio1_cpf', 'socio1_Cpf',
+                'SÓCIO 1 NOME', 'sócio_1_nome'
+            ]
+            for pattern in test_patterns:
+                if pattern in client:
+                    print(f"🔍 [VIEW] ENCONTRADO: {pattern} = {client[pattern]}")
+                else:
+                    print(f"🔍 [VIEW] NÃO EXISTE: {pattern}")
+            print("🔍 [VIEW] ========================================")
+            
             # Usa a nova versão de visualização alinhada ao formulário
             return render_template('client_view_modern_new.html', client=client)
         else:
@@ -2474,7 +2508,15 @@ def save_client():
                 client_data[f'socio_{i}_resp_legal'] = request.form.get('representante_legal') == f'socio_{i}'
                 client_data[f'socio_{i}_email'] = request.form.get(f'socio_{i}_email', '').strip()
                 client_data[f'socio_{i}_telefone'] = request.form.get(f'socio_{i}_telefone', '').strip()
+                
+                # COMPATIBILIDADE: Adicionar também campos sem underscore para templates antigos
+                client_data[f'socio{i}_nome'] = nome_socio
+                client_data[f'socio{i}_cpf'] = client_data[f'socio_{i}_cpf']
+                client_data[f'socio{i}_administrador'] = client_data[f'socio_{i}_administrador']
+                client_data[f'socio{i}'] = nome_socio  # Para templates mais antigos
+                
                 print(f"🔍 Sócio {i}: {nome_socio} - CPF: {client_data[f'socio_{i}_cpf']} - Admin: {client_data[f'socio_{i}_administrador']}")
+                print(f"🔍 Compatibilidade: socio{i}_nome = {client_data[f'socio{i}_nome']}")
         
         # Processar dados dos contatos dinamicamente
         print("🔍 Processando dados dos contatos...")
@@ -2603,10 +2645,39 @@ def save_client():
             
             # Bloco 7: Observações e Dados Adicionais (apenas campos mantidos)
             'observacoes': request.form.get('observacoes', ''),
-            'statusCliente': request.form.get('statusCliente', 'ativo'),
+        })
+        
+        # CORREÇÃO: Para statusCliente, usar valor do formulário se fornecido
+        if client_id:
+            # Estamos editando - usar status do formulário se fornecido, senão preservar atual
+            try:
+                storage = get_storage_service()
+                current_client = storage.get_client(client_id) if storage else None
+                current_status = current_client.get('statusCliente', 'ativo') if current_client else 'ativo'
+                
+                # LÓGICA CORRETA: Priorizar valor do formulário
+                form_status = request.form.get('statusCliente')
+                if form_status:
+                    client_data['statusCliente'] = form_status
+                    print(f"🔍 EDIÇÃO - Status do formulário usado: '{form_status}'")
+                else:
+                    client_data['statusCliente'] = current_status
+                    print(f"🔍 EDIÇÃO - Status atual preservado: '{current_status}'")
+                    
+            except Exception as e:
+                print(f"❌ Erro ao buscar status atual: {e}")
+                client_data['statusCliente'] = request.form.get('statusCliente', 'ativo')
+        else:
+            # Cliente novo - padrão ativo
+            client_data['statusCliente'] = request.form.get('statusCliente', 'ativo')
+            print(f"🔍 NOVO CLIENTE - Status padrão: {client_data['statusCliente']}")
+        
+        # Finalizar dados básicos
+        client_data.update({
             'ultimaAtualizacao': datetime.now().isoformat(),
             
             # Campos de compatibilidade (manter existentes)
+            'dataInicioServicos': request.form.get('dataInicioServicos', ''),
             'mesAnoInicio': request.form.get('dataInicioServicos', ''),
         })
         
@@ -2617,9 +2688,12 @@ def save_client():
         
         # Aplicar regra Doméstica no backend (segurança): só permitido quando CPF completo (11 dígitos)
         import re
-        digits = re.sub(r'\D', '', client_data.get('cnpj', ''))
+        digits = re.sub(r'\D', '', client_data.get('cpfCnpj', ''))
         if len(digits) != 11:
             client_data['domestica'] = 'NÃO'
+            print(f"🔍 Doméstica forçada para NÃO - documento tem {len(digits)} dígitos (≠11)")
+        else:
+            print(f"🔍 Doméstica permitida - CPF válido com {len(digits)} dígitos")
         
         # CORREÇÃO DUPLICAÇÃO: Melhor controle de criação vs edição
         if not client_data.get('id'):

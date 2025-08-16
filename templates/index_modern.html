@@ -319,7 +319,7 @@
                             {% endif %}
                         </td>
                         <td class="text-center">
-                            {% set status = (client['statusCliente'] or ('ativo' if client['ativo'] else 'inativo'))|lower %}
+                            {% set status = client['statusCliente']|lower if client['statusCliente'] else 'ativo' %}
                             {% if status == 'ativo' %}
                                 <span class="badge bg-success rounded-pill">
                                     <i class="bi bi-check-circle-fill me-1"></i>Ativo
