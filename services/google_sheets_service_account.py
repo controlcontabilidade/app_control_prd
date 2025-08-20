@@ -1580,21 +1580,21 @@ class GoogleSheetsServiceAccountService:
             'contato_5_telefone': safe_get(row, 57), # 58-1 = 57 (CONTATO_5_TELEFONE)
             'contato_5_email': safe_get(row, 58),    # 59-1 = 58 (CONTATO_5_EMAIL)
 
-            # Bloco 5: Senhas e Credenciais (CORRIGIDOS - novos índices após expansão dos sócios)
-            'cpfCnpjSn': safe_get(row, 113),         # Real: 113 (CPF/CNPJ SN)
-            'codigoAcessoSn': safe_get(row, 114),    # Real: 114 (CÓDIGO ACESSO SN)
-            'acessoEmpWeb': safe_get(row, 115),      # Real: 115 (ACESSO EMPWEB)
-            'senhaEmpWeb': safe_get(row, 116),       # Real: 116 (SENHA EMPWEB)
-            'acessoIss': safe_get(row, 117),         # Real: 117 (ACESSO ISS)
-            'acessoSefin': safe_get(row, 118),       # Real: 118 (ACESSO SEFIN)
-            'acessoSeuma': safe_get(row, 66),        # 66. ACESSO SEUMA
-            'acessoSemace': safe_get(row, 67),       # 67. ACESSO SEMACE
-            'acessoIbama': safe_get(row, 68),        # 68. ACESSO IBAMA
-            'acessoFapInss': safe_get(row, 69),      # 69. ACESSO FAP/INSS
-            'acessoCrf': safe_get(row, 70),          # 70. ACESSO CRF
-            'senhaSemace': safe_get(row, 71),        # 71. SENHA SEMACE
-            'anvisaGestor': safe_get(row, 72),       # 72. ANVISA GESTOR
-            'anvisaEmpresa': safe_get(row, 73),      # 73. ANVISA EMPRESA
+            # Bloco 5: Senhas e Credenciais (CORRIGIDOS - posições reais na planilha)
+            'cpfCnpjSn': safe_get(row, 113),         # 113. CPF/CNPJ SN (CORRETO)
+            'codigoAcessoSn': safe_get(row, 114),    # 114. CÓDIGO ACESSO SN (CORRETO)
+            'acessoEmpWeb': safe_get(row, 115),      # 115. ACESSO EMPWEB
+            'senhaEmpWeb': safe_get(row, 116),       # 116. SENHA EMPWEB
+            'acessoIss': safe_get(row, 117),         # 117. ACESSO ISS
+            'acessoSefin': safe_get(row, 118),       # 118. ACESSO SEFIN
+            'acessoSeuma': safe_get(row, 119),       # 119. ACESSO SEUMA (CORRIGIDO)
+            'acessoSemace': safe_get(row, 120),      # 120. ACESSO SEMACE (CORRIGIDO)
+            'acessoIbama': safe_get(row, 121),       # 121. ACESSO IBAMA (CORRIGIDO)
+            'acessoFapInss': safe_get(row, 122),     # 122. ACESSO FAP/INSS (CORRIGIDO)
+            'acessoCrf': safe_get(row, 123),         # 123. ACESSO CRF (CORRIGIDO)
+            'senhaSemace': safe_get(row, 124),       # 124. SENHA SEMACE (CORRIGIDO)
+            'anvisaGestor': safe_get(row, 125),      # 125. ANVISA GESTOR (CORRIGIDO)
+            'anvisaEmpresa': safe_get(row, 126),     # 126. ANVISA EMPRESA (CORRIGIDO)
             
             # Bloco 5: Senhas Específicas Adicionais (POSIÇÕES REAIS NA PLANILHA)
             'senhaFgts': safe_get(row, 127),                      # 127. SENHA FGTS (posição real)
