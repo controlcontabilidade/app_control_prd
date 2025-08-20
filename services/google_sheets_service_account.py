@@ -13,9 +13,9 @@ class GoogleSheetsServiceAccountService:
     Mais simples que OAuth2 - ideal para aplicações server-side
     """
     
-    def __init__(self, spreadsheet_id: str, range_name: str = 'Clientes!A:DD'):
+    def __init__(self, spreadsheet_id: str, range_name: str = 'Clientes!A:ER'):
         self.spreadsheet_id = spreadsheet_id
-        self.range_name = range_name
+        self.range_name = range_name  # Será atualizado dinamicamente quando necessário
         self.service = None
         self.scopes = ['https://www.googleapis.com/auth/spreadsheets']
         
@@ -142,7 +142,7 @@ class GoogleSheetsServiceAccountService:
             
             result = self.service.spreadsheets().values().append(
                 spreadsheetId=self.spreadsheet_id,
-                range='Clientes!A:DD',
+                range=self.get_dynamic_range(),
                 valueInputOption='USER_ENTERED',
                 body=body
             ).execute()
@@ -167,9 +167,14 @@ class GoogleSheetsServiceAccountService:
                 print("❌ [SERVICE] ID do cliente é inválido para atualização")
                 return False
                 
-            if not client.get('nomeEmpresa'):
-                print("❌ [SERVICE] Nome da empresa é obrigatório")
+            if not client.get('nomeEmpresa') and not client.get('cliente'):
+                print("❌ [SERVICE] Nome da empresa é obrigatório (nomeEmpresa ou cliente)")
                 return False
+            
+            # Se não tem nomeEmpresa mas tem cliente, usar cliente
+            if not client.get('nomeEmpresa') and client.get('cliente'):
+                client['nomeEmpresa'] = client['cliente']
+                print(f"🔧 [SERVICE] Usando 'cliente' como nomeEmpresa: {client['cliente']}")
             
             # Buscar a linha do cliente (DEVE existir)
             print("🔍 [SERVICE] Localizando cliente na planilha...")
@@ -226,8 +231,8 @@ class GoogleSheetsServiceAccountService:
             # CORREÇÃO: Verificar se a linha atual na planilha precisa ser expandida
             print("🔧 [SERVICE] Verificando se linha atual precisa ser expandida...")
             try:
-                # Buscar linha atual da planilha - usar DD para pegar todas as 108 colunas
-                current_range = f'Clientes!A{row_index}:DD{row_index}'
+                # Buscar linha atual da planilha - usar range dinâmico
+                current_range = self.get_dynamic_range(row_index)
                 current_result = self.service.spreadsheets().values().get(
                     spreadsheetId=self.spreadsheet_id,
                     range=current_range
@@ -271,7 +276,7 @@ class GoogleSheetsServiceAccountService:
                 # Continuar mesmo com erro de expansão
             
             # Executar atualização
-            range_name = f'Clientes!A{row_index}:DD{row_index}'
+            range_name = self.get_dynamic_range(row_index)
             print(f"🔧 [SERVICE] Atualizando range: {range_name}")
             
             body = {'values': [row_data]}
@@ -305,7 +310,7 @@ class GoogleSheetsServiceAccountService:
             print(f"🔍 [SERVICE] ===== BUSCANDO CLIENTE (PRODUÇÃO) =====")
             print(f"🔍 [SERVICE] ID do cliente recebido: '{client_id}' (tipo: {type(client_id)})")
             print(f"🔍 [SERVICE] Spreadsheet ID: {self.spreadsheet_id}")
-            print(f"🔍 [SERVICE] Range: {self.range_name}")
+            print(f"🔍 [SERVICE] Range: {self.get_dynamic_range()}")
             
             if not client_id or str(client_id).strip() == '' or str(client_id) == 'None':
                 print("⚠️ [SERVICE] ID do cliente está vazio ou None!")
@@ -324,7 +329,7 @@ class GoogleSheetsServiceAccountService:
             print("🔍 [SERVICE] Fazendo requisição para Google Sheets...")
             result = self.service.spreadsheets().values().get(
                 spreadsheetId=self.spreadsheet_id,
-                range='Clientes!A:DD'
+                range=self.get_dynamic_range()
             ).execute()
             
             values = result.get('values', [])
@@ -477,8 +482,8 @@ class GoogleSheetsServiceAccountService:
                 print(f"❌ [GET_CLIENT] Cliente '{search_id}' não encontrado nem via fallback")
                 return None
                 
-            # Buscar os dados da linha específica - usar DD para pegar todas as colunas
-            range_name = f'Clientes!A{row_index}:DD{row_index}'
+            # Buscar os dados da linha específica - usar range dinâmico
+            range_name = self.get_dynamic_range(row_index)
             print(f"🔍 [GET_CLIENT] Buscando dados do range: {range_name}")
             
             result = self.service.spreadsheets().values().get(
@@ -528,7 +533,7 @@ class GoogleSheetsServiceAccountService:
         try:
             print("📊 ===== BUSCANDO CLIENTES (PRODUÇÃO) =====")
             print(f"📊 Spreadsheet ID: {self.spreadsheet_id}")
-            print(f"📊 Range: {self.range_name}")
+            print(f"📊 Range: {self.get_dynamic_range()}")
             
             if not self.service:
                 print("❌ Serviço Google Sheets não está autenticado!")
@@ -537,7 +542,7 @@ class GoogleSheetsServiceAccountService:
             print("📊 Fazendo requisição para Google Sheets...")
             result = self.service.spreadsheets().values().get(
                 spreadsheetId=self.spreadsheet_id,
-                range=self.range_name
+                range=self.get_dynamic_range()
             ).execute()
             
             values = result.get('values', [])
@@ -746,14 +751,78 @@ class GoogleSheetsServiceAccountService:
             'SÓCIO 1 PARTICIPAÇÃO',              # 28. Percentual de participação
             'SÓCIO 1 RESPONSÁVEL LEGAL',         # 29. Responsável legal? (SIM/NÃO)
             
-            # Bloco 4: Contatos
-            'TELEFONE FIXO',                     # 30. Telefone comercial
-            'TELEFONE CELULAR',                  # 31. Celular principal
-            'WHATSAPP',                          # 32. Número do WhatsApp
-            'EMAIL PRINCIPAL',                   # 33. Email principal da empresa
-            'EMAIL SECUNDÁRIO',                  # 34. Email alternativo
-            'RESPONSÁVEL IMEDIATO',              # 35. Contato direto na empresa
-            'EMAILS DOS SÓCIOS',                 # 36. Emails dos sócios
+            # Sócios 2-10
+            'SÓCIO 2 NOME',                      # 30. Nome completo do sócio 2
+            'SÓCIO 2 CPF',                       # 31. CPF do sócio 2
+            'SÓCIO 2 DATA NASCIMENTO',           # 32. Data nascimento sócio 2
+            'SÓCIO 2 ADMINISTRADOR',             # 33. É administrador? (SIM/NÃO)
+            'SÓCIO 2 PARTICIPAÇÃO',              # 34. Percentual de participação
+            'SÓCIO 2 RESPONSÁVEL LEGAL',         # 35. Responsável legal? (SIM/NÃO)
+            
+            'SÓCIO 3 NOME',                      # 36. Nome completo do sócio 3
+            'SÓCIO 3 CPF',                       # 37. CPF do sócio 3
+            'SÓCIO 3 DATA NASCIMENTO',           # 38. Data nascimento sócio 3
+            'SÓCIO 3 ADMINISTRADOR',             # 39. É administrador? (SIM/NÃO)
+            'SÓCIO 3 PARTICIPAÇÃO',              # 40. Percentual de participação
+            'SÓCIO 3 RESPONSÁVEL LEGAL',         # 41. Responsável legal? (SIM/NÃO)
+            
+            'SÓCIO 4 NOME',                      # 42. Nome completo do sócio 4
+            'SÓCIO 4 CPF',                       # 43. CPF do sócio 4
+            'SÓCIO 4 DATA NASCIMENTO',           # 44. Data nascimento sócio 4
+            'SÓCIO 4 ADMINISTRADOR',             # 45. É administrador? (SIM/NÃO)
+            'SÓCIO 4 PARTICIPAÇÃO',              # 46. Percentual de participação
+            'SÓCIO 4 RESPONSÁVEL LEGAL',         # 47. Responsável legal? (SIM/NÃO)
+            
+            'SÓCIO 5 NOME',                      # 48. Nome completo do sócio 5
+            'SÓCIO 5 CPF',                       # 49. CPF do sócio 5
+            'SÓCIO 5 DATA NASCIMENTO',           # 50. Data nascimento sócio 5
+            'SÓCIO 5 ADMINISTRADOR',             # 51. É administrador? (SIM/NÃO)
+            'SÓCIO 5 PARTICIPAÇÃO',              # 52. Percentual de participação
+            'SÓCIO 5 RESPONSÁVEL LEGAL',         # 53. Responsável legal? (SIM/NÃO)
+            
+            'SÓCIO 6 NOME',                      # 54. Nome completo do sócio 6
+            'SÓCIO 6 CPF',                       # 55. CPF do sócio 6
+            'SÓCIO 6 DATA NASCIMENTO',           # 56. Data nascimento sócio 6
+            'SÓCIO 6 ADMINISTRADOR',             # 57. É administrador? (SIM/NÃO)
+            'SÓCIO 6 PARTICIPAÇÃO',              # 58. Percentual de participação
+            'SÓCIO 6 RESPONSÁVEL LEGAL',         # 59. Responsável legal? (SIM/NÃO)
+            
+            'SÓCIO 7 NOME',                      # 60. Nome completo do sócio 7
+            'SÓCIO 7 CPF',                       # 61. CPF do sócio 7
+            'SÓCIO 7 DATA NASCIMENTO',           # 62. Data nascimento sócio 7
+            'SÓCIO 7 ADMINISTRADOR',             # 63. É administrador? (SIM/NÃO)
+            'SÓCIO 7 PARTICIPAÇÃO',              # 64. Percentual de participação
+            'SÓCIO 7 RESPONSÁVEL LEGAL',         # 65. Responsável legal? (SIM/NÃO)
+            
+            'SÓCIO 8 NOME',                      # 66. Nome completo do sócio 8
+            'SÓCIO 8 CPF',                       # 67. CPF do sócio 8
+            'SÓCIO 8 DATA NASCIMENTO',           # 68. Data nascimento sócio 8
+            'SÓCIO 8 ADMINISTRADOR',             # 69. É administrador? (SIM/NÃO)
+            'SÓCIO 8 PARTICIPAÇÃO',              # 70. Percentual de participação
+            'SÓCIO 8 RESPONSÁVEL LEGAL',         # 71. Responsável legal? (SIM/NÃO)
+            
+            'SÓCIO 9 NOME',                      # 72. Nome completo do sócio 9
+            'SÓCIO 9 CPF',                       # 73. CPF do sócio 9
+            'SÓCIO 9 DATA NASCIMENTO',           # 74. Data nascimento sócio 9
+            'SÓCIO 9 ADMINISTRADOR',             # 75. É administrador? (SIM/NÃO)
+            'SÓCIO 9 PARTICIPAÇÃO',              # 76. Percentual de participação
+            'SÓCIO 9 RESPONSÁVEL LEGAL',         # 77. Responsável legal? (SIM/NÃO)
+            
+            'SÓCIO 10 NOME',                     # 78. Nome completo do sócio 10
+            'SÓCIO 10 CPF',                      # 79. CPF do sócio 10
+            'SÓCIO 10 DATA NASCIMENTO',          # 80. Data nascimento sócio 10
+            'SÓCIO 10 ADMINISTRADOR',            # 81. É administrador? (SIM/NÃO)
+            'SÓCIO 10 PARTICIPAÇÃO',             # 82. Percentual de participação
+            'SÓCIO 10 RESPONSÁVEL LEGAL',        # 83. Responsável legal? (SIM/NÃO)
+            
+            # Bloco 4: Contatos (posições ajustadas)
+            'TELEFONE FIXO',                     # 84. Telefone comercial
+            'TELEFONE CELULAR',                  # 85. Celular principal
+            'WHATSAPP',                          # 86. Número do WhatsApp
+            'EMAIL PRINCIPAL',                   # 87. Email principal da empresa
+            'EMAIL SECUNDÁRIO',                  # 88. Email alternativo
+            'RESPONSÁVEL IMEDIATO',              # 89. Contato direto na empresa
+            'EMAILS DOS SÓCIOS',                 # 90. Emails dos sócios
             'CONTATO CONTADOR',                  # 37. Nome do contador atual
             'TELEFONE CONTADOR',                 # 38. Telefone do contador
             'EMAIL CONTADOR',                    # 39. Email do contador
@@ -796,47 +865,108 @@ class GoogleSheetsServiceAccountService:
             'ANVISA GESTOR',                     # 72. Login ANVISA gestor
             'ANVISA EMPRESA',                    # 73. Login ANVISA empresa
             
+            # Bloco 5: Senhas Específicas Adicionais (NOVOS CAMPOS)
+            'SENHA FGTS',                        # 74. Senha FGTS
+            'SENHA SOCIAL',                      # 75. Senha Social/INSS
+            'SENHA GISS',                        # 76. Senha GISS
+            'SENHA DETRAN',                      # 77. Senha DETRAN
+            'SENHA RECEITA',                     # 78. Senha Receita Federal
+            'SENHA SINTEGRA',                    # 79. Senha SINTEGRA
+            'SENHA JUCESP',                      # 80. Senha JUCESP
+            'SENHA PORTAL EMPREGADOR',           # 81. Senha Portal Empregador
+            'SENHA SIMPLES',                     # 82. Senha Simples Nacional
+            'SENHA GOVERNO',                     # 83. Senha Portal Governo
+            'SENHA VIA SOFT',                    # 84. Senha Via Soft
+            'SENHA SIMEI',                       # 85. Senha SIMEI
+            
             # Bloco 6: Procurações (CORRIGIDO - alinhado com formulário)
-            'PROCURAÇÃO RECEITA',                # 74. Tem procuração Receita? (SIM/NÃO)
-            'DATA PROCURAÇÃO RECEITA',           # 75. Data da procuração Receita
-            'PROCURAÇÃO DTe',                    # 76. Tem procuração DTe? (SIM/NÃO)
-            'DATA PROCURAÇÃO DTe',               # 77. Data da procuração DTe
-            'PROCURAÇÃO CAIXA',                  # 78. Tem procuração Caixa? (SIM/NÃO)
-            'DATA PROCURAÇÃO CAIXA',             # 79. Data da procuração Caixa
-            'PROCURAÇÃO EMP WEB',                # 80. Tem procuração Emp Web? (SIM/NÃO)
-            'DATA PROCURAÇÃO EMP WEB',           # 81. Data da procuração Emp Web
-            'PROCURAÇÃO DET',                    # 82. Tem procuração DET? (SIM/NÃO)
-            'DATA PROCURAÇÃO DET',               # 83. Data da procuração DET
-            'OUTRAS PROCURAÇÕES',                # 84. Outras procurações
-            'OBSERVAÇÕES PROCURAÇÕES',           # 85. Obs sobre procurações
+            'PROCURAÇÃO RECEITA',                # 86. Tem procuração Receita? (SIM/NÃO)
+            'DATA PROCURAÇÃO RECEITA',           # 87. Data da procuração Receita
+            'PROCURAÇÃO DTe',                    # 88. Tem procuração DTe? (SIM/NÃO)
+            'DATA PROCURAÇÃO DTe',               # 89. Data da procuração DTe
+            'PROCURAÇÃO CAIXA',                  # 90. Tem procuração Caixa? (SIM/NÃO)
+            'DATA PROCURAÇÃO CAIXA',             # 91. Data da procuração Caixa
+            'PROCURAÇÃO EMP WEB',                # 92. Tem procuração Emp Web? (SIM/NÃO)
+            'DATA PROCURAÇÃO EMP WEB',           # 93. Data da procuração Emp Web
+            'PROCURAÇÃO DET',                    # 94. Tem procuração DET? (SIM/NÃO)
+            'DATA PROCURAÇÃO DET',               # 95. Data da procuração DET
+            'OUTRAS PROCURAÇÕES',                # 96. Outras procurações
+            'OBSERVAÇÕES PROCURAÇÕES',           # 97. Obs sobre procurações
             
             # Bloco 7: Observações e Dados Adicionais (apenas campos mantidos)
-            'OBSERVAÇÕES',                       # 86. Observações gerais sobre o cliente
-            'STATUS DO CLIENTE',                 # 87. ATIVO, INATIVO, SUSPENSO
-            'ÚLTIMA ATUALIZAÇÃO',                # 88. Timestamp última modificação
+            'OBSERVAÇÕES',                       # 98. Observações gerais sobre o cliente
+            'STATUS DO CLIENTE',                 # 99. ATIVO, INATIVO, SUSPENSO
+            'ÚLTIMA ATUALIZAÇÃO',                # 100. Timestamp última modificação
             
             # Campos internos do sistema
-            'DONO/RESPONSÁVEL',                  # 89. Dono/Responsável
-            'CLIENTE ATIVO',                     # 90. Cliente ativo? (SIM/NÃO)
-            'DATA DE CRIAÇÃO',                   # 91. Data de criação do registro
-            'ID',                                # 92. ID único do cliente
-            'DOMÉSTICA',                         # 93. Indica se é doméstica (SIM/NÃO)
-            'GERA ARQUIVO DO SPED',              # 94. Gera arquivo do SPED (SIM/NÃO)
+            'DONO/RESPONSÁVEL',                  # 101. Dono/Responsável
+            'CLIENTE ATIVO',                     # 102. Cliente ativo? (SIM/NÃO)
+            'DATA DE CRIAÇÃO',                   # 103. Data de criação do registro
+            'ID',                                # 104. ID único do cliente
+            'DOMÉSTICA',                         # 105. Indica se é doméstica (SIM/NÃO)
+            'GERA ARQUIVO DO SPED',              # 106. Gera arquivo do SPED (SIM/NÃO)
         ]
 
     def ensure_correct_headers(self):
-        """Garante que os cabeçalhos estejam na ordem correta"""
+        """Garante que os cabeçalhos estejam na ordem correta e expande colunas se necessário"""
         try:
             print("🔧 Verificando cabeçalhos da planilha...")
+            
+            # Primeiro, vamos verificar quantas colunas a aba tem atualmente
+            spreadsheet = self.service.spreadsheets().get(
+                spreadsheetId=self.spreadsheet_id
+            ).execute()
+            
+            # Encontrar a aba 'Clientes'
+            client_sheet = None
+            for sheet in spreadsheet.get('sheets', []):
+                if sheet.get('properties', {}).get('title') == 'Clientes':
+                    client_sheet = sheet
+                    break
+            
+            if client_sheet:
+                current_cols = client_sheet.get('properties', {}).get('gridProperties', {}).get('columnCount', 0)
+                correct_headers = self.get_headers()
+                needed_cols = len(correct_headers)
+                
+                print(f"📊 Colunas atuais: {current_cols}, necessárias: {needed_cols}")
+                
+                # Expandir colunas se necessário
+                if current_cols < needed_cols:
+                    print(f"🔧 Expandindo planilha de {current_cols} para {needed_cols} colunas...")
+                    
+                    requests = [{
+                        'insertDimension': {
+                            'range': {
+                                'sheetId': client_sheet.get('properties', {}).get('sheetId'),
+                                'dimension': 'COLUMNS',
+                                'startIndex': current_cols,
+                                'endIndex': needed_cols
+                            },
+                            'inheritFromBefore': True
+                        }
+                    }]
+                    
+                    self.service.spreadsheets().batchUpdate(
+                        spreadsheetId=self.spreadsheet_id,
+                        body={'requests': requests}
+                    ).execute()
+                    
+                    print(f"✅ Planilha expandida para {needed_cols} colunas!")
+            
+            # Agora atualizar os cabeçalhos
+            # Usar range dinâmico baseado no número de colunas necessárias
+            correct_headers = self.get_headers()
+            end_col = self.column_number_to_letter(len(correct_headers))
+            range_name = f'Clientes!A1:{end_col}1'
             
             # Busca dados atuais
             result = self.service.spreadsheets().values().get(
                 spreadsheetId=self.spreadsheet_id,
-                range='Clientes!A1:DD1'
+                range=range_name
             ).execute()
             
             current_headers = result.get('values', [[]])[0] if result.get('values') else []
-            correct_headers = self.get_headers()
             
             # Verifica se os cabeçalhos estão corretos
             headers_need_update = False
@@ -855,11 +985,16 @@ class GoogleSheetsServiceAccountService:
                 # Atualizar cabeçalhos
                 self.service.spreadsheets().values().update(
                     spreadsheetId=self.spreadsheet_id,
-                    range='Clientes!A1:DD1',
+                    range=range_name,
                     valueInputOption='RAW',
                     body={'values': [correct_headers]}
                 ).execute()
                 print("✅ Cabeçalhos atualizados com sucesso!")
+                
+                # NOVO: Expandir dados existentes para o novo tamanho
+                print("🔧 Expandindo linhas de dados existentes...")
+                self._expand_existing_data_rows(needed_cols)
+                
                 return True
             else:
                 print("✅ Cabeçalhos já estão corretos!")
@@ -868,6 +1003,65 @@ class GoogleSheetsServiceAccountService:
         except Exception as e:
             print(f"❌ Erro ao verificar/atualizar cabeçalhos: {e}")
             return False
+    
+    def _expand_existing_data_rows(self, target_columns):
+        """Expande linhas de dados existentes para o número alvo de colunas"""
+        try:
+            # Buscar todos os dados atuais
+            result = self.service.spreadsheets().values().get(
+                spreadsheetId=self.spreadsheet_id,
+                range='Clientes!A:FD'  # Range bem grande para pegar tudo
+            ).execute()
+            
+            values = result.get('values', [])
+            if len(values) <= 1:  # Apenas cabeçalho
+                print("📊 Nenhuma linha de dados para expandir")
+                return
+            
+            print(f"📊 Expandindo {len(values)-1} linhas de dados...")
+            
+            # Expandir cada linha para ter o número correto de colunas
+            updated_rows = []
+            for i, row in enumerate(values[1:], start=2):  # Pular cabeçalho
+                # Expandir linha para ter target_columns colunas
+                while len(row) < target_columns:
+                    row.append('')
+                updated_rows.append(row)
+            
+            # Atualizar todas as linhas de dados de uma vez
+            if updated_rows:
+                end_col = self.column_number_to_letter(target_columns)
+                data_range = f'Clientes!A2:{end_col}{len(updated_rows)+1}'
+                
+                self.service.spreadsheets().values().update(
+                    spreadsheetId=self.spreadsheet_id,
+                    range=data_range,
+                    valueInputOption='RAW',
+                    body={'values': updated_rows}
+                ).execute()
+                
+                print(f"✅ {len(updated_rows)} linhas expandidas para {target_columns} colunas!")
+                
+        except Exception as e:
+            print(f"❌ Erro ao expandir linhas de dados: {e}")
+
+    def column_number_to_letter(self, col_num):
+        """Converte número da coluna para letra (1=A, 26=Z, 27=AA, etc.)"""
+        string = ""
+        while col_num > 0:
+            col_num, remainder = divmod(col_num - 1, 26)
+            string = chr(65 + remainder) + string
+        return string
+    
+    def get_dynamic_range(self, row_number=None):
+        """Calcula o range dinâmico baseado no número de colunas dos headers"""
+        headers = self.get_headers()
+        end_col = self.column_number_to_letter(len(headers))
+        
+        if row_number is None:
+            return f'Clientes!A:{end_col}'
+        else:
+            return f'Clientes!A{row_number}:{end_col}{row_number}'
 
     def update_sheet_headers_for_removed_fields(self):
         """Atualiza especificamente os cabeçalhos removendo campos não utilizados"""
@@ -908,7 +1102,7 @@ class GoogleSheetsServiceAccountService:
             return False
             result = self.service.spreadsheets().values().get(
                 spreadsheetId=self.spreadsheet_id,
-                range='Clientes!A1:DD1'
+                range='Clientes!A1:ER1'
             ).execute()
             
             current_headers = result.get('values', [[]])[0] if result.get('values') else []
@@ -924,7 +1118,7 @@ class GoogleSheetsServiceAccountService:
                 
                 self.service.spreadsheets().values().update(
                     spreadsheetId=self.spreadsheet_id,
-                    range='Clientes!A1:DD1',
+                    range='Clientes!A1:ER1',
                     valueInputOption='RAW',
                     body=body
                 ).execute()
@@ -961,53 +1155,117 @@ class GoogleSheetsServiceAccountService:
             client.get('segmento', ''),                       # 12. SEGMENTO
             client.get('atividade', ''),                      # 13. ATIVIDADE
             
-            # Bloco 2: Serviços Prestados pela Control
-            'SIM' if client.get('ct') else 'NÃO',             # 14. SERVIÇO CT
-            'SIM' if client.get('fs') else 'NÃO',             # 15. SERVIÇO FS
-            'SIM' if client.get('dp') else 'NÃO',             # 16. SERVIÇO DP
-            'SIM' if client.get('bpoFinanceiro') else 'NÃO',  # 17. SERVIÇO BPO FINANCEIRO
-            client.get('dataInicioServicos', ''),             # 18. DATA INÍCIO DOS SERVIÇOS (CORRIGIDO)
+            # Bloco 2: Serviços Prestados pela Control - POSIÇÕES CORRETAS
+            'SIM' if client.get('ct') else 'NÃO',             # 13. SERVIÇO CT (POSIÇÃO CORRETA)
+            'SIM' if client.get('fs') else 'NÃO',             # 14. SERVIÇO FS (POSIÇÃO CORRETA)
+            'SIM' if client.get('dp') else 'NÃO',             # 15. SERVIÇO DP (POSIÇÃO CORRETA)
+            'SIM' if client.get('bpoFinanceiro') else 'NÃO',  # 16. SERVIÇO BPO FINANCEIRO (POSIÇÃO CORRETA)
+            client.get('dataInicioServicos', ''),             # 17. DATA INÍCIO DOS SERVIÇOS (POSIÇÃO CORRETA)
             
-            # Códigos dos Sistemas (Bloco 2) - FORÇAR COMO TEXTO para preservar zeros à esquerda
-            f"'{str(client.get('codFortesCt', '')).zfill(4)}" if client.get('codFortesCt') else '',  # 19. CÓDIGO FORTES CT
-            f"'{str(client.get('codFortesFs', '')).zfill(4)}" if client.get('codFortesFs') else '',  # 20. CÓDIGO FORTES FS
-            f"'{str(client.get('codFortesPs', '')).zfill(4)}" if client.get('codFortesPs') else '',  # 21. CÓDIGO FORTES PS
-            f"'{str(client.get('codDominio', '')).zfill(4)}" if client.get('codDominio') else '',    # 22. CÓDIGO DOMÍNIO
-            client.get('sistemaUtilizado', ''),               # 23. SISTEMA UTILIZADO
+            # Códigos dos Sistemas (Bloco 2) - POSIÇÕES CORRETAS
+            f"'{str(client.get('codFortesCt', '')).zfill(4)}" if client.get('codFortesCt') else '',  # 18. CÓDIGO FORTES CT
+            f"'{str(client.get('codFortesFs', '')).zfill(4)}" if client.get('codFortesFs') else '',  # 19. CÓDIGO FORTES FS
+            f"'{str(client.get('codFortesPs', '')).zfill(4)}" if client.get('codFortesPs') else '',  # 20. CÓDIGO FORTES PS
+            f"'{str(client.get('codDominio', '')).zfill(4)}" if client.get('codDominio') else '',    # 21. CÓDIGO DOMÍNIO
+            client.get('sistemaUtilizado', ''),               # 22. SISTEMA UTILIZADO (POSIÇÃO CORRETA)
             
-            # Bloco 3: Quadro Societário (compatibilidade total entre formatos novos e antigos)
-            client.get('socio_1_nome', client.get('socio1_nome', client.get('socio1', ''))),     # 24. SÓCIO 1 NOME
-            client.get('socio_1_cpf', client.get('socio1_cpf', '')),                            # 25. SÓCIO 1 CPF
-            client.get('socio_1_data_nascimento', client.get('socio1_nascimento', '')),         # 26. SÓCIO 1 DATA NASCIMENTO
-            'SIM' if client.get('socio_1_administrador', client.get('socio1_admin')) else 'NÃO', # 27. SÓCIO 1 ADMINISTRADOR
-            client.get('socio_1_participacao', client.get('socio1_cotas', '')),                  # 28. SÓCIO 1 PARTICIPAÇÃO
-            'SIM' if client.get('socio_1_resp_legal', client.get('socio1_resp_legal')) else 'NÃO', # 29. SÓCIO 1 RESPONSÁVEL LEGAL
+            # Bloco 3: Quadro Societário - POSIÇÕES CORRETAS
+            client.get('socio_1_nome', client.get('socio1_nome', client.get('socio1', ''))),     # 23. SÓCIO 1 NOME
+            client.get('socio_1_cpf', client.get('socio1_cpf', '')),                            # 24. SÓCIO 1 CPF
+            client.get('socio_1_data_nascimento', client.get('socio1_nascimento', '')),         # 25. SÓCIO 1 DATA NASCIMENTO (POSIÇÃO CORRETA)
+            'SIM' if client.get('socio_1_administrador', client.get('socio1_admin')) else 'NÃO', # 26. SÓCIO 1 ADMINISTRADOR (POSIÇÃO CORRETA)
+            client.get('socio_1_participacao', client.get('socio1_cotas', '')),                  # 27. SÓCIO 1 PARTICIPAÇÃO (POSIÇÃO CORRETA)
+            'SIM' if client.get('socio_1_resp_legal', client.get('socio1_resp_legal')) else 'NÃO', # 28. SÓCIO 1 RESPONSÁVEL LEGAL (POSIÇÃO CORRETA)
             
-            # Bloco 4: Contatos
-            client.get('telefoneFixo', ''),                   # 30. TELEFONE FIXO
-            client.get('telefoneCelular', ''),                # 31. TELEFONE CELULAR
-            client.get('whatsapp', ''),                       # 32. WHATSAPP
-            client.get('emailPrincipal', ''),                 # 33. EMAIL PRINCIPAL
-            client.get('emailSecundario', ''),                # 34. EMAIL SECUNDÁRIO
-            client.get('responsavelImediato', ''),            # 35. RESPONSÁVEL IMEDIATO
-            client.get('emailsSocios', ''),                   # 36. EMAILS DOS SÓCIOS
-            client.get('contatoContador', ''),                # 37. CONTATO CONTADOR
-            client.get('telefoneContador', ''),               # 38. TELEFONE CONTADOR
-            client.get('emailContador', ''),                  # 39. EMAIL CONTADOR
+            # Sócios 2-10 - NOVOS CAMPOS
+            client.get('socio_2_nome', client.get('socio2_nome', '')),                          # 29. SÓCIO 2 NOME
+            client.get('socio_2_cpf', client.get('socio2_cpf', '')),                            # 30. SÓCIO 2 CPF
+            client.get('socio_2_data_nascimento', client.get('socio2_nascimento', '')),         # 31. SÓCIO 2 DATA NASCIMENTO
+            'SIM' if client.get('socio_2_administrador', client.get('socio2_admin')) else 'NÃO', # 32. SÓCIO 2 ADMINISTRADOR
+            client.get('socio_2_participacao', client.get('socio2_cotas', '')),                  # 33. SÓCIO 2 PARTICIPAÇÃO
+            'SIM' if client.get('socio_2_resp_legal', client.get('socio2_resp_legal')) else 'NÃO', # 34. SÓCIO 2 RESPONSÁVEL LEGAL
+
+            client.get('socio_3_nome', client.get('socio3_nome', '')),                          # 35. SÓCIO 3 NOME
+            client.get('socio_3_cpf', client.get('socio3_cpf', '')),                            # 36. SÓCIO 3 CPF
+            client.get('socio_3_data_nascimento', client.get('socio3_nascimento', '')),         # 37. SÓCIO 3 DATA NASCIMENTO
+            'SIM' if client.get('socio_3_administrador', client.get('socio3_admin')) else 'NÃO', # 38. SÓCIO 3 ADMINISTRADOR
+            client.get('socio_3_participacao', client.get('socio3_cotas', '')),                  # 39. SÓCIO 3 PARTICIPAÇÃO
+            'SIM' if client.get('socio_3_resp_legal', client.get('socio3_resp_legal')) else 'NÃO', # 40. SÓCIO 3 RESPONSÁVEL LEGAL
+
+            client.get('socio_4_nome', client.get('socio4_nome', '')),                          # 41. SÓCIO 4 NOME
+            client.get('socio_4_cpf', client.get('socio4_cpf', '')),                            # 42. SÓCIO 4 CPF
+            client.get('socio_4_data_nascimento', client.get('socio4_nascimento', '')),         # 43. SÓCIO 4 DATA NASCIMENTO
+            'SIM' if client.get('socio_4_administrador', client.get('socio4_admin')) else 'NÃO', # 44. SÓCIO 4 ADMINISTRADOR
+            client.get('socio_4_participacao', client.get('socio4_cotas', '')),                  # 45. SÓCIO 4 PARTICIPAÇÃO
+            'SIM' if client.get('socio_4_resp_legal', client.get('socio4_resp_legal')) else 'NÃO', # 46. SÓCIO 4 RESPONSÁVEL LEGAL
+
+            client.get('socio_5_nome', client.get('socio5_nome', '')),                          # 47. SÓCIO 5 NOME
+            client.get('socio_5_cpf', client.get('socio5_cpf', '')),                            # 48. SÓCIO 5 CPF
+            client.get('socio_5_data_nascimento', client.get('socio5_nascimento', '')),         # 49. SÓCIO 5 DATA NASCIMENTO
+            'SIM' if client.get('socio_5_administrador', client.get('socio5_admin')) else 'NÃO', # 50. SÓCIO 5 ADMINISTRADOR
+            client.get('socio_5_participacao', client.get('socio5_cotas', '')),                  # 51. SÓCIO 5 PARTICIPAÇÃO
+            'SIM' if client.get('socio_5_resp_legal', client.get('socio5_resp_legal')) else 'NÃO', # 52. SÓCIO 5 RESPONSÁVEL LEGAL
+
+            client.get('socio_6_nome', client.get('socio6_nome', '')),                          # 53. SÓCIO 6 NOME
+            client.get('socio_6_cpf', client.get('socio6_cpf', '')),                            # 54. SÓCIO 6 CPF
+            client.get('socio_6_data_nascimento', client.get('socio6_nascimento', '')),         # 55. SÓCIO 6 DATA NASCIMENTO
+            'SIM' if client.get('socio_6_administrador', client.get('socio6_admin')) else 'NÃO', # 56. SÓCIO 6 ADMINISTRADOR
+            client.get('socio_6_participacao', client.get('socio6_cotas', '')),                  # 57. SÓCIO 6 PARTICIPAÇÃO
+            'SIM' if client.get('socio_6_resp_legal', client.get('socio6_resp_legal')) else 'NÃO', # 58. SÓCIO 6 RESPONSÁVEL LEGAL
+
+            client.get('socio_7_nome', client.get('socio7_nome', '')),                          # 59. SÓCIO 7 NOME
+            client.get('socio_7_cpf', client.get('socio7_cpf', '')),                            # 60. SÓCIO 7 CPF
+            client.get('socio_7_data_nascimento', client.get('socio7_nascimento', '')),         # 61. SÓCIO 7 DATA NASCIMENTO
+            'SIM' if client.get('socio_7_administrador', client.get('socio7_admin')) else 'NÃO', # 62. SÓCIO 7 ADMINISTRADOR
+            client.get('socio_7_participacao', client.get('socio7_cotas', '')),                  # 63. SÓCIO 7 PARTICIPAÇÃO
+            'SIM' if client.get('socio_7_resp_legal', client.get('socio7_resp_legal')) else 'NÃO', # 64. SÓCIO 7 RESPONSÁVEL LEGAL
+
+            client.get('socio_8_nome', client.get('socio8_nome', '')),                          # 65. SÓCIO 8 NOME
+            client.get('socio_8_cpf', client.get('socio8_cpf', '')),                            # 66. SÓCIO 8 CPF
+            client.get('socio_8_data_nascimento', client.get('socio8_nascimento', '')),         # 67. SÓCIO 8 DATA NASCIMENTO
+            'SIM' if client.get('socio_8_administrador', client.get('socio8_admin')) else 'NÃO', # 68. SÓCIO 8 ADMINISTRADOR
+            client.get('socio_8_participacao', client.get('socio8_cotas', '')),                  # 69. SÓCIO 8 PARTICIPAÇÃO
+            'SIM' if client.get('socio_8_resp_legal', client.get('socio8_resp_legal')) else 'NÃO', # 70. SÓCIO 8 RESPONSÁVEL LEGAL
+
+            client.get('socio_9_nome', client.get('socio9_nome', '')),                          # 71. SÓCIO 9 NOME
+            client.get('socio_9_cpf', client.get('socio9_cpf', '')),                            # 72. SÓCIO 9 CPF
+            client.get('socio_9_data_nascimento', client.get('socio9_nascimento', '')),         # 73. SÓCIO 9 DATA NASCIMENTO
+            'SIM' if client.get('socio_9_administrador', client.get('socio9_admin')) else 'NÃO', # 74. SÓCIO 9 ADMINISTRADOR
+            client.get('socio_9_participacao', client.get('socio9_cotas', '')),                  # 75. SÓCIO 9 PARTICIPAÇÃO
+            'SIM' if client.get('socio_9_resp_legal', client.get('socio9_resp_legal')) else 'NÃO', # 76. SÓCIO 9 RESPONSÁVEL LEGAL
+
+            client.get('socio_10_nome', client.get('socio10_nome', '')),                        # 77. SÓCIO 10 NOME
+            client.get('socio_10_cpf', client.get('socio10_cpf', '')),                          # 78. SÓCIO 10 CPF
+            client.get('socio_10_data_nascimento', client.get('socio10_nascimento', '')),       # 79. SÓCIO 10 DATA NASCIMENTO
+            'SIM' if client.get('socio_10_administrador', client.get('socio10_admin')) else 'NÃO', # 80. SÓCIO 10 ADMINISTRADOR
+            client.get('socio_10_participacao', client.get('socio10_cotas', '')),                # 81. SÓCIO 10 PARTICIPAÇÃO
+            'SIM' if client.get('socio_10_resp_legal', client.get('socio10_resp_legal')) else 'NÃO', # 82. SÓCIO 10 RESPONSÁVEL LEGAL
             
-            # Contatos Detalhados (até 5 contatos)
-            client.get('contato_1_nome', ''),                 # 40. CONTATO_1_NOME
-            client.get('contato_1_cargo', ''),                # 41. CONTATO_1_CARGO
-            client.get('contato_1_telefone', ''),             # 42. CONTATO_1_TELEFONE
-            client.get('contato_1_email', ''),                # 43. CONTATO_1_EMAIL
-            client.get('contato_2_nome', ''),                 # 44. CONTATO_2_NOME
-            client.get('contato_2_cargo', ''),                # 45. CONTATO_2_CARGO
-            client.get('contato_2_telefone', ''),             # 46. CONTATO_2_TELEFONE
-            client.get('contato_2_email', ''),                # 47. CONTATO_2_EMAIL
-            client.get('contato_3_nome', ''),                 # 48. CONTATO_3_NOME
-            client.get('contato_3_cargo', ''),                # 49. CONTATO_3_CARGO
-            client.get('contato_3_telefone', ''),             # 50. CONTATO_3_TELEFONE
-            client.get('contato_3_email', ''),                # 51. CONTATO_3_EMAIL
+            # Bloco 4: Contatos - POSIÇÕES AJUSTADAS
+            client.get('telefoneFixo', ''),                   # 83. TELEFONE FIXO (AJUSTADO)
+            client.get('telefoneCelular', ''),                # 84. TELEFONE CELULAR (AJUSTADO)
+            client.get('whatsapp', ''),                       # 85. WHATSAPP (AJUSTADO)
+            client.get('emailPrincipal', ''),                 # 86. EMAIL PRINCIPAL (AJUSTADO)
+            client.get('emailSecundario', ''),                # 87. EMAIL SECUNDÁRIO (AJUSTADO)
+            client.get('responsavelImediato', ''),            # 88. RESPONSÁVEL IMEDIATO (AJUSTADO)
+            client.get('emailsSocios', ''),                   # 89. EMAILS DOS SÓCIOS (AJUSTADO)
+            client.get('contatoContador', ''),                # 90. CONTATO CONTADOR (AJUSTADO)
+            client.get('telefoneContador', ''),               # 91. TELEFONE CONTADOR (AJUSTADO)
+            client.get('emailContador', ''),                  # 92. EMAIL CONTADOR (AJUSTADO)
+            
+            # Contatos Detalhados - POSIÇÕES CORRETAS
+            client.get('contato_1_nome', ''),                 # 39. CONTATO_1_NOME (POSIÇÃO CORRETA)
+            client.get('contato_1_cargo', ''),                # 40. CONTATO_1_CARGO (POSIÇÃO CORRETA)
+            client.get('contato_1_telefone', ''),             # 41. CONTATO_1_TELEFONE (POSIÇÃO CORRETA)
+            client.get('contato_1_email', ''),                # 42. CONTATO_1_EMAIL (POSIÇÃO CORRETA)
+            client.get('contato_2_nome', ''),                 # 43. CONTATO_2_NOME (POSIÇÃO CORRETA)
+            client.get('contato_2_cargo', ''),                # 44. CONTATO_2_CARGO (POSIÇÃO CORRETA)
+            client.get('contato_2_telefone', ''),             # 45. CONTATO_2_TELEFONE (POSIÇÃO CORRETA)
+            client.get('contato_2_email', ''),                # 46. CONTATO_2_EMAIL (POSIÇÃO CORRETA)
+            client.get('contato_3_nome', ''),                 # 47. CONTATO_3_NOME (POSIÇÃO CORRETA)
+            client.get('contato_3_cargo', ''),                # 48. CONTATO_3_CARGO (POSIÇÃO CORRETA)
+            client.get('contato_3_telefone', ''),             # 49. CONTATO_3_TELEFONE (POSIÇÃO CORRETA)
+            client.get('contato_3_email', ''),                # 51. CONTATO_3_EMAIL (POSIÇÃO CORRETA)
             client.get('contato_4_nome', ''),                 # 52. CONTATO_4_NOME
             client.get('contato_4_cargo', ''),                # 53. CONTATO_4_CARGO
             client.get('contato_4_telefone', ''),             # 54. CONTATO_4_TELEFONE
@@ -1033,14 +1291,28 @@ class GoogleSheetsServiceAccountService:
             client.get('anvisaGestor', ''),                   # 72. ANVISA GESTOR
             client.get('anvisaEmpresa', ''),                  # 73. ANVISA EMPRESA
             
+            # Bloco 5: Senhas Específicas Adicionais (NOVOS CAMPOS)
+            client.get('senhaFgts', ''),                      # 74. SENHA FGTS
+            client.get('senhaSocial', ''),                    # 75. SENHA SOCIAL
+            client.get('senhaGiss', ''),                      # 76. SENHA GISS
+            client.get('senhaDetran', ''),                    # 77. SENHA DETRAN
+            client.get('senhaReceita', ''),                   # 78. SENHA RECEITA
+            client.get('senhaSintegra', ''),                  # 79. SENHA SINTEGRA
+            client.get('senhaJucesp', ''),                    # 80. SENHA JUCESP
+            client.get('senhaPortalEmpregador', ''),          # 81. SENHA PORTAL EMPREGADOR
+            client.get('senhaSimples', ''),                   # 82. SENHA SIMPLES
+            client.get('senhaGoverno', ''),                   # 83. SENHA GOVERNO
+            client.get('senhaViaSoft', ''),                   # 84. SENHA VIA SOFT
+            client.get('senhaSimei', ''),                     # 85. SENHA SIMEI
+            
             # Bloco 6: Procurações (CORRIGIDO - alinhado com formulário)
-            'SIM' if client.get('procReceita') else 'NÃO',   # 74. PROCURAÇÃO RECEITA (RFB)
-            client.get('dataProcReceita', ''),                # 75. DATA PROCURAÇÃO RECEITA
-            'SIM' if client.get('procDte') else 'NÃO',        # 76. PROCURAÇÃO DTe
-            client.get('dataProcDte', ''),                    # 77. DATA PROCURAÇÃO DTe
-            'SIM' if client.get('procCaixa') else 'NÃO',      # 78. PROCURAÇÃO CAIXA
-            client.get('dataProcCaixa', ''),                  # 79. DATA PROCURAÇÃO CAIXA
-            'SIM' if client.get('procEmpWeb') else 'NÃO',     # 80. PROCURAÇÃO EMP WEB
+            'SIM' if client.get('procReceita') else 'NÃO',   # 86. PROCURAÇÃO RECEITA (RFB)
+            client.get('dataProcReceita', ''),                # 87. DATA PROCURAÇÃO RECEITA
+            'SIM' if client.get('procDte') else 'NÃO',        # 88. PROCURAÇÃO DTe
+            client.get('dataProcDte', ''),                    # 89. DATA PROCURAÇÃO DTe
+            'SIM' if client.get('procCaixa') else 'NÃO',      # 90. PROCURAÇÃO CAIXA
+            client.get('dataProcCaixa', ''),                  # 91. DATA PROCURAÇÃO CAIXA
+            'SIM' if client.get('procEmpWeb') else 'NÃO',     # 92. PROCURAÇÃO EMP WEB
             client.get('dataProcEmpWeb', ''),                 # 81. DATA PROCURAÇÃO EMP WEB
             'SIM' if client.get('procDet') else 'NÃO',        # 82. PROCURAÇÃO DET
             client.get('dataProcDet', ''),                    # 83. DATA PROCURAÇÃO DET
@@ -1163,60 +1435,138 @@ class GoogleSheetsServiceAccountService:
             'cpfCnpj': safe_get(row, 3),
 
             # Bloco 2: Serviços Prestados pela Control
-            'ct': bool_from_text(safe_get(row, 13)),
-            'fs': bool_from_text(safe_get(row, 14)),
-            'dp': bool_from_text(safe_get(row, 15)),
-            'bpoFinanceiro': bool_from_text(safe_get(row, 16)),
+            'ct': bool_from_text(safe_get(row, 13)),              # POSIÇÃO CORRETA
+            'fs': bool_from_text(safe_get(row, 14)),              # POSIÇÃO CORRETA  
+            'dp': bool_from_text(safe_get(row, 15)),              # POSIÇÃO CORRETA
+            'bpoFinanceiro': bool_from_text(safe_get(row, 16)),   # CORRIGIDO: posição 16
 
-            # Códigos dos Sistemas (Bloco 2) - remover aspas se presentes
-            'codFortesCt': safe_get(row, 18).lstrip("'").zfill(4) if safe_get(row, 18) else '',
-            'codFortesFs': safe_get(row, 19).lstrip("'").zfill(4) if safe_get(row, 19) else '',
-            'codFortesPs': safe_get(row, 20).lstrip("'").zfill(4) if safe_get(row, 20) else '',
-            'codDominio': safe_get(row, 21).lstrip("'").zfill(4) if safe_get(row, 21) else '',
-            'sistemaUtilizado': safe_get(row, 22),
+            # Códigos dos Sistemas (Bloco 2) - POSIÇÕES CORRETAS
+            'codFortesCt': safe_get(row, 18).lstrip("'").zfill(4) if safe_get(row, 18) else '',   # POSIÇÃO CORRETA
+            'codFortesFs': safe_get(row, 19).lstrip("'").zfill(4) if safe_get(row, 19) else '',   # POSIÇÃO CORRETA
+            'codFortesPs': safe_get(row, 20).lstrip("'").zfill(4) if safe_get(row, 20) else '',   # POSIÇÃO CORRETA
+            'codDominio': safe_get(row, 21).lstrip("'").zfill(4) if safe_get(row, 21) else '',    # POSIÇÃO CORRETA
+            'sistemaUtilizado': safe_get(row, 22),                # POSIÇÃO CORRETA
 
-            # Bloco 3: Quadro Societário - MAPEAMENTO CORRIGIDO PARA TEMPLATE
-            'socio_1_nome': safe_get(row, 23),
-            'socio_1_cpf': safe_get(row, 24),
-            'socio_1_data_nascimento': safe_get(row, 25),
-            'socio_1_administrador': bool_from_text(safe_get(row, 26)),
-            'socio_1_participacao': safe_get(row, 27),
-            'socio_1_resp_legal': bool_from_text(safe_get(row, 28)),
+            # Bloco 3: Quadro Societário - POSIÇÕES CORRETAS
+            'socio_1_nome': safe_get(row, 23),                    # POSIÇÃO CORRETA
+            'socio_1_cpf': safe_get(row, 24),                     # POSIÇÃO CORRETA
+            'socio_1_data_nascimento': safe_get(row, 25),         # POSIÇÃO CORRETA
+            'socio_1_administrador': bool_from_text(safe_get(row, 26)),  # POSIÇÃO CORRETA
+            'socio_1_participacao': safe_get(row, 27),            # POSIÇÃO CORRETA
+            'socio_1_resp_legal': bool_from_text(safe_get(row, 28)),     # POSIÇÃO CORRETA
+
+            # Sócios 2-10 - NOVOS MAPEAMENTOS
+            'socio_2_nome': safe_get(row, 29),                    # SÓCIO 2 NOME
+            'socio_2_cpf': safe_get(row, 30),                     # SÓCIO 2 CPF
+            'socio_2_data_nascimento': safe_get(row, 31),         # SÓCIO 2 DATA NASCIMENTO
+            'socio_2_administrador': bool_from_text(safe_get(row, 32)),  # SÓCIO 2 ADMINISTRADOR
+            'socio_2_participacao': safe_get(row, 33),            # SÓCIO 2 PARTICIPAÇÃO
+            'socio_2_resp_legal': bool_from_text(safe_get(row, 34)),     # SÓCIO 2 RESPONSÁVEL LEGAL
+
+            'socio_3_nome': safe_get(row, 35),                    # SÓCIO 3 NOME
+            'socio_3_cpf': safe_get(row, 36),                     # SÓCIO 3 CPF
+            'socio_3_data_nascimento': safe_get(row, 37),         # SÓCIO 3 DATA NASCIMENTO
+            'socio_3_administrador': bool_from_text(safe_get(row, 38)),  # SÓCIO 3 ADMINISTRADOR
+            'socio_3_participacao': safe_get(row, 39),            # SÓCIO 3 PARTICIPAÇÃO
+            'socio_3_resp_legal': bool_from_text(safe_get(row, 40)),     # SÓCIO 3 RESPONSÁVEL LEGAL
+
+            'socio_4_nome': safe_get(row, 41),                    # SÓCIO 4 NOME
+            'socio_4_cpf': safe_get(row, 42),                     # SÓCIO 4 CPF
+            'socio_4_data_nascimento': safe_get(row, 43),         # SÓCIO 4 DATA NASCIMENTO
+            'socio_4_administrador': bool_from_text(safe_get(row, 44)),  # SÓCIO 4 ADMINISTRADOR
+            'socio_4_participacao': safe_get(row, 45),            # SÓCIO 4 PARTICIPAÇÃO
+            'socio_4_resp_legal': bool_from_text(safe_get(row, 46)),     # SÓCIO 4 RESPONSÁVEL LEGAL
+
+            'socio_5_nome': safe_get(row, 47),                    # SÓCIO 5 NOME
+            'socio_5_cpf': safe_get(row, 48),                     # SÓCIO 5 CPF
+            'socio_5_data_nascimento': safe_get(row, 49),         # SÓCIO 5 DATA NASCIMENTO
+            'socio_5_administrador': bool_from_text(safe_get(row, 50)),  # SÓCIO 5 ADMINISTRADOR
+            'socio_5_participacao': safe_get(row, 51),            # SÓCIO 5 PARTICIPAÇÃO
+            'socio_5_resp_legal': bool_from_text(safe_get(row, 52)),     # SÓCIO 5 RESPONSÁVEL LEGAL
+
+            'socio_6_nome': safe_get(row, 53),                    # SÓCIO 6 NOME
+            'socio_6_cpf': safe_get(row, 54),                     # SÓCIO 6 CPF
+            'socio_6_data_nascimento': safe_get(row, 55),         # SÓCIO 6 DATA NASCIMENTO
+            'socio_6_administrador': bool_from_text(safe_get(row, 56)),  # SÓCIO 6 ADMINISTRADOR
+            'socio_6_participacao': safe_get(row, 57),            # SÓCIO 6 PARTICIPAÇÃO
+            'socio_6_resp_legal': bool_from_text(safe_get(row, 58)),     # SÓCIO 6 RESPONSÁVEL LEGAL
+
+            'socio_7_nome': safe_get(row, 59),                    # SÓCIO 7 NOME
+            'socio_7_cpf': safe_get(row, 60),                     # SÓCIO 7 CPF
+            'socio_7_data_nascimento': safe_get(row, 61),         # SÓCIO 7 DATA NASCIMENTO
+            'socio_7_administrador': bool_from_text(safe_get(row, 62)),  # SÓCIO 7 ADMINISTRADOR
+            'socio_7_participacao': safe_get(row, 63),            # SÓCIO 7 PARTICIPAÇÃO
+            'socio_7_resp_legal': bool_from_text(safe_get(row, 64)),     # SÓCIO 7 RESPONSÁVEL LEGAL
+
+            'socio_8_nome': safe_get(row, 65),                    # SÓCIO 8 NOME
+            'socio_8_cpf': safe_get(row, 66),                     # SÓCIO 8 CPF
+            'socio_8_data_nascimento': safe_get(row, 67),         # SÓCIO 8 DATA NASCIMENTO
+            'socio_8_administrador': bool_from_text(safe_get(row, 68)),  # SÓCIO 8 ADMINISTRADOR
+            'socio_8_participacao': safe_get(row, 69),            # SÓCIO 8 PARTICIPAÇÃO
+            'socio_8_resp_legal': bool_from_text(safe_get(row, 70)),     # SÓCIO 8 RESPONSÁVEL LEGAL
+
+            'socio_9_nome': safe_get(row, 71),                    # SÓCIO 9 NOME
+            'socio_9_cpf': safe_get(row, 72),                     # SÓCIO 9 CPF
+            'socio_9_data_nascimento': safe_get(row, 73),         # SÓCIO 9 DATA NASCIMENTO
+            'socio_9_administrador': bool_from_text(safe_get(row, 74)),  # SÓCIO 9 ADMINISTRADOR
+            'socio_9_participacao': safe_get(row, 75),            # SÓCIO 9 PARTICIPAÇÃO
+            'socio_9_resp_legal': bool_from_text(safe_get(row, 76)),     # SÓCIO 9 RESPONSÁVEL LEGAL
+
+            'socio_10_nome': safe_get(row, 77),                   # SÓCIO 10 NOME
+            'socio_10_cpf': safe_get(row, 78),                    # SÓCIO 10 CPF
+            'socio_10_data_nascimento': safe_get(row, 79),        # SÓCIO 10 DATA NASCIMENTO
+            'socio_10_administrador': bool_from_text(safe_get(row, 80)),  # SÓCIO 10 ADMINISTRADOR
+            'socio_10_participacao': safe_get(row, 81),           # SÓCIO 10 PARTICIPAÇÃO
+            'socio_10_resp_legal': bool_from_text(safe_get(row, 82)),     # SÓCIO 10 RESPONSÁVEL LEGAL
 
             # Campos legados para compatibilidade total
-            'socio1_nome': safe_get(row, 23),
-            'socio1_cpf': safe_get(row, 24),
-            'socio1_nascimento': safe_get(row, 25),
-            'socio1_admin': bool_from_text(safe_get(row, 26)),
-            'socio1_cotas': safe_get(row, 27),
-            'socio1_resp_legal': bool_from_text(safe_get(row, 28)),
-            'socio1': safe_get(row, 23),  # Nome do sócio 1
-            'mesAnoInicio': safe_get(row, 17),
+            'socio1_nome': safe_get(row, 23),                     # POSIÇÃO CORRETA
+            'socio1_cpf': safe_get(row, 24),                      # POSIÇÃO CORRETA
+            'socio1_nascimento': safe_get(row, 25),               # POSIÇÃO CORRETA
+            'socio1_admin': bool_from_text(safe_get(row, 26)),    # POSIÇÃO CORRETA
+            'socio1_cotas': safe_get(row, 27),                    # POSIÇÃO CORRETA
+            'socio1_resp_legal': bool_from_text(safe_get(row, 28)),  # POSIÇÃO CORRETA
+            'socio1': safe_get(row, 23),                          # POSIÇÃO CORRETA
 
-            # Bloco 4: Contatos
-            'telefoneFixo': safe_get(row, 29),
-            'telefoneCelular': safe_get(row, 30),
-            'whatsapp': safe_get(row, 31),
-            'emailPrincipal': safe_get(row, 32),
-            'emailSecundario': safe_get(row, 33),
-            'responsavelImediato': safe_get(row, 34),
-            'emailsSocios': safe_get(row, 35),
-            'contatoContador': safe_get(row, 36),
-            'telefoneContador': safe_get(row, 37),
-            'emailContador': safe_get(row, 38),
+            # Campos legados para sócios 2-10
+            'socio2_nome': safe_get(row, 29),                     # COMPATIBILIDADE
+            'socio3_nome': safe_get(row, 35),                     # COMPATIBILIDADE
+            'socio4_nome': safe_get(row, 41),                     # COMPATIBILIDADE
+            'socio5_nome': safe_get(row, 47),                     # COMPATIBILIDADE
+            'socio6_nome': safe_get(row, 53),                     # COMPATIBILIDADE
+            'socio7_nome': safe_get(row, 59),                     # COMPATIBILIDADE
+            'socio8_nome': safe_get(row, 65),                     # COMPATIBILIDADE
+            'socio9_nome': safe_get(row, 71),                     # COMPATIBILIDADE
+            'socio10_nome': safe_get(row, 77),                    # COMPATIBILIDADE
+            
+            # Campos de data - CORRIGIDOS
+            'mesAnoInicio': safe_get(row, 17),                    # POSIÇÃO CORRETA para DATA INÍCIO DOS SERVIÇOS
+            'dataInicioServicos': safe_get(row, 17),              # POSIÇÃO CORRETA para DATA INÍCIO DOS SERVIÇOS
+
+            # Bloco 4: Contatos - POSIÇÕES AJUSTADAS PARA MÚLTIPLOS SÓCIOS
+            'telefoneFixo': safe_get(row, 83),                    # AJUSTADO: era 29, agora 83
+            'telefoneCelular': safe_get(row, 84),                 # AJUSTADO: era 30, agora 84
+            'whatsapp': safe_get(row, 85),                        # AJUSTADO: era 31, agora 85
+            'emailPrincipal': safe_get(row, 86),                  # AJUSTADO: era 32, agora 86
+            'emailSecundario': safe_get(row, 87),                 # AJUSTADO: era 33, agora 87
+            'responsavelImediato': safe_get(row, 88),             # AJUSTADO: era 34, agora 88
+            'emailsSocios': safe_get(row, 89),                    # AJUSTADO: era 35, agora 89
+            'contatoContador': safe_get(row, 90),                 # AJUSTADO: era 36, agora 90
+            'telefoneContador': safe_get(row, 91),                # AJUSTADO: era 37, agora 91
+            'emailContador': safe_get(row, 92),                   # AJUSTADO: era 38, agora 92
 
             # Campos legados para compatibilidade
-            'emailsSocio': safe_get(row, 35),
+            'emailsSocio': safe_get(row, 35),                     # POSIÇÃO CORRETA
 
-            # Bloco 4: Contatos Detalhados (CORRIGIDO - convertendo índices 1-based para 0-based)
-            'contato_1_nome': safe_get(row, 39),     # 40-1 = 39 (CONTATO_1_NOME)
-            'contato_1_cargo': safe_get(row, 40),    # 41-1 = 40 (CONTATO_1_CARGO)
-            'contato_1_telefone': safe_get(row, 41), # 42-1 = 41 (CONTATO_1_TELEFONE)
-            'contato_1_email': safe_get(row, 42),    # 43-1 = 42 (CONTATO_1_EMAIL)
-            'contato_2_nome': safe_get(row, 43),     # 44-1 = 43 (CONTATO_2_NOME)
-            'contato_2_cargo': safe_get(row, 44),    # 45-1 = 44 (CONTATO_2_CARGO)
-            'contato_2_telefone': safe_get(row, 45), # 46-1 = 45 (CONTATO_2_TELEFONE)
-            'contato_2_email': safe_get(row, 46),    # 47-1 = 46 (CONTATO_2_EMAIL)
+            # Bloco 5: Contatos Detalhados - POSIÇÕES CORRETAS
+            'contato_1_nome': safe_get(row, 39),                  # POSIÇÃO CORRETA
+            'contato_1_cargo': safe_get(row, 40),                 # POSIÇÃO CORRETA
+            'contato_1_telefone': safe_get(row, 41),              # POSIÇÃO CORRETA
+            'contato_1_email': safe_get(row, 42),                 # POSIÇÃO CORRETA
+            'contato_2_nome': safe_get(row, 43),                  # POSIÇÃO CORRETA
+            'contato_2_cargo': safe_get(row, 44),                 # POSIÇÃO CORRETA
+            'contato_2_telefone': safe_get(row, 45),              # POSIÇÃO CORRETA
+            'contato_2_email': safe_get(row, 46),                 # POSIÇÃO CORRETA
             'contato_3_nome': safe_get(row, 47),     # 48-1 = 47 (CONTATO_3_NOME)
             'contato_3_cargo': safe_get(row, 48),    # 49-1 = 48 (CONTATO_3_CARGO)
             'contato_3_telefone': safe_get(row, 49), # 50-1 = 49 (CONTATO_3_TELEFONE)
@@ -1230,52 +1580,63 @@ class GoogleSheetsServiceAccountService:
             'contato_5_telefone': safe_get(row, 57), # 58-1 = 57 (CONTATO_5_TELEFONE)
             'contato_5_email': safe_get(row, 58),    # 59-1 = 58 (CONTATO_5_EMAIL)
 
-            # Bloco 5: Senhas e Credenciais (APENAS CAMPOS ESPECIFICADOS)
-            'cpfCnpjSn': safe_get(row, 59),          # 60-1 = 59 (CPF/CNPJ SN)
-            'codigoAcessoSn': safe_get(row, 60),     # 61-1 = 60 (CÓDIGO ACESSO SN)
-            'acessoEmpWeb': safe_get(row, 61),       # 62-1 = 61 (ACESSO EMPWEB)
-            'senhaEmpWeb': safe_get(row, 62),        # 63-1 = 62 (SENHA EMPWEB)
-            'acessoIss': safe_get(row, 63),          # 64-1 = 63 (ACESSO ISS)
-            'acessoSefin': safe_get(row, 64),        # 65-1 = 64 (ACESSO SEFIN)
-            'acessoSeuma': safe_get(row, 65),        # 66-1 = 65 (ACESSO SEUMA)
-            'acessoSemace': safe_get(row, 66),       # 67-1 = 66 (ACESSO SEMACE)
-            'acessoIbama': safe_get(row, 67),        # 68-1 = 67 (ACESSO IBAMA)
-            'acessoFapInss': safe_get(row, 68),      # 69-1 = 68 (ACESSO FAP/INSS)
-            'acessoCrf': safe_get(row, 69),          # 70-1 = 69 (ACESSO CRF)
-            'senhaSemace': safe_get(row, 70),        # 71-1 = 70 (SENHA SEMACE)
-            'anvisaGestor': safe_get(row, 71),       # 72-1 = 71 (ANVISA GESTOR)
-            'anvisaEmpresa': safe_get(row, 72),      # 73-1 = 72 (ANVISA EMPRESA)
-
-            # Bloco 6: Procurações (CORRIGIDO - alinhado com formulário)
-            'procReceita': bool_from_text(safe_get(row, 73)),     # 74-1 = 73 (PROCURAÇÃO RECEITA)
-            'dataProcReceita': safe_get(row, 74),                 # 75-1 = 74 (DATA PROCURAÇÃO RECEITA)
-            'procDte': bool_from_text(safe_get(row, 75)),         # 76-1 = 75 (PROCURAÇÃO DTe)
-            'dataProcDte': safe_get(row, 76),                     # 77-1 = 76 (DATA PROCURAÇÃO DTe)
-            'procCaixa': bool_from_text(safe_get(row, 77)),       # 78-1 = 77 (PROCURAÇÃO CAIXA)
-            'dataProcCaixa': safe_get(row, 78),                   # 79-1 = 78 (DATA PROCURAÇÃO CAIXA)
-            'procEmpWeb': bool_from_text(safe_get(row, 79)),      # 80-1 = 79 (PROCURAÇÃO EMP WEB)
-            'dataProcEmpWeb': safe_get(row, 80),                  # 81-1 = 80 (DATA PROCURAÇÃO EMP WEB)
-            'procDet': bool_from_text(safe_get(row, 81)),         # 82-1 = 81 (PROCURAÇÃO DET)
-            'dataProcDet': safe_get(row, 82),                     # 83-1 = 82 (DATA PROCURAÇÃO DET)
-            'outrasProc': safe_get(row, 83),                      # 84-1 = 83 (OUTRAS PROCURAÇÕES)
-            'obsProcuracoes': safe_get(row, 84),                  # 85-1 = 84 (OBSERVAÇÕES PROCURAÇÕES)
-
-            # Bloco 7: Observações e Dados Adicionais (apenas campos mantidos)
-            # Bloco 7: Observações e Dados Adicionais
-            'observacoes': safe_get(row, hidx.get('OBSERVAÇÕES', 85), ''),
+            # Bloco 5: Senhas e Credenciais (CORRIGIDOS - novos índices após expansão dos sócios)
+            'cpfCnpjSn': safe_get(row, 113),         # Real: 113 (CPF/CNPJ SN)
+            'codigoAcessoSn': safe_get(row, 114),    # Real: 114 (CÓDIGO ACESSO SN)
+            'acessoEmpWeb': safe_get(row, 115),      # Real: 115 (ACESSO EMPWEB)
+            'senhaEmpWeb': safe_get(row, 116),       # Real: 116 (SENHA EMPWEB)
+            'acessoIss': safe_get(row, 117),         # Real: 117 (ACESSO ISS)
+            'acessoSefin': safe_get(row, 118),       # Real: 118 (ACESSO SEFIN)
+            'acessoSeuma': safe_get(row, 66),        # 66. ACESSO SEUMA
+            'acessoSemace': safe_get(row, 67),       # 67. ACESSO SEMACE
+            'acessoIbama': safe_get(row, 68),        # 68. ACESSO IBAMA
+            'acessoFapInss': safe_get(row, 69),      # 69. ACESSO FAP/INSS
+            'acessoCrf': safe_get(row, 70),          # 70. ACESSO CRF
+            'senhaSemace': safe_get(row, 71),        # 71. SENHA SEMACE
+            'anvisaGestor': safe_get(row, 72),       # 72. ANVISA GESTOR
+            'anvisaEmpresa': safe_get(row, 73),      # 73. ANVISA EMPRESA
             
-            # Status do Cliente - usar índice correto baseado na investigação
-            'statusCliente': safe_get(row, hidx.get('STATUS DO CLIENTE', 86), 'ativo').lower(),
-            'ultimaAtualizacao': safe_get(row, hidx.get('ÚLTIMA ATUALIZAÇÃO', 87)),
+            # Bloco 5: Senhas Específicas Adicionais (POSIÇÕES REAIS NA PLANILHA)
+            'senhaFgts': safe_get(row, 127),                      # 127. SENHA FGTS (posição real)
+            'senhaSocial': safe_get(row, 128),                    # 128. SENHA SOCIAL (posição real)
+            'senhaGiss': safe_get(row, 129),                      # 129. SENHA GISS (posição real)
+            'senhaDetran': safe_get(row, 130),                    # 130. SENHA DETRAN (posição real)
+            'senhaReceita': safe_get(row, 131),                   # 131. SENHA RECEITA (posição real)
+            'senhaSintegra': safe_get(row, 132),                  # 132. SENHA SINTEGRA (posição real)
+            'senhaJucesp': safe_get(row, 133),                    # 133. SENHA JUCESP (posição real)
+            'senhaPortalEmpregador': safe_get(row, 134),          # 134. SENHA PORTAL EMPREGADOR (posição real)
+            'senhaSimples': safe_get(row, 135),                   # 135. SENHA SIMPLES (posição real)
+            'senhaGoverno': safe_get(row, 136),                   # 136. SENHA GOVERNO (posição real)
+            'senhaViaSoft': safe_get(row, 137),                   # 137. SENHA VIA SOFT (posição real)
+            'senhaSimei': safe_get(row, 138),                     # 138. SENHA SIMEI (posição real)
 
-            # Campos internos do sistema (alinhados aos cabeçalhos - índices corretos da investigação)
+            # Bloco 6: Procurações (posições reais na planilha)
+            'procReceita': bool_from_text(safe_get(row, 139)),    # 139. PROCURAÇÃO RECEITA (RFB)
+            'dataProcReceita': safe_get(row, 140),                # 140. DATA PROCURAÇÃO RECEITA
+            'procDte': bool_from_text(safe_get(row, 141)),        # 141. PROCURAÇÃO DTe
+            'dataProcDte': safe_get(row, 142),                    # 142. DATA PROCURAÇÃO DTe
+            'procCaixa': bool_from_text(safe_get(row, 143)),      # 143. PROCURAÇÃO CAIXA
+            'dataProcCaixa': safe_get(row, 144),                  # 144. DATA PROCURAÇÃO CAIXA
+            'procEmpWeb': bool_from_text(safe_get(row, 145)),     # 145. PROCURAÇÃO EMP WEB
+            'dataProcEmpWeb': safe_get(row, 146),                 # 146. DATA PROCURAÇÃO EMP WEB
+            'procDet': bool_from_text(safe_get(row, 147)),        # 147. PROCURAÇÃO DET
+            'dataProcDet': safe_get(row, 148),                    # 148. DATA PROCURAÇÃO DET
+            'outrasProc': safe_get(row, 149),                     # 149. OUTRAS PROCURAÇÕES
+            'obsProcuracoes': safe_get(row, 150),                 # 150. OBSERVAÇÕES PROCURAÇÕES
+
+            # Bloco 7: Observações e Dados Adicionais (posições reais na planilha)
+            'observacoes': safe_get(row, 151, ''),                # 151. OBSERVAÇÕES
+            'statusCliente': safe_get(row, 152, 'ativo').lower(), # 152. STATUS DO CLIENTE
+            'ultimaAtualizacao': safe_get(row, 153),              # 153. ÚLTIMA ATUALIZAÇÃO
+
+            # Campos internos do sistema (posições reais na planilha)
             'id': id_resolvido,
-            'donoResp': safe_get(row, hidx.get('DONO/RESPONSÁVEL', 88)),
+            'donoResp': safe_get(row, 154),                       # 154. DONO/RESPONSÁVEL
             
             # Campo ativo derivado do statusCliente - CORREÇÃO PRINCIPAL
-            'criadoEm': safe_get(row, hidx.get('DATA DE CRIAÇÃO', 90), safe_get(row, hidx.get('RESERVADO 2', 84), datetime.now().isoformat())),
-            'domestica': safe_get(row, hidx.get('DOMÉSTICA', 91)),
-            'geraArquivoSped': safe_get(row, hidx.get('GERA ARQUIVO DO SPED', 92))
+            'criadoEm': safe_get(row, 156, datetime.now().isoformat()), # 156. DATA DE CRIAÇÃO
+            'domestica': safe_get(row, 158),                      # 158. DOMÉSTICA
+            'geraArquivoSped': safe_get(row, 159)                 # 159. GERA ARQUIVO DO SPED
         }
 
         # CORREÇÃO CRÍTICA: Derivar campo 'ativo' a partir do statusCliente

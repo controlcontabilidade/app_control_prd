@@ -156,7 +156,7 @@
             </div>
             <div class="card-body">
                 {% set socios_existentes = [] %}
-                {% for i in range(1, 5) %}
+                {% for i in range(1, 11) %}
                     {% set socio_nome = client.get('socio_' ~ i ~ '_nome') or client.get('socio' ~ i ~ '_nome') or client.get('socio' ~ i ~ 'Nome') or client.get('socio' ~ i) %}
                     {% if socio_nome %}
                         {% set _ = socios_existentes.append(socio_nome) %}
@@ -619,7 +619,7 @@
                     <div class="info-item d-flex justify-content-between align-items-center mb-3">
                         <span class="text-muted">Doméstica:</span>
                         <strong>
-                            {% if client.domestica %}
+                            {% if client.domestica == 'SIM' %}
                                 <span class="badge bg-info">Sim</span>
                             {% else %}
                                 <span class="badge bg-secondary">Não</span>
