@@ -312,7 +312,7 @@
             </div>
             <div class="card-body">
                 {% set found_socio = false %}
-                {% for i in range(1, 5) %}
+                {% for i in range(1, 11) %}
                     {% set socio_nome = client.get('socio' + i|string + '_nome') %}
                     {% if socio_nome %}
                         {% set found_socio = true %}
