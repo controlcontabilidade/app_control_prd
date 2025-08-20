@@ -2553,6 +2553,8 @@ def save_client():
         # Debug específico para senhas e credenciais
         print("🔍 === DEBUG SENHAS E CREDENCIAIS ===")
         senhas_credenciais = {
+            'cpfCnpjSn': request.form.get('cpfCnpjSn', ''),
+            'codigoAcessoSn': request.form.get('codigoAcessoSn', ''),
             'acessoIss': request.form.get('acessoIss', ''),
             'senhaIss': request.form.get('senhaIss', ''),
             'acessoSefin': request.form.get('acessoSefin', ''),
@@ -2608,6 +2610,8 @@ def save_client():
         client_data.update({
             
             # Bloco 5: Senhas e Credenciais
+            'cpfCnpjSn': request.form.get('cpfCnpjSn', ''),
+            'codigoAcessoSn': request.form.get('codigoAcessoSn', ''),
             'acessoIss': request.form.get('acessoIss', ''),
             'senhaIss': request.form.get('senhaIss', ''),
             'acessoSefin': request.form.get('acessoSefin', ''),
