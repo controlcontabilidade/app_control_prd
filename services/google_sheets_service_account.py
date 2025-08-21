@@ -905,6 +905,10 @@ class GoogleSheetsServiceAccountService:
             'ID',                                # 104. ID único do cliente
             'DOMÉSTICA',                         # 105. Indica se é doméstica (SIM/NÃO)
             'GERA ARQUIVO DO SPED',              # 106. Gera arquivo do SPED (SIM/NÃO)
+            # --- CAMPOS NOVOS (sempre ao final para não quebrar ordem) ---
+            'CNPJ ACESSO SIMPLES NACIONAL',       # 107. Novo campo
+            'CPF DO REPRESENTANTE LEGAL',         # 108. Novo campo
+            'CÓDIGO DE ACESSO SIMPLES NACIONAL',  # 109. Novo campo
         ]
 
     def ensure_correct_headers(self):
@@ -1139,6 +1143,9 @@ class GoogleSheetsServiceAccountService:
         print(f"🔍 [SERVICE] ID do cliente: '{client_id}' (tipo: {type(client_id)})")
         print("🔍 [SERVICE] ID ficará na coluna 'ID' conforme cabeçalho atual")
 
+        # Obter headers para mapeamento de índices
+        headers = self.get_headers()
+
         row_data = [
             # Bloco 1: Informações da Pessoa Jurídica (13 campos obrigatórios)
             client.get('nomeEmpresa', ''),                    # 1. NOME DA EMPRESA
@@ -1304,35 +1311,38 @@ class GoogleSheetsServiceAccountService:
             client.get('senhaGoverno', ''),                   # 83. SENHA GOVERNO
             client.get('senhaViaSoft', ''),                   # 84. SENHA VIA SOFT
             client.get('senhaSimei', ''),                     # 85. SENHA SIMEI
-            
+
             # Bloco 6: Procurações (CORRIGIDO - alinhado com formulário)
-            'SIM' if client.get('procReceita') else 'NÃO',   # 86. PROCURAÇÃO RECEITA (RFB)
+            'SIM' if client.get('procReceita') else 'NÃO',    # 86. PROCURAÇÃO RECEITA
             client.get('dataProcReceita', ''),                # 87. DATA PROCURAÇÃO RECEITA
             'SIM' if client.get('procDte') else 'NÃO',        # 88. PROCURAÇÃO DTe
             client.get('dataProcDte', ''),                    # 89. DATA PROCURAÇÃO DTe
             'SIM' if client.get('procCaixa') else 'NÃO',      # 90. PROCURAÇÃO CAIXA
             client.get('dataProcCaixa', ''),                  # 91. DATA PROCURAÇÃO CAIXA
             'SIM' if client.get('procEmpWeb') else 'NÃO',     # 92. PROCURAÇÃO EMP WEB
-            client.get('dataProcEmpWeb', ''),                 # 81. DATA PROCURAÇÃO EMP WEB
-            'SIM' if client.get('procDet') else 'NÃO',        # 82. PROCURAÇÃO DET
-            client.get('dataProcDet', ''),                    # 83. DATA PROCURAÇÃO DET
-            client.get('outrasProc', ''),                     # 84. OUTRAS PROCURAÇÕES
-            client.get('obsProcuracoes', ''),                 # 85. OBSERVAÇÕES PROCURAÇÕES
-            
-            # Bloco 7: Observações e Dados Adicionais (apenas campos mantidos)
-            client.get('observacoes', ''),                   # 86. OBSERVAÇÕES
-            client.get('statusCliente', 'ATIVO').upper(),        # 87. STATUS DO CLIENTE
-            client.get('ultimaAtualizacao', ''),              # 88. ÚLTIMA ATUALIZAÇÃO
-            # placeholders para manter comprimento; campos finais serão preenchidos por nome
-            '',  # placeholder
-            '',  # placeholder
-        ]
+            client.get('dataProcEmpWeb', ''),                 # 93. DATA PROCURAÇÃO EMP WEB
+            'SIM' if client.get('procDet') else 'NÃO',        # 94. PROCURAÇÃO DET
+            client.get('dataProcDet', ''),                    # 95. DATA PROCURAÇÃO DET
+            client.get('outrasProc', ''),                     # 96. OUTRAS PROCURAÇÕES
+            client.get('obsProcuracoes', ''),                 # 97. OBSERVAÇÕES PROCURAÇÕES
 
-        # CORREÇÃO: Garantir que a linha tenha o tamanho dos cabeçalhos
-        headers = self.get_headers()
-        expected_len = len(headers)
-        while len(row_data) < expected_len:
-            row_data.append('')
+            # Bloco 7: Observações e Dados Adicionais (apenas campos mantidos)
+            client.get('observacoes', ''),                    # 98. OBSERVAÇÕES
+            client.get('statusCliente', 'ativo'),             # 99. STATUS DO CLIENTE
+            client.get('ultimaAtualizacao', ''),              # 100. ÚLTIMA ATUALIZAÇÃO
+
+            # Campos internos do sistema
+            client.get('donoResp', ''),                       # 101. DONO/RESPONSÁVEL
+            'SIM' if client.get('ativo', True) else 'NÃO',    # 102. CLIENTE ATIVO
+            client.get('criadoEm', ''),                       # 103. DATA DE CRIAÇÃO
+            client.get('id', ''),                             # 104. ID
+            client.get('domestica', ''),                      # 105. DOMÉSTICA
+            client.get('geraArquivoSped', ''),                # 106. GERA ARQUIVO DO SPED
+            # --- CAMPOS NOVOS AO FINAL ---
+            client.get('cnpjAcessoSn', ''),                   # 107. CNPJ ACESSO SIMPLES NACIONAL
+            client.get('cpfRepLegal', ''),                    # 108. CPF DO REPRESENTANTE LEGAL
+            client.get('codigoAcessoSn', ''),                 # 109. CÓDIGO DE ACESSO SIMPLES NACIONAL
+        ]
 
         # Mapear índices de cabeçalho para evitar desalinhamento nos campos finais
         hidx = {name: i for i, name in enumerate(headers)}
@@ -1376,7 +1386,7 @@ class GoogleSheetsServiceAccountService:
         # DEBUG: Verificar se o ID foi colocado corretamente
         if 'ID' in hidx:
             print(f"🔍 [SERVICE] ID na posição {hidx['ID']}: '{row_data[hidx['ID']]}' (deve ser '{client_id}')")
-        print(f"✅ [SERVICE] Total de colunas na linha: {len(row_data)} (esperado {expected_len})")
+        print(f"✅ [SERVICE] Total de colunas na linha: {len(row_data)} (esperado {len(headers)})")
         print("✅ [SERVICE] Linha preparada com cabeçalhos alinhados")
 
         return row_data
@@ -1636,7 +1646,11 @@ class GoogleSheetsServiceAccountService:
             # Campo ativo derivado do statusCliente - CORREÇÃO PRINCIPAL
             'criadoEm': safe_get(row, 156, datetime.now().isoformat()), # 156. DATA DE CRIAÇÃO
             'domestica': safe_get(row, 158),                      # 158. DOMÉSTICA
-            'geraArquivoSped': safe_get(row, 159)                 # 159. GERA ARQUIVO DO SPED
+            'geraArquivoSped': safe_get(row, 159),                # 159. GERA ARQUIVO DO SPED
+            # --- CAMPOS NOVOS AO FINAL ---
+            'cnpjAcessoSn': safe_get(row, 160),
+            'cpfRepLegal': safe_get(row, 161),
+            'codigoAcessoSn': safe_get(row, 162),
         }
 
         # CORREÇÃO CRÍTICA: Derivar campo 'ativo' a partir do statusCliente

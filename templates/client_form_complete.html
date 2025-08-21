@@ -61,6 +61,49 @@
 </style>
 {% endblock %}
 
+{% block scripts %}
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    function atualizarCpfRepresentanteLegal() {
+        // Procura o radio selecionado para representante legal
+        const radios = document.querySelectorAll('.representante-legal');
+        let cpf = '';
+        radios.forEach(function(radio) {
+            if (radio.checked) {
+                // O id do sócio está no value (ex: socio_1)
+                const socioId = radio.value;
+                // Busca o input de CPF do sócio (compatível com sócios dinâmicos)
+                const cpfInput = document.querySelector(`#${socioId}_cpf, [name='${socioId}_cpf']`);
+                if (cpfInput) {
+                    cpf = cpfInput.value;
+                }
+            }
+        });
+        // Preenche o campo CPF do Representante Legal
+        const cpfRepLegal = document.getElementById('cpfRepLegal');
+        if (cpfRepLegal) {
+            cpfRepLegal.value = cpf;
+        }
+    }
+
+    // Atualiza ao selecionar representante legal
+    document.addEventListener('change', function(e) {
+        if (e.target.classList.contains('representante-legal')) {
+            atualizarCpfRepresentanteLegal();
+        }
+    });
+    // Atualiza ao digitar CPF do sócio
+    document.addEventListener('input', function(e) {
+        if (e.target && e.target.id && e.target.id.endsWith('_cpf')) {
+            atualizarCpfRepresentanteLegal();
+        }
+    });
+    // Atualiza ao carregar a página
+    atualizarCpfRepresentanteLegal();
+});
+</script>
+{% endblock %}
+
 {% block content %}
 <div class="container-fluid py-4">
     <div class="row justify-content-center">
@@ -625,21 +668,53 @@
                         </h5>
                     </div>
                     <div class="card-body">
-                        <!-- Linha 1: CPF/CNPJ SN, Código Acesso SN, Acesso EmpWeb, Senha EmpWeb -->
+                        <!-- Linha 1: CNPJ Acesso Simples Nacional, CPF do Representante Legal, Código de Acesso Simples Nacional, Acesso ISS -->
                         <div class="row mb-3">
                             <div class="col-md-3 mb-2">
-                                <label for="cpfCnpjSn" class="form-label small">CPF/CNPJ SN</label>
+                                <label for="cnpjAcessoSn" class="form-label small">CNPJ Acesso Simples Nacional</label>
                                 <input type="text" class="form-control form-control-sm" 
-                                       id="cpfCnpjSn" name="cpfCnpjSn" 
-                                       value="{{ client.cpfCnpjSn if client else '' }}" 
-                                       placeholder="CPF/CNPJ Simples Nacional">
+                                       id="cnpjAcessoSn" name="cnpjAcessoSn" 
+                                       value="{{ client.cnpj if client and client.cnpj and client.cnpj|length > 11 else '' }}" 
+                                       placeholder="CNPJ da Empresa">
                             </div>
                             <div class="col-md-3 mb-2">
-                                <label for="codigoAcessoSn" class="form-label small">Código Acesso SN</label>
+                                <label for="cpfRepLegal" class="form-label small">CPF do Representante Legal</label>
+                                <input type="text" class="form-control form-control-sm" 
+                                       id="cpfRepLegal" name="cpfRepLegal" 
+                                       value="{{ client.cpfRepLegal if client and client.cpfRepLegal else '' }}" 
+                                       placeholder="CPF do Representante Legal">
+                            </div>
+                            <div class="col-md-3 mb-2">
+                                <label for="codigoAcessoSn" class="form-label small">Código de Acesso Simples Nacional</label>
                                 <input type="text" class="form-control form-control-sm" 
                                        id="codigoAcessoSn" name="codigoAcessoSn" 
                                        value="{{ client.codigoAcessoSn if client else '' }}" 
-                                       placeholder="Código de acesso">
+                                       placeholder="Código de Acesso do Simples Nacional">
+                            </div>
+                            <div class="col-md-3 mb-2">
+                                <label for="acessoIss" class="form-label small">Acesso ISS</label>
+                                <input type="text" class="form-control form-control-sm" 
+                                       id="acessoIss" name="acessoIss" 
+                                       value="{{ client.acessoIss if client else '' }}" 
+                                       placeholder="Senha ISS">
+                            </div>
+                        </div>
+
+                        <!-- Linha 2: Acesso SEFIN, Acesso SEUMA, Acesso EmpWeb, Senha EmpWeb -->
+                        <div class="row mb-3">
+                            <div class="col-md-3 mb-2">
+                                <label for="acessoSefin" class="form-label small">Acesso SEFIN</label>
+                                <input type="text" class="form-control form-control-sm" 
+                                       id="acessoSefin" name="acessoSefin" 
+                                       value="{{ client.acessoSefin if client else '' }}" 
+                                       placeholder="Senha SEFIN">
+                            </div>
+                            <div class="col-md-3 mb-2">
+                                <label for="acessoSeuma" class="form-label small">Acesso SEUMA</label>
+                                <input type="text" class="form-control form-control-sm" 
+                                       id="acessoSeuma" name="acessoSeuma" 
+                                       value="{{ client.acessoSeuma if client else '' }}" 
+                                       placeholder="Senha SEUMA">
                             </div>
                             <div class="col-md-3 mb-2">
                                 <label for="acessoEmpWeb" class="form-label small">Acesso EmpWeb</label>
@@ -654,6 +729,27 @@
                                        id="senhaEmpWeb" name="senhaEmpWeb" 
                                        value="{{ client.senhaEmpWeb if client else '' }}" 
                                        placeholder="Senha EmpWeb">
+                            </div>
+                        </div>
+
+                        <!-- Linha 3: ANVISA Empresa - Login, ANVISA Empresa - Senha, ANVISA Gestor - Login, ANVISA Gestor - Senha -->
+                        <!-- Linha 3 removida: campos ANVISA Empresa/Gestor Login/Senha -->
+
+                        <!-- Linha 4: Acesso CRF, Acesso FAP/INSS -->
+                        <div class="row mb-3">
+                            <div class="col-md-3 mb-2">
+                                <label for="acessoCrf" class="form-label small">Acesso CRF</label>
+                                <input type="text" class="form-control form-control-sm" 
+                                       id="acessoCrf" name="acessoCrf" 
+                                       value="{{ client.acessoCrf if client else '' }}" 
+                                       placeholder="CRF do Responsável">
+                            </div>
+                            <div class="col-md-3 mb-2">
+                                <label for="acessoFapInss" class="form-label small">Acesso FAP/INSS</label>
+                                <input type="text" class="form-control form-control-sm" 
+                                       id="acessoFapInss" name="acessoFapInss" 
+                                       value="{{ client.acessoFapInss if client else '' }}" 
+                                       placeholder="Senha FAP/INSS">
                             </div>
                         </div>
 
@@ -1158,6 +1254,10 @@ document.addEventListener('DOMContentLoaded', function() {
     // Carregar dados dos sócios e contatos se estiver editando
     {% if client %}
     const dadosCliente = {{ client|tojson }};
+    console.log('🔍 DADOS DO CLIENTE RECEBIDOS:', dadosCliente);
+    console.log('🔍 SOCIO_1_NOME:', dadosCliente.socio_1_nome);
+    console.log('🔍 SOCIO_2_NOME:', dadosCliente.socio_2_nome);
+    console.log('🔍 SOCIO_3_NOME:', dadosCliente.socio_3_nome);
     carregarSocios(dadosCliente);
     carregarContatos(dadosCliente);
     {% endif %}
@@ -1274,15 +1374,22 @@ function adicionarSocio() {
         });
     }
     
-    // Aplicar eventos para controle de representante legal
+    // Aplicar eventos para controle de representante legal e atualização do CPF do representante legal
     const radioRepresentante = novoSocio.querySelector('.representante-legal');
     if (radioRepresentante) {
         radioRepresentante.addEventListener('change', function() {
             if (this.checked) {
+                atualizarCpfRepresentanteLegal();
                 console.log('✅ Representante legal selecionado:', this.value);
             }
         });
     }
+    // Atualiza ao digitar CPF do sócio
+    if (novoCpfInput) {
+        novoCpfInput.addEventListener('input', atualizarCpfRepresentanteLegal);
+    }
+    // Atualiza ao adicionar novo sócio
+    atualizarCpfRepresentanteLegal();
     
     // Animação de entrada
     novoSocio.style.opacity = '0';
@@ -1311,32 +1418,81 @@ function removerSocio(numero) {
 
 // Função para carregar dados dos sócios (para edição)
 function carregarSocios(dadosCliente) {
-    if (!dadosCliente) return;
+    console.log('🔍 INICIANDO CARREGAR SÓCIOS...');
+    if (!dadosCliente) {
+        console.log('❌ Dados do cliente não fornecidos');
+        return;
+    }
     
-    // Procurar por campos de sócios nos dados do cliente
-    for (let i = 1; i <= 10; i++) { // Suporte para até 10 sócios
+    console.log('🔍 Total de propriedades no dadosCliente:', Object.keys(dadosCliente).length);
+    
+    // Primeiro, identificar quantos sócios existem
+    let sociosEncontrados = [];
+    for (let i = 1; i <= 10; i++) {
         const nome = dadosCliente[`socio_${i}_nome`];
-        if (nome) {
-            if (i > 1) {
-                adicionarSocio(); // Adicionar card de sócio se não for o primeiro
-            }
-            
-            // Preencher os campos
-            const nomeInput = document.getElementById(`socio_${i}_nome`);
-            const cpfInput = document.getElementById(`socio_${i}_cpf`);
-            const dataNascInput = document.getElementById(`socio_${i}_data_nascimento`);
-            const participacaoInput = document.getElementById(`socio_${i}_participacao`);
-            const repLegalInput = document.getElementById(`rep_legal_${i}`);
-            const adminInput = document.getElementById(`admin_${i}`);
-            
-            if (nomeInput) nomeInput.value = nome || '';
-            if (cpfInput) cpfInput.value = dadosCliente[`socio_${i}_cpf`] || '';
-            if (dataNascInput) dataNascInput.value = dadosCliente[`socio_${i}_data_nascimento`] || '';
-            if (participacaoInput) participacaoInput.value = dadosCliente[`socio_${i}_participacao`] || '';
-            if (repLegalInput && dadosCliente.representante_legal === `socio_${i}`) repLegalInput.checked = true;
-            if (adminInput && dadosCliente[`socio_${i}_administrador`]) adminInput.checked = true;
+        if (nome && nome.trim() !== '') {
+            sociosEncontrados.push(i);
+            console.log(`✅ Sócio ${i} encontrado: ${nome}`);
         }
     }
+    
+    console.log(`🔍 Total de sócios encontrados: ${sociosEncontrados.length}`);
+    
+    // Adicionar cards para todos os sócios que não seja o primeiro (que já existe no HTML)
+    sociosEncontrados.forEach(numeroSocio => {
+        if (numeroSocio > 1) {
+            console.log(`➕ Adicionando card para sócio ${numeroSocio}...`);
+            
+            // Verificar se o card já existe
+            if (!document.getElementById(`socio_${numeroSocio}`)) {
+                adicionarSocio(); // Adicionar card de sócio
+                numeroSocios = Math.max(numeroSocios, numeroSocio); // Atualizar contador global
+                console.log(`✅ Card adicionado para sócio ${numeroSocio}`);
+            } else {
+                console.log(`ℹ️ Card do sócio ${numeroSocio} já existe`);
+            }
+        }
+    });
+    
+    // Aguardar um momento para que os elementos sejam criados no DOM
+    setTimeout(() => {
+        console.log('🔍 Preenchendo dados dos sócios...');
+        
+        // Agora preencher os dados de todos os sócios
+        sociosEncontrados.forEach(numeroSocio => {
+            const nome = dadosCliente[`socio_${numeroSocio}_nome`];
+            console.log(`🔍 Preenchendo sócio ${numeroSocio}: ${nome}`);
+            
+            // Buscar os elementos
+            const nomeInput = document.getElementById(`socio_${numeroSocio}_nome`);
+            const cpfInput = document.getElementById(`socio_${numeroSocio}_cpf`);
+            const dataNascInput = document.getElementById(`socio_${numeroSocio}_data_nascimento`);
+            const participacaoInput = document.getElementById(`socio_${numeroSocio}_participacao`);
+            const repLegalInput = document.getElementById(`rep_legal_${numeroSocio}`);
+            const adminInput = document.getElementById(`admin_${numeroSocio}`);
+            
+            console.log(`🔍 Elementos encontrados para sócio ${numeroSocio}:`, {
+                nome: !!nomeInput,
+                cpf: !!cpfInput,
+                dataNasc: !!dataNascInput,
+                participacao: !!participacaoInput,
+                repLegal: !!repLegalInput,
+                admin: !!adminInput
+            });
+            
+            // Preencher os campos
+            if (nomeInput) nomeInput.value = nome || '';
+            if (cpfInput) cpfInput.value = dadosCliente[`socio_${numeroSocio}_cpf`] || '';
+            if (dataNascInput) dataNascInput.value = dadosCliente[`socio_${numeroSocio}_data_nascimento`] || '';
+            if (participacaoInput) participacaoInput.value = dadosCliente[`socio_${numeroSocio}_participacao`] || '';
+            if (repLegalInput && dadosCliente.representante_legal === `socio_${numeroSocio}`) repLegalInput.checked = true;
+            if (adminInput && dadosCliente[`socio_${numeroSocio}_administrador`]) adminInput.checked = true;
+            
+            console.log(`✅ Campos preenchidos para sócio ${numeroSocio}`);
+        });
+        
+        console.log('✅ CARREGAR SÓCIOS FINALIZADO');
+    }, 100); // Pequeno delay para garantir que os elementos foram criados
 }
 
 function carregarContatos(dadosCliente) {

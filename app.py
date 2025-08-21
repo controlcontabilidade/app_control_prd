@@ -41,7 +41,7 @@ from services.google_sheets_service import GoogleSheetsService
 from services.local_storage_service import LocalStorageService
 from services.meeting_service import MeetingService
 from services.user_service import UserService
-from services.report_service import ReportService
+# Removido: from services.report_service import ReportService
 from services.segmento_atividade_service import SegmentoAtividadeService
 
 # Tentar importar serviço completo, usar lite como fallback
@@ -238,7 +238,7 @@ print(f"   SPREADSHEET_ID: {GOOGLE_SHEETS_ID}")
 storage_service = None
 meeting_service = None
 user_service = None
-report_service = None
+# Removido: report_service = None (funcionalidade de relatórios removida)
 import_service = None
 
 def get_storage_service():
@@ -353,29 +353,7 @@ def get_user_service():
         print("♻️ User service já inicializado")
     return user_service
 
-def get_report_service():
-    """Lazy loading do report service"""
-    global report_service
-    print(f"🔍 Debug get_report_service: report_service atual = {report_service}")
-    print(f"🔍 Debug get_report_service: GOOGLE_SHEETS_ID = {GOOGLE_SHEETS_ID}")
-    
-    if report_service is None and GOOGLE_SHEETS_ID:
-        try:
-            print("🔄 Inicializando ReportService...")
-            report_service = ReportService(GOOGLE_SHEETS_ID)
-            print("✅ Report service inicializado com sucesso")
-        except Exception as e:
-            print(f"❌ Erro ao inicializar report service: {e}")
-            import traceback
-            traceback.print_exc()
-            report_service = None
-    elif report_service is None:
-        print("❌ GOOGLE_SHEETS_ID não disponível para ReportService")
-    else:
-        print("♻️ Report service já inicializado")
-    
-    print(f"🔍 Debug get_report_service: retornando = {report_service}")
-    return report_service
+# Removido: Função get_report_service() (funcionalidade de relatórios removida)
 
 def get_import_service():
     """Lazy loading do import service"""
@@ -651,55 +629,7 @@ def operacao_fiscal():
                          system_name='Operação Fiscal',
                          description='Sistema de controle fiscal e tributário')
 
-@app.route('/gestao-operacional')
-@login_required  
-def gestao_operacional():
-    """Dashboard de Gestão Operacional - Abre Power BI em nova aba"""
-    print(f"🎯 GESTAO_OPERACIONAL: Abrindo Power BI em nova aba para usuário {session.get('user_name')}")
-    powerbi_url = 'https://app.powerbi.com/reportEmbed?reportId=8165cd63-42f4-44c1-8e4a-cad1a32d0e5b&autoAuth=true&ctid=0b754a09-0568-48fd-a100-8621a0bbd7ab'
-    
-    # Retorna página que abre Power BI em nova aba
-    return f'''
-    <!DOCTYPE html>
-    <html>
-    <head>
-        <title>Redirecionando para Gestão Operacional</title>
-        <script>
-            window.open('{powerbi_url}', '_blank');
-            window.location.href = '/system-selection';
-        </script>
-    </head>
-    <body>
-        <p>Abrindo Dashboard de Gestão Operacional em nova aba...</p>
-        <p><a href="/system-selection">Voltar para seleção de sistemas</a></p>
-    </body>
-    </html>
-    '''
-
-@app.route('/gestao-financeira')
-@login_required
-def gestao_financeira():
-    """Dashboard de Gestão Financeira - Abre Power BI em nova aba"""
-    print(f"🎯 GESTAO_FINANCEIRA: Abrindo Power BI em nova aba para usuário {session.get('user_name')}")
-    powerbi_url = 'https://app.powerbi.com/reportEmbed?reportId=ef9c9663-7cec-4c9a-8b57-c1a6c895057a&autoAuth=true&ctid=0b754a09-0568-48fd-a100-8621a0bbd7ab'
-    
-    # Retorna página que abre Power BI em nova aba
-    return f'''
-    <!DOCTYPE html>
-    <html>
-    <head>
-        <title>Redirecionando para Gestão Financeira</title>
-        <script>
-            window.open('{powerbi_url}', '_blank');
-            window.location.href = '/system-selection';
-        </script>
-    </head>
-    <body>
-        <p>Abrindo Dashboard de Gestão Financeira em nova aba...</p>
-        <p><a href="/system-selection">Voltar para seleção de sistemas</a></p>
-    </body>
-    </html>
-    '''
+# Removido: Rotas /gestao-operacional e /gestao-financeira (funcionalidade Power BI removida)
 
 # === FUNÇÕES AUXILIARES PARA SEGMENTOS E ATIVIDADES ===
 def get_segmentos_list():
@@ -1539,173 +1469,7 @@ def create_simple_template():
         flash('Erro ao gerar template. Crie manualmente um arquivo Excel com as colunas necessárias.', 'error')
         return redirect(url_for('import_page'))
 
-# ==================== ROTAS DE RELATÓRIOS ====================
-
-@app.route('/test-embed-auth')
-def test_embed_auth():
-    """Página de teste para embedding com autenticação"""
-    with open('test_embed_auth.html', 'r', encoding='utf-8') as f:
-        return f.read()
-
-@app.route('/test-direct-embed')
-def test_direct_embed():
-    """Página de teste direto para iframe"""
-    with open('test_direct_embed.html', 'r', encoding='utf-8') as f:
-        return f.read()
-
-@app.route('/debug-sistema-real')
-def debug_sistema_real():
-    """Página de debug que simula o sistema real"""
-    with open('debug_sistema_real.html', 'r', encoding='utf-8') as f:
-        return f.read()
-
-@app.route('/reports')
-@login_required
-def reports():
-    """Página de visualização de relatórios para usuários"""
-    # Inicializar o serviço de relatórios se necessário
-    report_svc = get_report_service()
-    
-    if report_svc:
-        try:
-            # Busca apenas relatórios ativos
-            reports_data = report_svc.list_reports(only_active=True)
-            username = session.get('user_name', '')
-            
-            print(f"🔍 Debug: {len(reports_data)} relatórios encontrados (apenas ativos)")
-            
-            # Filtrar relatórios que o usuário tem acesso
-            accessible_reports = []
-            for report in reports_data:
-                print(f"🔍 Debug: Relatório '{report.get('nome')}' - Ativo: '{report.get('ativo')}'")
-                if report_svc.user_has_access(report, username):
-                    accessible_reports.append(report)
-            
-            print(f"🔍 Debug: {len(accessible_reports)} relatórios acessíveis para '{username}'")
-            return render_template('reports.html', reports=accessible_reports)
-        except Exception as e:
-            print(f"❌ Erro ao carregar relatórios: {e}")
-            flash('Erro ao carregar relatórios. Tente novamente.', 'error')
-            return render_template('reports.html', reports=[])
-    else:
-        flash('Serviço de relatórios indisponível.', 'error')
-        return render_template('reports.html', reports=[])
-
-@app.route('/manage_reports')
-@admin_required
-def manage_reports():
-    """Página de gerenciamento de relatórios (somente admin)"""
-    # Inicializar o serviço de relatórios se necessário
-    report_svc = get_report_service()
-    
-    if report_svc:
-        try:
-            reports_data = report_svc.list_reports()
-            return render_template('manage_reports.html', reports=reports_data)
-        except Exception as e:
-            print(f"❌ Erro ao carregar relatórios para gerenciamento: {e}")
-            flash('Erro ao carregar relatórios. Tente novamente.', 'error')
-            return render_template('manage_reports.html', reports=[])
-    else:
-        flash('Serviço de relatórios indisponível.', 'error')
-        return render_template('manage_reports.html', reports=[])
-
-@app.route('/create_report', methods=['POST'])
-@admin_required
-def create_report():
-    """Criar novo relatório"""
-    # Inicializar o serviço de relatórios se necessário
-    report_svc = get_report_service()
-    
-    if report_svc:
-        nome = request.form['nome']
-        descricao = request.form['descricao']
-        link = request.form['link']
-        
-        # Corrige conversão do checkbox 'ativo'
-        # Se múltiplos valores com mesmo nome, getlist retorna uma lista
-        ativo_values = request.form.getlist('ativo')
-        print(f"🔍 Debug checkbox ativo: request.form.getlist('ativo') = {ativo_values}")
-        
-        # Se 'on' estiver na lista, checkbox foi marcado
-        ativo = 'Sim' if 'on' in ativo_values else 'Não'
-        print(f"🔍 Debug conversão final: {ativo_values} -> '{ativo}'")
-        print(f"🔍 Debug form completo: {dict(request.form)}")
-        
-        ordem = int(request.form.get('ordem', 0))
-        usuarios_autorizados = request.form.get('usuarios_autorizados', 'todos')
-        
-        # Obter usuário da sessão
-        criado_por = session.get('user_name', 'Desconhecido')
-        
-        result = report_svc.create_report(nome, descricao, link, ativo, ordem, criado_por, usuarios_autorizados)
-        
-        if result['success']:
-            flash(result['message'], 'success')
-        else:
-            flash(result['message'], 'error')
-    else:
-        flash('Serviço de relatórios indisponível.', 'error')
-    
-    return redirect(url_for('manage_reports'))
-
-@app.route('/edit_report', methods=['POST'])
-@admin_required
-def edit_report():
-    """Editar relatório existente"""
-    # Inicializar o serviço de relatórios se necessário
-    report_svc = get_report_service()
-    
-    if report_svc:
-        report_id = request.form['report_id']
-        nome = request.form['nome']
-        descricao = request.form['descricao']
-        link = request.form['link']
-        
-        # Corrige conversão do checkbox 'ativo' na edição
-        # Se múltiplos valores com mesmo nome, getlist retorna uma lista
-        ativo_values = request.form.getlist('ativo')
-        print(f"🔍 Debug checkbox ativo (edição): request.form.getlist('ativo') = {ativo_values}")
-        
-        # Se 'on' estiver na lista, checkbox foi marcado
-        ativo = 'Sim' if 'on' in ativo_values else 'Não'
-        print(f"🔍 Debug conversão final (edição): {ativo_values} -> '{ativo}'")
-        print(f"🔍 Debug form completo (edição): {dict(request.form)}")
-        
-        ordem = int(request.form.get('ordem', 0))
-        usuarios_autorizados = request.form.get('usuarios_autorizados', 'todos')
-        
-        result = report_svc.update_report(report_id, nome, descricao, link, ativo, ordem, usuarios_autorizados)
-        
-        if result['success']:
-            flash(result['message'], 'success')
-        else:
-            flash(result['message'], 'error')
-    else:
-        flash('Serviço de relatórios indisponível.', 'error')
-    
-    return redirect(url_for('manage_reports'))
-
-@app.route('/delete_report', methods=['POST'])
-@admin_required
-def delete_report():
-    """Deletar relatório"""
-    # Inicializar o serviço de relatórios se necessário
-    report_svc = get_report_service()
-    
-    if report_svc:
-        report_id = request.form['report_id']
-        
-        result = report_svc.delete_report(report_id)
-        
-        if result['success']:
-            flash(result['message'], 'success')
-        else:
-            flash(result['message'], 'error')
-    else:
-        flash('Serviço de relatórios indisponível.', 'error')
-    
-    return redirect(url_for('manage_reports'))
+# Removido: Seção completa de ROTAS DE RELATÓRIOS (funcionalidade Power BI removida)
 
 def calculate_dashboard_stats(clients):
     """Calcula estatísticas para o dashboard baseado nos dados SIGEC"""
@@ -1900,7 +1664,7 @@ def memory_status():
             'storage_service': storage_service is not None,
             'meeting_service': meeting_service is not None,
             'user_service': user_service is not None,
-            'report_service': report_service is not None,
+            # Removido: 'report_service': report_service is not None,
             'import_service': import_service is not None
         }
         memory_info['services_loaded'] = services_loaded
@@ -2612,6 +2376,10 @@ def save_client():
             # Bloco 5: Senhas e Credenciais
             'cpfCnpjSn': request.form.get('cpfCnpjSn', ''),
             'codigoAcessoSn': request.form.get('codigoAcessoSn', ''),
+            # --- NOVOS CAMPOS ADICIONADOS ---
+            'cnpjAcessoSn': request.form.get('cnpjAcessoSn', ''),
+            'cpfRepLegal': request.form.get('cpfRepLegal', ''),
+            # --- FIM NOVOS CAMPOS ---
             'acessoIss': request.form.get('acessoIss', ''),
             'senhaIss': request.form.get('senhaIss', ''),
             'acessoSefin': request.form.get('acessoSefin', ''),

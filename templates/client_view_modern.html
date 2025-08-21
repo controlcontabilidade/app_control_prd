@@ -606,80 +606,59 @@
 
     <!-- Coluna lateral direita - 4 colunas -->
     <div class="col-lg-4">
-        <!-- Painel de Acesso Rápido -->
+        <!-- Painel de Acesso Rápido (Novo Layout) -->
         <div class="card mb-4">
-            <div class="card-header bg-primary text-white">
-                <h5 class="mb-0">
-                    <i class="fas fa-tachometer-alt me-2"></i>
-                    Acesso Rápido
-                </h5>
+            <div class="card-header bg-light border-0">
+                <h5 class="mb-0 fw-bold">Acesso Rápido</h5>
             </div>
             <div class="card-body">
-                <div class="quick-info">
-                    <div class="info-item d-flex justify-content-between align-items-center mb-3">
-                        <span class="text-muted">Cliente Ativo:</span>
-                        {% set status = client.get('statusCliente', 'ativo')|lower %}
-                        <strong class="text-{{ 'success' if status == 'ativo' else 'danger' }}">
-                            {{ 'SIM' if status == 'ativo' else 'NÃO' }}
-                        </strong>
-                    </div>
-                    
-                    <div class="info-item d-flex justify-content-between align-items-center mb-3">
-                        <span class="text-muted">Cliente desde:</span>
-                        <strong>
-                            {% if client.dataInicioServicos or client.mesAnoInicio %}
-                                {{ (client.dataInicioServicos or client.mesAnoInicio)|format_date }}
-                            {% else %}
-                                -
-                            {% endif %}
-                        </strong>
-                    </div>
-                    
-                    <div class="info-item d-flex justify-content-between align-items-center mb-3">
-                        <span class="text-muted">Perfil:</span>
-                        {% set perfil_val = client.perfil or client.perfilCliente %}
-                        <strong class="text-info">{{ perfil_val or '-' }}</strong>
-                    </div>
-                    
-                    <div class="info-item d-flex justify-content-between align-items-center mb-3">
-                        <span class="text-muted">Cadastrado no Onvio:</span>
-                        <strong class="text-{{ 'success' if client.sistemaOnvio else 'secondary' }}">
-                            {{ 'SIM' if client.sistemaOnvio else 'NÃO' }}
-                        </strong>
-                    </div>
-                    
-                    <hr class="my-3">
-                    
-                    <div class="info-item d-flex justify-content-between align-items-center mb-2">
-                        <span class="text-muted">Sistema do Cliente:</span>
-                        <strong class="text-primary">
-                            {% if client.sistemaPrincipal or client.sistemaUtilizado %}
-                                {{ client.sistemaPrincipal or client.sistemaUtilizado }}
-                            {% else %}
-                                -
-                            {% endif %}
-                        </strong>
-                    </div>
-                    
-                    <div class="info-item d-flex justify-content-between align-items-center mb-2">
-                        <span class="text-muted">Cód. Domínio:</span>
-                        <code>{{ client.codDominio or '-' }}</code>
-                    </div>
-                    
-                    <div class="info-item d-flex justify-content-between align-items-center mb-2">
-                        <span class="text-muted">Cód. Fortes CT:</span>
-                        <code>{{ client.codFortesCt or '-' }}</code>
-                    </div>
-                    
-                    <div class="info-item d-flex justify-content-between align-items-center mb-2">
-                        <span class="text-muted">Cód. Fortes FS:</span>
-                        <code>{{ client.codFortesFs or '-' }}</code>
-                    </div>
-                    
-                    <div class="info-item d-flex justify-content-between align-items-center mb-2">
-                        <span class="text-muted">Cód. Fortes PS:</span>
-                        <code>{{ client.codFortesPs or '-' }}</code>
-                    </div>
+                <div class="mb-2 d-flex justify-content-between align-items-center">
+                    <span class="text-muted">Cliente Ativo:</span>
+                    {% set status = client.get('statusCliente', 'ativo')|lower %}
+                    <span class="fw-bold text-{{ 'success' if status == 'ativo' else 'danger' }}">{{ 'SIM' if status == 'ativo' else 'NÃO' }}</span>
+                </div>
+                <div class="mb-2 d-flex justify-content-between align-items-center">
+                    <span class="text-muted">Cliente desde:</span>
+                    <span class="fw-bold">
+                        {% if client.dataInicioServicos or client.mesAnoInicio %}
+                            {{ (client.dataInicioServicos or client.mesAnoInicio)|format_date }}
+                        {% else %}-{% endif %}
+                    </span>
+                </div>
+                <div class="mb-2 d-flex justify-content-between align-items-center">
+                    <span class="text-muted">Perfil do Cliente:</span>
+                    {% set perfil_val = client.perfil or client.perfilCliente %}
+                    <span class="fw-bold text-info">{{ perfil_val or '-' }}</span>
+                </div>
+                <div class="mb-2 d-flex justify-content-between align-items-center">
+                    <span class="text-muted">Serviços:</span>
+                    <span>
+                        {% if client.ct %}<span class="badge bg-success px-3">CT</span>{% endif %}
+                        {% if client.fs %}<span class="badge bg-success px-3">FS</span>{% endif %}
+                        {% if client.dp %}<span class="badge bg-success px-3">DP</span>{% endif %}
+                    </span>
+                </div>
+                <div class="mb-2 d-flex justify-content-between align-items-center">
+                    <span class="text-muted">Doméstica:</span>
+                    <span>{% if client.domestica %}<span class="badge bg-warning text-white px-3">SIM</span>{% else %}<span class="badge bg-warning text-white px-3">NÃO</span>{% endif %}</span>
+                </div>
+                <hr />
+                <div class="mb-2 fw-bold text-muted">Códigos nos Sistemas:</div>
+                <div class="mb-2 d-flex justify-content-between align-items-center">
+                    <span class="text-muted">Cód. Domínio:</span>
+                    <span class="fw-bold" style="color:#e83e8c;">{{ client.codDominio or '-' }}</span>
+                </div>
+                <div class="mb-2 d-flex justify-content-between align-items-center">
+                    <span class="text-muted">Cód. Fortes CT:</span>
+                    <span class="fw-bold" style="color:#e83e8c;">{{ client.codFortesCt or '-' }}</span>
+                </div>
+                <div class="mb-2 d-flex justify-content-between align-items-center">
+                    <span class="text-muted">Cód. Fortes FS:</span>
+                    <span class="fw-bold" style="color:#e83e8c;">{{ client.codFortesFs or '-' }}</span>
+                </div>
+                <div class="mb-2 d-flex justify-content-between align-items-center">
+                    <span class="text-muted">Cód. Fortes PS:</span>
+                    <span class="fw-bold" style="color:#e83e8c;">{{ client.codFortesPs or '-' }}</span>
                 </div>
             </div>
         </div>
