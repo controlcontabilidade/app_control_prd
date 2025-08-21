@@ -78,8 +78,8 @@
                 <div class="card mb-4">
                     <div class="card-header bg-primary text-white">
                         <h5 class="mb-0">
-                            <i class="bi bi-building me-2"></i>
-                            Bloco 1 - Informações da Pessoa Física / Jurídica
+                            <i class="bi bi-person-vcard me-2"></i>
+                            Informações da Pessoa Física / Jurídica
                         </h5>
                     </div>
                     <div class="card-body">
@@ -295,7 +295,7 @@
                     <div class="card-header bg-success text-white">
                         <h5 class="mb-0">
                             <i class="bi bi-handshake me-2"></i>
-                            Bloco 2: Serviços Prestados pela Control
+                            Serviços Prestados pela Control
                         </h5>
                     </div>
                     <div class="card-body">
@@ -467,7 +467,7 @@
                     <div class="card-header bg-info text-white">
                         <h5 class="mb-0">
                             <i class="bi bi-people me-2"></i>
-                            Bloco 3: Quadro Societário
+                            Quadro Societário
                         </h5>
                     </div>
                     <div class="card-body">
@@ -558,7 +558,7 @@
                     <div class="card-header bg-warning text-dark">
                         <h5 class="mb-0">
                             <i class="bi bi-person-badge me-2"></i>
-                            Bloco 4: Contatos
+                            Contatos
                         </h5>
                     </div>
                     <div class="card-body">
@@ -621,7 +621,7 @@
                 <div class="card mb-4">
                     <div class="card-header bg-primary text-white">
                         <h5 class="mb-0">
-                            <i class="bi bi-key me-2"></i>Bloco 5: Senhas
+                            <i class="bi bi-key me-2"></i>Senhas
                         </h5>
                     </div>
                     <div class="card-body">
@@ -745,7 +745,7 @@
                 <div class="card mb-4">
                     <div class="card-header bg-danger text-white">
                         <h5 class="mb-0">
-                            <i class="bi bi-file-earmark-text me-2"></i>Bloco 6: Procurações
+                            <i class="bi bi-file-earmark-text me-2"></i>Procurações
                         </h5>
                     </div>
                     <div class="card-body">
@@ -843,7 +843,7 @@
                 <div class="card mb-4">
                     <div class="card-header bg-dark text-white">
                         <h5 class="mb-0">
-                            <i class="bi bi-sticky-note me-2"></i>Bloco 7: Observações e Dados Adicionais
+                            <i class="bi bi-chat-left-text me-2"></i>Observações e Dados Adicionais
                         </h5>
                     </div>
                     <div class="card-body">
@@ -953,14 +953,6 @@ function formatPhone(input) {
         value = value.replace(/(\d{4,5})(\d{4})$/, '$1-$2');
     }
     input.value = value;
-}
-
-// Aplicar formatação de telefone (se existir o campo específico)
-const telCont = document.getElementById('telefoneContador');
-if (telCont) {
-    telCont.addEventListener('input', function() {
-        formatPhone(this);
-    });
 }
 
 // Formatação de CPF

@@ -1543,30 +1543,30 @@ class GoogleSheetsServiceAccountService:
             'mesAnoInicio': safe_get(row, 17),                    # POSIÇÃO CORRETA para DATA INÍCIO DOS SERVIÇOS
             'dataInicioServicos': safe_get(row, 17),              # POSIÇÃO CORRETA para DATA INÍCIO DOS SERVIÇOS
 
-            # Bloco 4: Contatos - POSIÇÕES AJUSTADAS PARA MÚLTIPLOS SÓCIOS
-            'telefoneFixo': safe_get(row, 83),                    # AJUSTADO: era 29, agora 83
-            'telefoneCelular': safe_get(row, 84),                 # AJUSTADO: era 30, agora 84
-            'whatsapp': safe_get(row, 85),                        # AJUSTADO: era 31, agora 85
-            'emailPrincipal': safe_get(row, 86),                  # AJUSTADO: era 32, agora 86
-            'emailSecundario': safe_get(row, 87),                 # AJUSTADO: era 33, agora 87
-            'responsavelImediato': safe_get(row, 88),             # AJUSTADO: era 34, agora 88
-            'emailsSocios': safe_get(row, 89),                    # AJUSTADO: era 35, agora 89
-            'contatoContador': safe_get(row, 90),                 # AJUSTADO: era 36, agora 90
-            'telefoneContador': safe_get(row, 91),                # AJUSTADO: era 37, agora 91
-            'emailContador': safe_get(row, 92),                   # AJUSTADO: era 38, agora 92
+            # Bloco 4: Contatos - POSIÇÕES CORRIGIDAS
+            'telefoneFixo': safe_get(row, 83),                    # 84-1 = 83 (TELEFONE FIXO)
+            'telefoneCelular': safe_get(row, 84),                 # 85-1 = 84 (TELEFONE CELULAR)  
+            'whatsapp': safe_get(row, 85),                        # 86-1 = 85 (WHATSAPP)
+            'emailPrincipal': safe_get(row, 86),                  # 87-1 = 86 (EMAIL PRINCIPAL)
+            'emailSecundario': safe_get(row, 87),                 # 88-1 = 87 (EMAIL SECUNDÁRIO)
+            'responsavelImediato': safe_get(row, 88),             # 89-1 = 88 (RESPONSÁVEL IMEDIATO)
+            'emailsSocios': safe_get(row, 89),                    # 90-1 = 89 (EMAILS DOS SÓCIOS)
+            'contatoContador': safe_get(row, 90),                 # 91-1 = 90 (CONTATO CONTADOR)
+            'telefoneContador': safe_get(row, 91),                # 92-1 = 91 (TELEFONE CONTADOR)
+            'emailContador': safe_get(row, 92),                   # 93-1 = 92 (EMAIL CONTADOR)
 
             # Campos legados para compatibilidade
             'emailsSocio': safe_get(row, 35),                     # POSIÇÃO CORRETA
 
-            # Bloco 5: Contatos Detalhados - POSIÇÕES CORRETAS
-            'contato_1_nome': safe_get(row, 39),                  # POSIÇÃO CORRETA
-            'contato_1_cargo': safe_get(row, 40),                 # POSIÇÃO CORRETA
-            'contato_1_telefone': safe_get(row, 41),              # POSIÇÃO CORRETA
-            'contato_1_email': safe_get(row, 42),                 # POSIÇÃO CORRETA
-            'contato_2_nome': safe_get(row, 43),                  # POSIÇÃO CORRETA
-            'contato_2_cargo': safe_get(row, 44),                 # POSIÇÃO CORRETA
-            'contato_2_telefone': safe_get(row, 45),              # POSIÇÃO CORRETA
-            'contato_2_email': safe_get(row, 46),                 # POSIÇÃO CORRETA
+            # Contatos Detalhados - POSIÇÕES CORRIGIDAS
+            'contato_1_nome': safe_get(row, 93),                  # POSIÇÃO REAL: 93 (CONTATO_1_NOME)
+            'contato_1_cargo': safe_get(row, 94),                 # POSIÇÃO REAL: 94 (CONTATO_1_CARGO)
+            'contato_1_telefone': safe_get(row, 95),              # POSIÇÃO REAL: 95 (CONTATO_1_TELEFONE)
+            'contato_1_email': safe_get(row, 96),                 # POSIÇÃO REAL: 96 (CONTATO_1_EMAIL)
+            'contato_2_nome': safe_get(row, 97),                  # POSIÇÃO ESTIMADA: 97 (CONTATO_2_NOME)
+            'contato_2_cargo': safe_get(row, 98),                 # POSIÇÃO ESTIMADA: 98 (CONTATO_2_CARGO)
+            'contato_2_telefone': safe_get(row, 99),              # POSIÇÃO ESTIMADA: 99 (CONTATO_2_TELEFONE)
+            'contato_2_email': safe_get(row, 100),                # POSIÇÃO ESTIMADA: 100 (CONTATO_2_EMAIL)
             'contato_3_nome': safe_get(row, 47),     # 48-1 = 47 (CONTATO_3_NOME)
             'contato_3_cargo': safe_get(row, 48),    # 49-1 = 48 (CONTATO_3_CARGO)
             'contato_3_telefone': safe_get(row, 49), # 50-1 = 49 (CONTATO_3_TELEFONE)
