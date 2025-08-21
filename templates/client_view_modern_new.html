@@ -71,78 +71,58 @@
                 </h5>
             </div>
             <div class="card-body">
-                <div class="row">
-                    <div class="col-md-6 mb-3">
-                        <label class="form-label text-muted">Nome da Empresa</label>
-                        <p class="mb-0"><strong>{{ client.nomeEmpresa or '-' }}</strong></p>
-                    </div>
-                    {% if client.razaoSocialReceita %}
-                    <div class="col-md-6 mb-3">
-                        <label class="form-label text-muted">Razão Social (Receita)</label>
-                        <p class="mb-0">{{ client.razaoSocialReceita }}</p>
-                    </div>
-                    {% endif %}
-                    {% if client.nomeFantasiaReceita %}
-                    <div class="col-md-6 mb-3">
-                        <label class="form-label text-muted">Nome Fantasia (Receita)</label>
-                        <p class="mb-0">{{ client.nomeFantasiaReceita }}</p>
-                    </div>
-                    {% endif %}
-                    {% if client.cpfCnpj or client.cnpj %}
-                    <div class="col-md-6 mb-3">
-                        <label class="form-label text-muted">CPF/CNPJ</label>
-                        <p class="mb-0"><code>{{ remove_mask(client.cpfCnpj or client.cnpj) }}</code></p>
-                    </div>
-                    {% endif %}
-                    {% if client.inscEst %}
-                    <div class="col-md-4 mb-3">
-                        <label class="form-label text-muted">Inscrição Estadual</label>
-                        <p class="mb-0">{{ client.inscEst }}</p>
-                    </div>
-                    {% endif %}
-                    {% if client.inscMun %}
-                    <div class="col-md-4 mb-3">
-                        <label class="form-label text-muted">Inscrição Municipal</label>
-                        <p class="mb-0">{{ client.inscMun }}</p>
-                    </div>
-                    {% endif %}
-                    {% if client.estado %}
-                    <div class="col-md-4 mb-3">
-                        <label class="form-label text-muted">Estado</label>
-                        <p class="mb-0"><span class="badge bg-primary">{{ client.estado }}</span></p>
-                    </div>
-                    {% endif %}
-                    {% if client.cidade %}
-                    <div class="col-md-4 mb-3">
-                        <label class="form-label text-muted">Cidade</label>
-                        <p class="mb-0">{{ client.cidade }}</p>
-                    </div>
-                    {% endif %}
-                    {% if client.regimeFederal or client.tributacao %}
-                    <div class="col-md-4 mb-3">
-                        <label class="form-label text-muted">Regime Federal</label>
-                        <p class="mb-0"><span class="badge bg-secondary">{{ client.regimeFederal or client.tributacao }}</span></p>
-                    </div>
-                    {% endif %}
-                    {% if client.regimeEstadual %}
-                    <div class="col-md-4 mb-3">
-                        <label class="form-label text-muted">Regime Estadual</label>
-                        <p class="mb-0"><span class="badge bg-secondary">{{ client.regimeEstadual }}</span></p>
-                    </div>
-                    {% endif %}
-                    {% if client.segmento %}
-                    <div class="col-md-6 mb-3">
-                        <label class="form-label text-muted">Segmento</label>
-                        <p class="mb-0">{{ client.segmento }}</p>
-                    </div>
-                    {% endif %}
-                    {% if client.atividade %}
-                    <div class="col-md-6 mb-3">
-                        <label class="form-label text-muted">Atividade Principal</label>
-                        <p class="mb-0">{{ client.atividade }}</p>
-                    </div>
-                    {% endif %}
-                </div>
+                                <div class="container-fluid px-0">
+                                                        <div class="row g-3">
+                                                            <div class="col-md-6">
+                                                                <label class="form-label text-muted">Nome da Empresa</label>
+                                                                <p class="mb-0"><strong>{{ client.nomeEmpresa or '-' }}</strong></p>
+                                                            </div>
+                                                            <div class="col-md-6">
+                                                                <label class="form-label text-muted">Razão Social (Receita)</label>
+                                                                <p class="mb-0">{{ client.razaoSocialReceita or '-' }}</p>
+                                                            </div>
+                                                            <div class="col-md-6">
+                                                                <label class="form-label text-muted">Nome Fantasia (Receita)</label>
+                                                                <p class="mb-0">{{ client.nomeFantasiaReceita or '-' }}</p>
+                                                            </div>
+                                                            <div class="col-md-6">
+                                                                <label class="form-label text-muted">CPF/CNPJ</label>
+                                                                <p class="mb-0"><code class="text-dark">{{ remove_mask(client.cpfCnpj or client.cnpj) }}</code></p>
+                                                            </div>
+                                                            <div class="col-md-6">
+                                                                <label class="form-label text-muted">Inscrição Estadual</label>
+                                                                <p class="mb-0">{{ client.inscEst or '-' }}</p>
+                                                            </div>
+                                                            <div class="col-md-6">
+                                                                <label class="form-label text-muted">Inscrição Municipal</label>
+                                                                <p class="mb-0">{{ client.inscMun or '-' }}</p>
+                                                            </div>
+                                                            <div class="col-md-6">
+                                                                <label class="form-label text-muted">Cidade</label>
+                                                                <p class="mb-0">{{ client.cidade or '-' }}</p>
+                                                            </div>
+                                                            <div class="col-md-6">
+                                                                <label class="form-label text-muted">Estado</label>
+                                                                <p class="mb-0"><span class="badge bg-primary">{{ client.estado or '-' }}</span></p>
+                                                            </div>
+                                                            <div class="col-md-6">
+                                                                <label class="form-label text-muted">Regime Federal</label>
+                                                                <p class="mb-0"><span class="badge bg-secondary">{{ client.regimeFederal or client.tributacao or '-' }}</span></p>
+                                                            </div>
+                                                            <div class="col-md-6">
+                                                                <label class="form-label text-muted">Regime Estadual</label>
+                                                                <p class="mb-0"><span class="badge bg-secondary">{{ client.regimeEstadual or '-' }}</span></p>
+                                                            </div>
+                                                            <div class="col-md-6">
+                                                                <label class="form-label text-muted">Segmento</label>
+                                                                <p class="mb-0">{{ client.segmento or '-' }}</p>
+                                                            </div>
+                                                            <div class="col-md-6">
+                                                                <label class="form-label text-muted">Atividade Principal</label>
+                                                                <p class="mb-0">{{ client.atividade or '-' }}</p>
+                                                            </div>
+                                                        </div>
+                                </div>
             </div>
         </div>
 
@@ -175,7 +155,7 @@
                             {% if socio_cpf %}
                             <div class="col-md-6 mb-2">
                                 <label class="form-label text-muted">CPF</label>
-                                <p class="mb-0"><code>{{ socio_cpf }}</code></p>
+                                <p class="mb-0"><code class="text-dark">{{ socio_cpf }}</code></p>
                             </div>
                             {% endif %}
                             {% set socio_nasc = client.get('socio_' ~ i ~ '_data_nascimento') or client.get('socio_' ~ i ~ '_dataNascimento') or client.get('socio' ~ i ~ '_nascimento') or client.get('socio' ~ i ~ 'DataNascimento') %}
@@ -361,16 +341,36 @@
                     <i class="fas fa-exclamation-triangle me-2"></i>
                     <strong>Informações Sensíveis</strong> - Dados de acesso confidenciais
                 </div>
-                
-                <!-- Linha 1: CPF/CNPJ SN, Código Acesso SN, Acesso EmpWeb, Senha EmpWeb -->
+
+                <!-- Linha 1: CNPJ Acesso Simples Nacional, CPF do Representante Legal, Código de Acesso Simples Nacional, Acesso ISS -->
                 <div class="row mb-3">
                     <div class="col-md-3 mb-2">
-                        <label class="form-label text-muted small">CPF/CNPJ SN</label>
-                        <p class="mb-0 border rounded p-2 bg-light"><small>{{ remove_mask(client.cpfCnpjSn) if client.cpfCnpjSn else '-' }}</small></p>
+                        <label class="form-label text-muted small">CNPJ Acesso Simples Nacional</label>
+                        <p class="mb-0 border rounded p-2 bg-light"><small>{{ client.cnpjAcessoSn if client.cnpjAcessoSn else '-' }}</small></p>
                     </div>
                     <div class="col-md-3 mb-2">
-                        <label class="form-label text-muted small">Código Acesso SN</label>
+                        <label class="form-label text-muted small">CPF do Representante Legal</label>
+                        <p class="mb-0 border rounded p-2 bg-light"><small>{{ client.cpfRepLegal if client.cpfRepLegal else '-' }}</small></p>
+                    </div>
+                    <div class="col-md-3 mb-2">
+                        <label class="form-label text-muted small">Código de Acesso Simples Nacional</label>
                         <p class="mb-0 border rounded p-2 bg-light"><small>{{ client.codigoAcessoSn if client.codigoAcessoSn else '-' }}</small></p>
+                    </div>
+                    <div class="col-md-3 mb-2">
+                        <label class="form-label text-muted small">Acesso ISS</label>
+                        <p class="mb-0 border rounded p-2 bg-light"><small>{{ client.acessoIss if client.acessoIss else '-' }}</small></p>
+                    </div>
+                </div>
+
+                <!-- Linha 2: Acesso SEFIN, Acesso SEUMA, Acesso EmpWeb, Senha EmpWeb -->
+                <div class="row mb-3">
+                    <div class="col-md-3 mb-2">
+                        <label class="form-label text-muted small">Acesso SEFIN</label>
+                        <p class="mb-0 border rounded p-2 bg-light"><small>{{ client.acessoSefin if client.acessoSefin else '-' }}</small></p>
+                    </div>
+                    <div class="col-md-3 mb-2">
+                        <label class="form-label text-muted small">Acesso SEUMA</label>
+                        <p class="mb-0 border rounded p-2 bg-light"><small>{{ client.acessoSeuma if client.acessoSeuma else '-' }}</small></p>
                     </div>
                     <div class="col-md-3 mb-2">
                         <label class="form-label text-muted small">Acesso EmpWeb</label>
@@ -382,7 +382,27 @@
                     </div>
                 </div>
 
-                <!-- Linha 2: Acesso ISS, Acesso SEFIN, Acesso SEUMA, Acesso SEMACE -->
+                <!-- Linha 3: Acesso SEFIN, Acesso SEUMA, Acesso CRF, Acesso FAP/INSS -->
+                <div class="row mb-3">
+                    <div class="col-md-3 mb-2">
+                        <label class="form-label text-muted small">Acesso SEFIN</label>
+                        <p class="mb-0 border rounded p-2 bg-light"><small>{{ client.acessoSefin if client.acessoSefin else '-' }}</small></p>
+                    </div>
+                    <div class="col-md-3 mb-2">
+                        <label class="form-label text-muted small">Acesso SEUMA</label>
+                        <p class="mb-0 border rounded p-2 bg-light"><small>{{ client.acessoSeuma if client.acessoSeuma else '-' }}</small></p>
+                    </div>
+                    <div class="col-md-3 mb-2">
+                        <label class="form-label text-muted small">Acesso CRF</label>
+                        <p class="mb-0 border rounded p-2 bg-light"><small>{{ client.acessoCrf if client.acessoCrf else '-' }}</small></p>
+                    </div>
+                    <div class="col-md-3 mb-2">
+                        <label class="form-label text-muted small">Acesso FAP/INSS</label>
+                        <p class="mb-0 border rounded p-2 bg-light"><small>{{ client.acessoFapInss if client.acessoFapInss else '-' }}</small></p>
+                    </div>
+                </div>
+
+                <!-- Linha 4: Acesso ISS, Acesso SEFIN, Acesso SEUMA, Acesso SEMACE -->
                 <div class="row mb-3">
                     <div class="col-md-3 mb-2">
                         <label class="form-label text-muted small">Acesso ISS</label>
@@ -402,19 +422,11 @@
                     </div>
                 </div>
 
-                <!-- Linha 3: Acesso IBAMA, Acesso FAP/INSS, Acesso CRF, Senha SEMACE -->
+                <!-- Linha 5: Acesso IBAMA, Senha SEMACE -->
                 <div class="row mb-3">
                     <div class="col-md-3 mb-2">
                         <label class="form-label text-muted small">Acesso IBAMA</label>
                         <p class="mb-0 border rounded p-2 bg-light"><small>{{ client.acessoIbama if client.acessoIbama else '-' }}</small></p>
-                    </div>
-                    <div class="col-md-3 mb-2">
-                        <label class="form-label text-muted small">Acesso FAP/INSS</label>
-                        <p class="mb-0 border rounded p-2 bg-light"><small>{{ client.acessoFapInss if client.acessoFapInss else '-' }}</small></p>
-                    </div>
-                    <div class="col-md-3 mb-2">
-                        <label class="form-label text-muted small">Acesso CRF</label>
-                        <p class="mb-0 border rounded p-2 bg-light"><small>{{ client.acessoCrf if client.acessoCrf else '-' }}</small></p>
                     </div>
                     <div class="col-md-3 mb-2">
                         <label class="form-label text-muted small">Senha SEMACE</label>
@@ -422,7 +434,7 @@
                     </div>
                 </div>
 
-                <!-- Linha 4: ANVISA Gestor, ANVISA Empresa -->
+                <!-- Linha 6: ANVISA Gestor, ANVISA Empresa -->
                 <div class="row mb-3">
                     <div class="col-md-3 mb-2">
                         <label class="form-label text-muted small">ANVISA Gestor</label>
@@ -433,7 +445,6 @@
                         <p class="mb-0 border rounded p-2 bg-light"><small>{{ client.anvisaEmpresa if client.anvisaEmpresa else '-' }}</small></p>
                     </div>
                 </div>
-
             </div>
         </div>
 
@@ -555,110 +566,70 @@
 
     <!-- Coluna lateral direita - 4 colunas -->
     <div class="col-lg-4">
-        <!-- Painel de Acesso Rápido -->
+        <!-- Painel de Acesso Rápido (Novo Layout) -->
         <div class="card mb-4">
-            <div class="card-header bg-primary text-white">
-                <h5 class="mb-0">
-                    <i class="fas fa-tachometer-alt me-2"></i>
-                    Acesso Rápido
-                </h5>
+            <div class="card-header bg-light border-0">
+                <h5 class="mb-0 fw-bold">Acesso Rápido</h5>
             </div>
             <div class="card-body">
-                <div class="quick-info">
-                    <div class="info-item d-flex justify-content-between align-items-center mb-3">
-                        <span class="text-muted">Cliente Ativo:</span>
-                        {% set status = client.get('statusCliente', 'ativo')|lower %}
-                        <strong class="text-{{ 'success' if status == 'ativo' else 'danger' }}">
-                            {{ 'SIM' if status == 'ativo' else 'NÃO' }}
-                        </strong>
-                    </div>
-                    
-                    <div class="info-item d-flex justify-content-between align-items-center mb-3">
-                        <span class="text-muted">Cliente desde:</span>
-                        <strong>
-                            {% if client.dataInicioServicos or client.mesAnoInicio %}
-                                {{ client.dataInicioServicos or client.mesAnoInicio }}
-                            {% else %}
-                                -
-                            {% endif %}
-                        </strong>
-                    </div>
-                    
-                    <div class="info-item d-flex justify-content-between align-items-center mb-3">
-                        <span class="text-muted">Perfil do Cliente:</span>
-                        <strong class="text-info">
-                            {% if client.perfil or client.perfilCliente %}
-                                {{ client.perfil or client.perfilCliente }}
-                            {% else %}
-                                -
-                            {% endif %}
-                        </strong>
-                    </div>
-                    
-                    <div class="info-item d-flex justify-content-between align-items-center mb-3">
-                        <span class="text-muted">Serviços:</span>
-                        <div class="d-flex gap-1">
-                            {% if client.ct %}
-                                <span class="badge bg-success">CT</span>
-                            {% else %}
-                                <span class="badge bg-secondary">CT</span>
-                            {% endif %}
-                            {% if client.fs %}
-                                <span class="badge bg-success">FS</span>
-                            {% else %}
-                                <span class="badge bg-secondary">FS</span>
-                            {% endif %}
-                            {% if client.dp %}
-                                <span class="badge bg-success">DP</span>
-                            {% else %}
-                                <span class="badge bg-secondary">DP</span>
-                            {% endif %}
-                        </div>
-                    </div>
-                    
-                    <div class="info-item d-flex justify-content-between align-items-center mb-3">
-                        <span class="text-muted">Doméstica:</span>
-                        <strong>
-                            {% if client.domestica == 'SIM' %}
-                                <span class="badge bg-info">Sim</span>
-                            {% else %}
-                                <span class="badge bg-secondary">Não</span>
-                            {% endif %}
-                        </strong>
-                    </div>
-                    
-                    <hr class="my-3">
-                    
-                    <div class="info-item d-flex justify-content-between align-items-center mb-2">
-                        <span class="text-muted">Códigos nos Sistemas:</span>
-                        <strong class="text-primary">
-                            {% if client.sistemaPrincipal or client.sistemaUtilizado %}
-                                {{ client.sistemaPrincipal or client.sistemaUtilizado }}
-                            {% else %}
-                                -
-                            {% endif %}
-                        </strong>
-                    </div>
-                    
-                    <div class="info-item d-flex justify-content-between align-items-center mb-2">
-                        <span class="text-muted">Cód. Domínio:</span>
-                        <code>{{ client.codDominio or '-' }}</code>
-                    </div>
-                    
-                    <div class="info-item d-flex justify-content-between align-items-center mb-2">
-                        <span class="text-muted">Cód. Fortes CT:</span>
-                        <code>{{ client.codFortesCt or '-' }}</code>
-                    </div>
-                    
-                    <div class="info-item d-flex justify-content-between align-items-center mb-2">
-                        <span class="text-muted">Cód. Fortes FS:</span>
-                        <code>{{ client.codFortesFs or '-' }}</code>
-                    </div>
-                    
-                    <div class="info-item d-flex justify-content-between align-items-center mb-2">
-                        <span class="text-muted">Cód. Fortes PS:</span>
-                        <code>{{ client.codFortesPs or '-' }}</code>
-                    </div>
+                <div class="mb-2 d-flex justify-content-between align-items-center">
+                    <span class="text-muted">Cliente Ativo:</span>
+                    {% set status = client.get('statusCliente', 'ativo')|lower %}
+                    <span class="fw-bold text-{{ 'success' if status == 'ativo' else 'danger' }}">{{ 'SIM' if status == 'ativo' else 'NÃO' }}</span>
+                </div>
+                <div class="mb-2 d-flex justify-content-between align-items-center">
+                    <span class="text-muted">Cliente desde:</span>
+                    <span class="fw-bold">
+                        {% if client.dataInicioServicos or client.mesAnoInicio %}
+                            {{ client.dataInicioServicos or client.mesAnoInicio }}
+                        {% else %}-{% endif %}
+                    </span>
+                </div>
+                <div class="mb-2 d-flex justify-content-between align-items-center">
+                    <span class="text-muted">Perfil do Cliente:</span>
+                    {% set perfil_val = client.perfil or client.perfilCliente %}
+                    <span class="fw-bold text-info">{{ perfil_val or '-' }}</span>
+                </div>
+                <div class="mb-2 d-flex justify-content-between align-items-center">
+                    <span class="text-muted">Serviços:</span>
+                    <span>
+                        {% if client.ct %}<span class="badge bg-success px-3">CT</span>{% endif %}
+                        {% if client.fs %}<span class="badge bg-success px-3">FS</span>{% endif %}
+                        {% if client.dp %}<span class="badge bg-success px-3">DP</span>{% endif %}
+                    </span>
+                </div>
+                <div class="mb-2 d-flex justify-content-between align-items-center">
+                    <span class="text-muted">Doméstica:</span>
+                    <span>{% if client.domestica == 'SIM' or client.domestica == True %}<span class="badge bg-warning text-white px-3">SIM</span>{% else %}<span class="badge bg-warning text-white px-3">NÃO</span>{% endif %}</span>
+                </div>
+                <hr />
+                <div class="mb-2 fw-bold text-muted">Códigos nos Sistemas:</div>
+                <div class="mb-2 d-flex justify-content-between align-items-center">
+                    <span class="text-muted">Cód. Domínio:</span>
+                    <span class="fw-bold text-dark">{{ client.codDominio or '-' }}</span>
+                </div>
+                <div class="mb-2 d-flex justify-content-between align-items-center">
+                    <span class="text-muted">Cód. Fortes CT:</span>
+                    <span class="fw-bold text-dark">{{ client.codFortesCt or '-' }}</span>
+                </div>
+                <div class="mb-2 d-flex justify-content-between align-items-center">
+                    <span class="text-muted">Cód. Fortes FS:</span>
+                    <span class="fw-bold text-dark">{{ client.codFortesFs or '-' }}</span>
+                </div>
+                <div class="mb-2 d-flex justify-content-between align-items-center">
+                    <span class="text-muted">Cód. Fortes PS:</span>
+                    <span class="fw-bold text-dark">{{ client.codFortesPs or '-' }}</span>
+                </div>
+                <hr />
+                <div class="mb-2 d-flex justify-content-between align-items-center">
+                    <span class="text-muted">Sistema Utilizado:</span>
+                    <span class="fw-bold">{{ client.sistemaUtilizado or '-' }}</span>
+                </div>
+                <div class="mb-2 d-flex justify-content-between align-items-center">
+                    <span class="text-muted">Gera Arquivo do Sped:</span>
+                    <span class="fw-bold text-dark">
+                        {{ 'SIM' if client.geraSped in ['SIM', True, 'true', 'True', 1] else 'NÃO' }}
+                    </span>
                 </div>
             </div>
         </div>
