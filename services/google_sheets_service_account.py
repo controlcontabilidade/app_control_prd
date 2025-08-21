@@ -1170,10 +1170,10 @@ class GoogleSheetsServiceAccountService:
             client.get('dataInicioServicos', ''),             # 17. DATA INÍCIO DOS SERVIÇOS (POSIÇÃO CORRETA)
             
             # Códigos dos Sistemas (Bloco 2) - POSIÇÕES CORRETAS
-            f"'{str(client.get('codFortesCt', '')).zfill(4)}" if client.get('codFortesCt') else '',  # 18. CÓDIGO FORTES CT
-            f"'{str(client.get('codFortesFs', '')).zfill(4)}" if client.get('codFortesFs') else '',  # 19. CÓDIGO FORTES FS
-            f"'{str(client.get('codFortesPs', '')).zfill(4)}" if client.get('codFortesPs') else '',  # 20. CÓDIGO FORTES PS
-            f"'{str(client.get('codDominio', '')).zfill(4)}" if client.get('codDominio') else '',    # 21. CÓDIGO DOMÍNIO
+            f"'{str(client.get('codFortesCt', ''))}" if client.get('codFortesCt') else '',  # 18. CÓDIGO FORTES CT - removido zfill
+            f"'{str(client.get('codFortesFs', ''))}" if client.get('codFortesFs') else '',  # 19. CÓDIGO FORTES FS - removido zfill
+            f"'{str(client.get('codFortesPs', ''))}" if client.get('codFortesPs') else '',  # 20. CÓDIGO FORTES PS - removido zfill
+            f"'{str(client.get('codDominio', ''))}" if client.get('codDominio') else '',    # 21. CÓDIGO DOMÍNIO - removido zfill
             client.get('sistemaUtilizado', ''),               # 22. SISTEMA UTILIZADO (POSIÇÃO CORRETA)
             
             # Bloco 3: Quadro Societário - POSIÇÕES CORRETAS
@@ -1451,10 +1451,10 @@ class GoogleSheetsServiceAccountService:
             'bpoFinanceiro': bool_from_text(safe_get(row, 16)),   # CORRIGIDO: posição 16
 
             # Códigos dos Sistemas (Bloco 2) - POSIÇÕES CORRETAS
-            'codFortesCt': safe_get(row, 18).lstrip("'").zfill(4) if safe_get(row, 18) else '',   # POSIÇÃO CORRETA
-            'codFortesFs': safe_get(row, 19).lstrip("'").zfill(4) if safe_get(row, 19) else '',   # POSIÇÃO CORRETA
-            'codFortesPs': safe_get(row, 20).lstrip("'").zfill(4) if safe_get(row, 20) else '',   # POSIÇÃO CORRETA
-            'codDominio': safe_get(row, 21).lstrip("'").zfill(4) if safe_get(row, 21) else '',    # POSIÇÃO CORRETA
+            'codFortesCt': safe_get(row, 18).lstrip("'") if safe_get(row, 18) else '',   # POSIÇÃO CORRETA - removido zfill
+            'codFortesFs': safe_get(row, 19).lstrip("'") if safe_get(row, 19) else '',   # POSIÇÃO CORRETA - removido zfill
+            'codFortesPs': safe_get(row, 20).lstrip("'") if safe_get(row, 20) else '',   # POSIÇÃO CORRETA - removido zfill
+            'codDominio': safe_get(row, 21).lstrip("'") if safe_get(row, 21) else '',    # POSIÇÃO CORRETA - removido zfill
             'sistemaUtilizado': safe_get(row, 22),                # POSIÇÃO CORRETA
 
             # Bloco 3: Quadro Societário - POSIÇÕES CORRETAS
