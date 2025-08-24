@@ -906,20 +906,9 @@ class GoogleSheetsServiceAccountService:
             'DOMÉSTICA',                         # 105. Indica se é doméstica (SIM/NÃO)
             'GERA ARQUIVO DO SPED',              # 106. Gera arquivo do SPED (SIM/NÃO)
             # --- CAMPOS NOVOS (sempre ao final para não quebrar ordem) ---
-            'CNPJ ACESSO SIMPLES NACIONAL',       # 107. CNPJ para Simples Nacional
-            'CPF DO REPRESENTANTE LEGAL',         # 108. CPF do representante legal
-            'CÓDIGO ACESSO SN',                   # 109. Código de acesso SN
-            'SENHA ISS',                          # 110. Senha ISS
-            'SENHA SEFIN',                        # 111. Senha SEFIN
-            'SENHA SEUMA',                        # 112. Senha SEUMA
-            'LOGIN ANVISA EMPRESA',               # 113. Login ANVISA Empresa
-            'SENHA ANVISA EMPRESA',               # 114. Senha ANVISA Empresa
-            'LOGIN ANVISA GESTOR',                # 115. Login ANVISA Gestor
-            'SENHA ANVISA GESTOR',                # 116. Senha ANVISA Gestor
-            'SENHA FAP/INSS',                     # 117. Senha FAP/INSS
-            'ACESSO EMP WEB',                     # 118. Acesso Emp Web
-            'SENHA EMP WEB',                      # 119. Senha Emp Web
-            'ACESSO CRF',                         # 120. Acesso CRF
+            'CNPJ ACESSO SIMPLES NACIONAL',       # 107. Novo campo
+            'CPF DO REPRESENTANTE LEGAL',         # 108. Novo campo
+            'CÓDIGO DE ACESSO SIMPLES NACIONAL',  # 109. Novo campo
         ]
 
     def ensure_correct_headers(self):
@@ -1156,8 +1145,9 @@ class GoogleSheetsServiceAccountService:
 
         # Obter headers para mapeamento de índices
         headers = self.get_headers()
-
-        row_data = [
+        
+        # Inicializar row_data com o tamanho correto baseado nos headers
+        row_data = [''] * len(headers)
             # Bloco 1: Informações da Pessoa Jurídica (13 campos obrigatórios)
             client.get('nomeEmpresa', ''),                    # 1. NOME DA EMPRESA
             client.get('razaoSocialReceita', ''),             # 2. RAZÃO SOCIAL NA RECEITA
@@ -1315,57 +1305,34 @@ class GoogleSheetsServiceAccountService:
             # Linha 4: Acesso CRF, Senha FAP/INSS
             client.get('acessoCrf', ''),                      # 72. ACESSO CRF
             client.get('senhaFapInss', ''),                   # 73. SENHA FAP/INSS
-            
-            # Bloco 5: Senhas Específicas Adicionais (NOVOS CAMPOS)
-            client.get('senhaFgts', ''),                      # 74. SENHA FGTS
-            client.get('senhaSocial', ''),                    # 75. SENHA SOCIAL
-            client.get('senhaGiss', ''),                      # 76. SENHA GISS
-            client.get('senhaDetran', ''),                    # 77. SENHA DETRAN
-            client.get('senhaReceita', ''),                   # 78. SENHA RECEITA
-            client.get('senhaSintegra', ''),                  # 79. SENHA SINTEGRA
-            client.get('senhaJucesp', ''),                    # 80. SENHA JUCESP
-            client.get('senhaPortalEmpregador', ''),          # 81. SENHA PORTAL EMPREGADOR
-            client.get('senhaSimples', ''),                   # 82. SENHA SIMPLES
-            client.get('senhaGoverno', ''),                   # 83. SENHA GOVERNO
-            client.get('senhaViaSoft', ''),                   # 84. SENHA VIA SOFT
-            client.get('senhaSimei', ''),                     # 85. SENHA SIMEI
 
             # Bloco 6: Procurações (CORRIGIDO - alinhado com formulário)
-            'SIM' if client.get('procReceita') else 'NÃO',    # 86. PROCURAÇÃO RECEITA
-            client.get('dataProcReceita', ''),                # 87. DATA PROCURAÇÃO RECEITA
-            'SIM' if client.get('procDte') else 'NÃO',        # 88. PROCURAÇÃO DTe
-            client.get('dataProcDte', ''),                    # 89. DATA PROCURAÇÃO DTe
-            'SIM' if client.get('procCaixa') else 'NÃO',      # 90. PROCURAÇÃO CAIXA
-            client.get('dataProcCaixa', ''),                  # 91. DATA PROCURAÇÃO CAIXA
-            'SIM' if client.get('procEmpWeb') else 'NÃO',     # 92. PROCURAÇÃO EMP WEB
-            client.get('dataProcEmpWeb', ''),                 # 93. DATA PROCURAÇÃO EMP WEB
-            'SIM' if client.get('procDet') else 'NÃO',        # 94. PROCURAÇÃO DET
-            client.get('dataProcDet', ''),                    # 95. DATA PROCURAÇÃO DET
-            client.get('outrasProc', ''),                     # 96. OUTRAS PROCURAÇÕES
-            client.get('obsProcuracoes', ''),                 # 97. OBSERVAÇÕES PROCURAÇÕES
+            'SIM' if client.get('procReceita') else 'NÃO',   # 74. PROCURAÇÃO RECEITA
+            client.get('dataProcReceita', ''),                # 75. DATA PROCURAÇÃO RECEITA
+            'SIM' if client.get('procDte') else 'NÃO',        # 76. PROCURAÇÃO DTe
+            client.get('dataProcDte', ''),                    # 77. DATA PROCURAÇÃO DTe
+            'SIM' if client.get('procCaixa') else 'NÃO',      # 78. PROCURAÇÃO CAIXA
+            client.get('dataProcCaixa', ''),                  # 79. DATA PROCURAÇÃO CAIXA
+            'SIM' if client.get('procEmpWeb') else 'NÃO',     # 80. PROCURAÇÃO EMP WEB
+            client.get('dataProcEmpWeb', ''),                 # 81. DATA PROCURAÇÃO EMP WEB
+            'SIM' if client.get('procDet') else 'NÃO',        # 82. PROCURAÇÃO DET
+            client.get('dataProcDet', ''),                    # 83. DATA PROCURAÇÃO DET
+            client.get('outrasProc', ''),                     # 84. OUTRAS PROCURAÇÕES
+            client.get('obsProcuracoes', ''),                 # 85. OBSERVAÇÕES PROCURAÇÕES
 
             # Bloco 7: Observações e Dados Adicionais (apenas campos mantidos)
-            client.get('observacoes', ''),                    # 98. OBSERVAÇÕES
-            client.get('statusCliente', 'ativo'),             # 99. STATUS DO CLIENTE
-            client.get('ultimaAtualizacao', ''),              # 100. ÚLTIMA ATUALIZAÇÃO
+            client.get('observacoes', ''),                    # 86. OBSERVAÇÕES
+            client.get('statusCliente', 'ativo'),             # 87. STATUS DO CLIENTE
+            client.get('ultimaAtualizacao', ''),              # 88. ÚLTIMA ATUALIZAÇÃO
 
             # Campos internos do sistema
-            client.get('donoResp', ''),                       # 101. DONO/RESPONSÁVEL
-            'SIM' if client.get('ativo', True) else 'NÃO',    # 102. CLIENTE ATIVO
-            client.get('criadoEm', ''),                       # 103. DATA DE CRIAÇÃO
-            client.get('id', ''),                             # 104. ID
-            client.get('domestica', ''),                      # 105. DOMÉSTICA
-            client.get('geraArquivoSped', ''),                # 106. GERA ARQUIVO DO SPED
-            # --- CAMPOS NOVOS AO FINAL ---
-            client.get('cnpjAcessoSn', ''),                   # 107. CNPJ ACESSO SIMPLES NACIONAL
-            client.get('cpfRepLegal', ''),                    # 108. CPF DO REPRESENTANTE LEGAL
-            client.get('codigoAcessoSn', ''),                 # 109. CÓDIGO DE ACESSO SIMPLES NACIONAL
+            client.get('donoResp', ''),                       # 89. DONO/RESPONSÁVEL
+            'SIM' if client.get('ativo', True) else 'NÃO',    # 90. CLIENTE ATIVO
+            client.get('criadoEm', ''),                       # 91. DATA DE CRIAÇÃO
+            client.get('id', ''),                             # 92. ID
+            client.get('domestica', ''),                      # 93. DOMÉSTICA
+            client.get('geraArquivoSped', ''),                # 94. GERA ARQUIVO DO SPED
         ]
-
-        # Expandir row_data para acomodar todas as colunas dos cabeçalhos
-        headers = self.get_headers()
-        while len(row_data) < len(headers):
-            row_data.append('')
 
         # Mapear índices de cabeçalho para evitar desalinhamento nos campos finais
         hidx = {name: i for i, name in enumerate(headers)}
@@ -1405,29 +1372,6 @@ class GoogleSheetsServiceAccountService:
         gera_sped_val = (client.get('geraArquivoSped') or '').strip().upper()
         if 'GERA ARQUIVO DO SPED' in hidx:
             row_data[hidx['GERA ARQUIVO DO SPED']] = gera_sped_val if gera_sped_val in ['SIM', 'NÃO'] else ''
-
-        # NOVOS CAMPOS DE SENHA - mapeamento baseado em cabeçalhos
-        senha_fields = {
-            'CNPJ ACESSO SIMPLES NACIONAL': client.get('cnpjAcessoSn', ''),
-            'CPF DO REPRESENTANTE LEGAL': client.get('cpfRepLegal', ''),
-            'CÓDIGO ACESSO SN': client.get('codigoAcessoSn', ''),
-            'SENHA ISS': client.get('senhaIss', ''),
-            'SENHA SEFIN': client.get('senhaSefin', ''),
-            'SENHA SEUMA': client.get('senhaSeuma', ''),
-            'LOGIN ANVISA EMPRESA': client.get('anvisaEmpresa', ''),
-            'SENHA ANVISA EMPRESA': client.get('senhaAnvisaEmpresa', ''),
-            'LOGIN ANVISA GESTOR': client.get('anvisaGestor', ''),
-            'SENHA ANVISA GESTOR': client.get('senhaAnvisaGestor', ''),
-            'SENHA FAP/INSS': client.get('senhaFapInss', ''),
-            'ACESSO EMP WEB': client.get('acessoEmpWeb', ''),
-            'SENHA EMP WEB': client.get('senhaEmpWeb', ''),
-            'ACESSO CRF': client.get('acessoCrf', '')
-        }
-        
-        for header_name, value in senha_fields.items():
-            if header_name in hidx:
-                row_data[hidx[header_name]] = value
-                print(f"🔐 [SERVICE] {header_name}: '{value}' -> posição {hidx[header_name]}")
 
         # DEBUG: Verificar se o ID foi colocado corretamente
         if 'ID' in hidx:
@@ -1623,65 +1567,51 @@ class GoogleSheetsServiceAccountService:
             'contato_2_cargo': safe_get(row, 98),                 # POSIÇÃO ESTIMADA: 98 (CONTATO_2_CARGO)
             'contato_2_telefone': safe_get(row, 99),              # POSIÇÃO ESTIMADA: 99 (CONTATO_2_TELEFONE)
             'contato_2_email': safe_get(row, 100),                # POSIÇÃO ESTIMADA: 100 (CONTATO_2_EMAIL)
-            'contato_3_nome': safe_get(row, 47),     # 48-1 = 47 (CONTATO_3_NOME)
-            'contato_3_cargo': safe_get(row, 48),    # 49-1 = 48 (CONTATO_3_CARGO)
-            'contato_3_telefone': safe_get(row, 49), # 50-1 = 49 (CONTATO_3_TELEFONE)
-            'contato_3_email': safe_get(row, 50),    # 51-1 = 50 (CONTATO_3_EMAIL)
-            'contato_4_nome': safe_get(row, 51),     # 52-1 = 51 (CONTATO_4_NOME)
-            'contato_4_cargo': safe_get(row, 52),    # 53-1 = 52 (CONTATO_4_CARGO)
-            'contato_4_telefone': safe_get(row, 53), # 54-1 = 53 (CONTATO_4_TELEFONE)
-            'contato_4_email': safe_get(row, 54),    # 55-1 = 54 (CONTATO_4_EMAIL)
-            'contato_5_nome': safe_get(row, 55),     # 56-1 = 55 (CONTATO_5_NOME)
-            'contato_5_cargo': safe_get(row, 56),    # 57-1 = 56 (CONTATO_5_CARGO)
-            'contato_5_telefone': safe_get(row, 57), # 58-1 = 57 (CONTATO_5_TELEFONE)
-            'contato_5_email': safe_get(row, 58),    # 59-1 = 58 (CONTATO_5_EMAIL)
+            'contato_3_nome': safe_get(row, 101),     # 102-1 = 101 (CONTATO_3_NOME) - CORRIGIDO!
+            'contato_3_cargo': safe_get(row, 102),    # 103-1 = 102 (CONTATO_3_CARGO)
+            'contato_3_telefone': safe_get(row, 103), # 104-1 = 103 (CONTATO_3_TELEFONE)
+            'contato_3_email': safe_get(row, 104),    # 105-1 = 104 (CONTATO_3_EMAIL)
+            'contato_4_nome': safe_get(row, 105),     # 106-1 = 105 (CONTATO_4_NOME) - CORRIGIDO!
+            'contato_4_cargo': safe_get(row, 106),    # 107-1 = 106 (CONTATO_4_CARGO)
+            'contato_4_telefone': safe_get(row, 107), # 108-1 = 107 (CONTATO_4_TELEFONE)
+            'contato_4_email': safe_get(row, 108),    # 109-1 = 108 (CONTATO_4_EMAIL)
+            'contato_5_nome': safe_get(row, 109),     # 110-1 = 109 (CONTATO_5_NOME) - CORRIGIDO!
+            'contato_5_cargo': safe_get(row, 110),    # 111-1 = 110 (CONTATO_5_CARGO)
+            'contato_5_telefone': safe_get(row, 111), # 112-1 = 111 (CONTATO_5_TELEFONE)
+            'contato_5_email': safe_get(row, 112),    # 113-1 = 112 (CONTATO_5_EMAIL)
 
             # Bloco 5: Senhas e Credenciais (ORGANIZADO CONFORME FORMULÁRIO - 4 LINHAS)
             # Linha 1: CNPJ Acesso Simples Nacional, CPF do Representante Legal, Código de Acesso Simples Nacional, Senha ISS
-            'cnpjAcessoSn': safe_get(row, 59),       # 60. CNPJ ACESSO SIMPLES NACIONAL
-            'cpfRepLegal': safe_get(row, 60),        # 61. CPF DO REPRESENTANTE LEGAL
-            'codigoAcessoSn': safe_get(row, 61),     # 62. CÓDIGO ACESSO SN
-            'senhaIss': safe_get(row, 62),           # 63. SENHA ISS
+            'cnpjAcessoSn': safe_get(row, 113),      # 113. CNPJ ACESSO SIMPLES NACIONAL
+            'cpfRepLegal': safe_get(row, 114),       # 114. CPF DO REPRESENTANTE LEGAL
+            'codigoAcessoSn': safe_get(row, 115),    # 115. CÓDIGO ACESSO SN
+            'senhaIss': safe_get(row, 116),          # 116. SENHA ISS
             
             # Linha 2: Senha SEFIN, Senha SEUMA, Acesso EmpWeb, Senha EmpWeb
-            'senhaSefin': safe_get(row, 63),         # 64. SENHA SEFIN
-            'senhaSeuma': safe_get(row, 64),         # 65. SENHA SEUMA
-            'acessoEmpWeb': safe_get(row, 65),       # 66. ACESSO EMPWEB
-            'senhaEmpWeb': safe_get(row, 66),        # 67. SENHA EMPWEB
+            'senhaSefin': safe_get(row, 117),        # 117. SENHA SEFIN
+            'senhaSeuma': safe_get(row, 118),        # 118. SENHA SEUMA
+            'acessoEmpWeb': safe_get(row, 119),      # 119. ACESSO EMPWEB
+            'senhaEmpWeb': safe_get(row, 120),       # 120. SENHA EMPWEB
             
             # Linha 3: Login ANVISA Empresa, Senha ANVISA Empresa, Login ANVISA Gestor, Senha ANVISA Gestor
-            'anvisaEmpresa': safe_get(row, 67),      # 68. LOGIN ANVISA EMPRESA
-            'senhaAnvisaEmpresa': safe_get(row, 68), # 69. SENHA ANVISA EMPRESA
-            'anvisaGestor': safe_get(row, 69),       # 70. LOGIN ANVISA GESTOR
-            'senhaAnvisaGestor': safe_get(row, 70),  # 71. SENHA ANVISA GESTOR
+            'anvisaEmpresa': safe_get(row, 121),     # 121. LOGIN ANVISA EMPRESA
+            'senhaAnvisaEmpresa': safe_get(row, 122),# 122. SENHA ANVISA EMPRESA
+            'anvisaGestor': safe_get(row, 123),      # 123. LOGIN ANVISA GESTOR
+            'senhaAnvisaGestor': safe_get(row, 124), # 124. SENHA ANVISA GESTOR
             
             # Linha 4: Acesso CRF, Senha FAP/INSS
-            'acessoCrf': safe_get(row, 71),          # 72. ACESSO CRF
-            'senhaFapInss': safe_get(row, 72),       # 73. SENHA FAP/INSS
-            
-            # Bloco 5: Senhas Específicas Adicionais (POSIÇÕES REAIS NA PLANILHA)
-            'senhaFgts': safe_get(row, 127),                      # 127. SENHA FGTS (posição real)
-            'senhaSocial': safe_get(row, 128),                    # 128. SENHA SOCIAL (posição real)
-            'senhaGiss': safe_get(row, 129),                      # 129. SENHA GISS (posição real)
-            'senhaDetran': safe_get(row, 130),                    # 130. SENHA DETRAN (posição real)
-            'senhaReceita': safe_get(row, 131),                   # 131. SENHA RECEITA (posição real)
-            'senhaSintegra': safe_get(row, 132),                  # 132. SENHA SINTEGRA (posição real)
-            'senhaJucesp': safe_get(row, 133),                    # 133. SENHA JUCESP (posição real)
-            'senhaPortalEmpregador': safe_get(row, 134),          # 134. SENHA PORTAL EMPREGADOR (posição real)
-            'senhaSimples': safe_get(row, 135),                   # 135. SENHA SIMPLES (posição real)
-            'senhaGoverno': safe_get(row, 136),                   # 136. SENHA GOVERNO (posição real)
-            'senhaViaSoft': safe_get(row, 137),                   # 137. SENHA VIA SOFT (posição real)
-            'senhaSimei': safe_get(row, 138),                     # 138. SENHA SIMEI (posição real)
+            'acessoCrf': safe_get(row, 125),         # 125. ACESSO CRF
+            'senhaFapInss': safe_get(row, 126),      # 126. SENHA FAP/INSS
 
-            # Bloco 6: Procurações (posições reais na planilha)
-            'procReceita': bool_from_text(safe_get(row, 139)),    # 139. PROCURAÇÃO RECEITA (RFB)
-            'dataProcReceita': safe_get(row, 140),                # 140. DATA PROCURAÇÃO RECEITA
-            'procDte': bool_from_text(safe_get(row, 141)),        # 141. PROCURAÇÃO DTe
-            'dataProcDte': safe_get(row, 142),                    # 142. DATA PROCURAÇÃO DTe
-            'procCaixa': bool_from_text(safe_get(row, 143)),      # 143. PROCURAÇÃO CAIXA
-            'dataProcCaixa': safe_get(row, 144),                  # 144. DATA PROCURAÇÃO CAIXA
-            'procEmpWeb': bool_from_text(safe_get(row, 145)),     # 145. PROCURAÇÃO EMP WEB
-            'dataProcEmpWeb': safe_get(row, 146),                 # 146. DATA PROCURAÇÃO EMP WEB
+            # Bloco 6: Procurações (posições ajustadas)
+            'procReceita': bool_from_text(safe_get(row, 127)),    # 127. PROCURAÇÃO RECEITA (RFB)
+            'dataProcReceita': safe_get(row, 128),                # 128. DATA PROCURAÇÃO RECEITA
+            'procDte': bool_from_text(safe_get(row, 129)),        # 129. PROCURAÇÃO DTe
+            'dataProcDte': safe_get(row, 130),                    # 130. DATA PROCURAÇÃO DTe
+            'procCaixa': bool_from_text(safe_get(row, 131)),      # 131. PROCURAÇÃO CAIXA
+            'dataProcCaixa': safe_get(row, 132),                  # 132. DATA PROCURAÇÃO CAIXA
+            'procEmpWeb': bool_from_text(safe_get(row, 133)),     # 133. PROCURAÇÃO EMP WEB
+            'dataProcEmpWeb': safe_get(row, 134),                 # 134. DATA PROCURAÇÃO EMP WEB
             'procDet': bool_from_text(safe_get(row, 147)),        # 147. PROCURAÇÃO DET
             'dataProcDet': safe_get(row, 148),                    # 148. DATA PROCURAÇÃO DET
             'outrasProc': safe_get(row, 149),                     # 149. OUTRAS PROCURAÇÕES
@@ -1700,22 +1630,10 @@ class GoogleSheetsServiceAccountService:
             'criadoEm': safe_get(row, 156, datetime.now().isoformat()), # 156. DATA DE CRIAÇÃO
             'domestica': safe_get(row, 158),                      # 158. DOMÉSTICA
             'geraArquivoSped': safe_get(row, 159),                # 159. GERA ARQUIVO DO SPED
-            
-            # --- CAMPOS NOVOS DE SENHA - usando posições corretas dos cabeçalhos ---
-            'cnpjAcessoSn': safe_get(row, 160),       # 161. CNPJ ACESSO SIMPLES NACIONAL
-            'cpfRepLegal': safe_get(row, 161),        # 162. CPF DO REPRESENTANTE LEGAL  
-            'codigoAcessoSn': safe_get(row, 162),     # 163. CÓDIGO ACESSO SN
-            'senhaIss': safe_get(row, 163),           # 164. SENHA ISS
-            'senhaSefin': safe_get(row, 164),         # 165. SENHA SEFIN
-            'senhaSeuma': safe_get(row, 165),         # 166. SENHA SEUMA
-            'anvisaEmpresa': safe_get(row, 166),      # 167. LOGIN ANVISA EMPRESA
-            'senhaAnvisaEmpresa': safe_get(row, 167), # 168. SENHA ANVISA EMPRESA
-            'anvisaGestor': safe_get(row, 168),       # 169. LOGIN ANVISA GESTOR
-            'senhaAnvisaGestor': safe_get(row, 169),  # 170. SENHA ANVISA GESTOR
-            'senhaFapInss': safe_get(row, 170),       # 171. SENHA FAP/INSS
-            'acessoEmpWeb': safe_get(row, 171),       # 172. ACESSO EMP WEB
-            'senhaEmpWeb': safe_get(row, 172),        # 173. SENHA EMP WEB
-            'acessoCrf': safe_get(row, 173),          # 174. ACESSO CRF
+            # --- CAMPOS NOVOS AO FINAL ---
+            'cnpjAcessoSn': safe_get(row, 160),
+            'cpfRepLegal': safe_get(row, 161),
+            'codigoAcessoSn': safe_get(row, 162),
         }
 
         # CORREÇÃO CRÍTICA: Derivar campo 'ativo' a partir do statusCliente

@@ -96,7 +96,7 @@
                         <div class="info-item mb-3">
                             <label class="fw-bold text-muted">Tributação</label>
                             <p class="mb-0">
-                                <span class="badge bg-primary fs-6">{{ client.tributacao or 'SIMPLES' }}</span>
+                                <span class="badge bg-primary fs-6">{{ (client.tributacao or 'SIMPLES')|upper }}</span>
                             </p>
                         </div>
                         <div class="info-item mb-3">
@@ -122,6 +122,11 @@
                 <div class="row">
                     <div class="col-md-12">
                         <div class="d-flex flex-wrap gap-2 mb-3">
+                            {% if client.bpoFinanceiro %}
+                                <span class="badge bg-info fs-6 px-3 py-2">BPO</span>
+                            {% else %}
+                                <span class="badge bg-secondary fs-6 px-3 py-2">BPO</span>
+                            {% endif %}
                             {% if client.ct %}
                                 <span class="badge bg-success fs-6 px-3 py-2">CT</span>
                             {% else %}
@@ -166,7 +171,7 @@
                         <p><strong>CÓDIGO DOMÍNIO:</strong> {{ client.codDominio or '-' }}</p>
                     </div>
                     <div class="col-md-6">
-                        <p><strong>SISTEMA UTILIZADO:</strong> {{ client.sistemaUtilizado or '-' }}</p>
+                        <p><strong>SISTEMA UTILIZADO:</strong> {{ (client.sistemaUtilizado or '-')|upper }}</p>
                         <p><strong>GERA ARQUIVO DO SPED:</strong> 
                             {% if client.geraArquivoSped %}
                                 <span class="badge bg-success">Sim</span>
@@ -207,9 +212,9 @@
                 <h5 class="mb-0">Sócios</h5>
             </div>
             <div class="card-body">
-                {% if client.socio1 %}<p><strong>Sócio 1:</strong> {{ client.socio1 }}</p>{% endif %}
-                {% if client.socio2 %}<p><strong>Sócio 2:</strong> {{ client.socio2 }}</p>{% endif %}
-                {% if client.socio3 %}<p><strong>Sócio 3:</strong> {{ client.socio3 }}</p>{% endif %}
+                {% if client.socio1 %}<p><strong>Sócio 1:</strong> {{ client.socio1|upper }}</p>{% endif %}
+                {% if client.socio2 %}<p><strong>Sócio 2:</strong> {{ client.socio2|upper }}</p>{% endif %}
+                {% if client.socio3 %}<p><strong>Sócio 3:</strong> {{ client.socio3|upper }}</p>{% endif %}
             </div>
         </div>
         {% endif %}

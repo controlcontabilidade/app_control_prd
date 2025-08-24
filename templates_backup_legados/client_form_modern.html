@@ -986,5 +986,72 @@ document.getElementById('clientForm').addEventListener('submit', function() {
         submitBtn.disabled = false;
     }, 2000);
 });
+
+// === CÓDIGO PARA MAIÚSCULAS OBRIGATÓRIAS ===
+// CSS para caixa alta
+const style = document.createElement('style');
+style.textContent = `
+    .upper-input { 
+        text-transform: uppercase; 
+        background-color: #f8f9fa;
+        border: 1px solid #28a745;
+    }
+    .upper-input:focus { 
+        background-color: #ffffff;
+        border-color: #28a745;
+        box-shadow: 0 0 0 0.2rem rgba(40, 167, 69, 0.25);
+    }
+    .conditional-required { display: none; }
+`;
+document.head.appendChild(style);
+
+// === FUNÇÃO PARA MAIÚSCULAS OBRIGATÓRIAS ===
+function setupUppercaseFields() {
+    // Configurar campos select para maiúsculas obrigatórias
+    const selectFields = ['estado', 'regimeEstadual', 'regimeFederal', 'sistemaPrincipal'];
+    selectFields.forEach(fieldId => {
+        const field = document.getElementById(fieldId);
+        if (field) {
+            // Adicionar classe CSS para maiúsculas
+            field.classList.add('upper-input');
+            
+            // Event listener para converter em tempo real (select options já vêm em maiúsculas do HTML)
+            field.addEventListener('change', function(e) {
+                // Para selects, o value já vem correto do HTML, mas garantimos maiúscula
+                if (e.target.value) {
+                    e.target.value = e.target.value.toUpperCase();
+                }
+            });
+        }
+    });
+}
+
+// === FUNÇÃO PARA NOMES DE SÓCIOS (se houver) ===
+function setupSocioUppercase() {
+    // Verificar se há campos de sócios e aplicar maiúscula
+    const socioFields = document.querySelectorAll('input[name*="socio"], input[name*="nome"]');
+    socioFields.forEach(field => {
+        if (field.type === 'text' && (field.name.includes('socio') || field.name.includes('nome'))) {
+            field.classList.add('upper-input');
+            
+            field.addEventListener('input', function(e) {
+                const cursorPos = e.target.selectionStart;
+                e.target.value = e.target.value.toUpperCase();
+                e.target.setSelectionRange(cursorPos, cursorPos);
+            });
+            
+            // Também forçar maiúscula ao sair do campo
+            field.addEventListener('blur', function(e) {
+                e.target.value = e.target.value.toUpperCase();
+            });
+        }
+    });
+}
+
+// Executar configuração quando página carregar
+document.addEventListener('DOMContentLoaded', function() {
+    setupUppercaseFields();
+    setupSocioUppercase();
+});
 </script>
 {% endblock %}

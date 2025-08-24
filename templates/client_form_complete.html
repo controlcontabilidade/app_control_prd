@@ -2,6 +2,11 @@
 {% block title %}{% if client %}Editar Cliente{% else %}Novo Cliente{% endif %}{% endblock %}
 
 {% block head %}
+<script>
+console.log('🚨 DIAGNÓSTICO SOCIOS - CARREGAMENTO INICIADO');
+console.log('🕐 Timestamp:', new Date().toISOString());
+console.log('🌐 URL:', window.location.href);
+</script>
 <style>
 .socio-card {
     background-color: #f8f9fa;
@@ -65,25 +70,45 @@
 <script>
 document.addEventListener('DOMContentLoaded', function() {
     function atualizarCpfRepresentanteLegal() {
+        console.log('🔍 Atualizando CPF do Representante Legal...');
+        
         // Procura o radio selecionado para representante legal
         const radios = document.querySelectorAll('.representante-legal');
         let cpf = '';
+        let socioSelecionado = '';
+        
         radios.forEach(function(radio) {
             if (radio.checked) {
                 // O id do sócio está no value (ex: socio_1)
                 const socioId = radio.value;
+                socioSelecionado = socioId;
+                
                 // Busca o input de CPF do sócio (compatível com sócios dinâmicos)
                 const cpfInput = document.querySelector(`#${socioId}_cpf, [name='${socioId}_cpf']`);
                 if (cpfInput) {
                     cpf = cpfInput.value;
+                    console.log(`✅ Representante Legal selecionado: ${socioId}`);
+                    console.log(`📋 CPF encontrado: ${cpf}`);
+                } else {
+                    console.log(`❌ Campo CPF não encontrado para: ${socioId}`);
                 }
             }
         });
+        
         // Preenche o campo CPF do Representante Legal
         const cpfRepLegal = document.getElementById('cpfRepLegal');
         if (cpfRepLegal) {
             cpfRepLegal.value = cpf;
+            console.log(`🎯 CPF do Representante Legal atualizado: '${cpf}'`);
+            
+            if (!socioSelecionado) {
+                console.log('⚠️ Nenhum Representante Legal selecionado - Campo limpo');
+            }
+        } else {
+            console.error('❌ Campo CPF do Representante Legal não encontrado!');
         }
+        
+        console.log('✅ Atualização do CPF do Representante Legal concluída');
     }
 
     // Atualiza ao selecionar representante legal
@@ -522,7 +547,34 @@ document.addEventListener('DOMContentLoaded', function() {
                                     <label class="form-label fw-bold">
                                         <i class="bi bi-people-fill me-1"></i>SÓCIOS DA EMPRESA
                                     </label>
-                                    <button type="button" class="btn btn-outline-primary btn-sm" onclick="adicionarSocio()">
+                                    <button type="button" 
+                                            class="btn btn-outline-primary btn-sm" 
+                                            id="btnAdicionarSocio"
+                                            onclick="
+                                                console.log('🔴 BOTÃO CLICADO DIRETAMENTE');
+                                                var container = document.getElementById('sociosContainer');
+                                                if (!container) {
+                                                    alert('Container não encontrado!');
+                                                    return;
+                                                }
+                                                console.log('✅ Container encontrado');
+                                                var socios = container.querySelectorAll('.socio-card');
+                                                var total = socios.length;
+                                                console.log('📊 Total sócios:', total);
+                                                if (total >= 10) {
+                                                    alert('Máximo 10 sócios!');
+                                                    return;
+                                                }
+                                                var num = total + 1;
+                                                var div = document.createElement('div');
+                                                div.className = 'card border-light mb-2 socio-card';
+                                                div.id = 'socio_' + num;
+                                                div.innerHTML = '<div class=\&quot;card-body py-3\&quot;><div class=\&quot;d-flex justify-content-between align-items-center mb-2\&quot;><span class=\&quot;badge bg-primary\&quot;>Sócio ' + num + '</span><button type=\&quot;button\&quot; class=\&quot;btn btn-sm btn-outline-danger\&quot; onclick=\&quot;this.closest(\\\&quot;.socio-card\\\&quot;).remove();\&quot;>❌</button></div><div class=\&quot;row align-items-center\&quot;><div class=\&quot;col-md-3 mb-2\&quot;><label class=\&quot;form-label small mb-1\&quot;>Nome do Sócio</label><input type=\&quot;text\&quot; class=\&quot;form-control form-control-sm\&quot; name=\&quot;socio_' + num + '_nome\&quot; onkeyup=\&quot;this.value=this.value.toUpperCase()\&quot; placeholder=\&quot;Nome completo do sócio\&quot;></div><div class=\&quot;col-md-2 mb-2\&quot;><label class=\&quot;form-label small mb-1\&quot;>CPF</label><input type=\&quot;text\&quot; class=\&quot;form-control form-control-sm cpf-mask\&quot; name=\&quot;socio_' + num + '_cpf\&quot; placeholder=\&quot;000.000.000-00\&quot;></div><div class=\&quot;col-md-2 mb-2\&quot;><label class=\&quot;form-label small mb-1\&quot;>Data de Nascimento</label><input type=\&quot;date\&quot; class=\&quot;form-control form-control-sm\&quot; name=\&quot;socio_' + num + '_data_nascimento\&quot;></div><div class=\&quot;col-md-2 mb-2\&quot;><label class=\&quot;form-label small mb-1\&quot;>% de Quotas</label><input type=\&quot;number\&quot; class=\&quot;form-control form-control-sm\&quot; name=\&quot;socio_' + num + '_participacao\&quot; placeholder=\&quot;50.00\&quot; step=\&quot;0.01\&quot; min=\&quot;0\&quot; max=\&quot;100\&quot;></div><div class=\&quot;col-md-3 mb-2\&quot;><div class=\&quot;row\&quot;><div class=\&quot;col-6\&quot;><div class=\&quot;form-check\&quot;><input class=\&quot;form-check-input representante-legal\&quot; type=\&quot;radio\&quot; name=\&quot;representante_legal\&quot; value=\&quot;socio_' + num + '\&quot; id=\&quot;rep_legal_' + num + '\&quot;><label class=\&quot;form-check-label small\&quot; for=\&quot;rep_legal_' + num + '\&quot;>Representante Legal</label></div></div><div class=\&quot;col-6\&quot;><div class=\&quot;form-check\&quot;><input class=\&quot;form-check-input socio-admin\&quot; type=\&quot;checkbox\&quot; name=\&quot;socio_' + num + '_administrador\&quot; value=\&quot;1\&quot; id=\&quot;admin_' + num + '\&quot;><label class=\&quot;form-check-label small\&quot; for=\&quot;admin_' + num + '\&quot;>Sócio Administrador</label></div></div></div></div></div></div>';
+                                                container.appendChild(div);
+                                                console.log('✅ Sócio', num, 'adicionado com TODOS os campos!');
+                                                var input = div.querySelector('input');
+                                                if (input) input.focus();
+                                            ">
                                         <i class="bi bi-plus-circle me-1"></i>Adicionar Sócio
                                     </button>
                                 </div>
@@ -580,6 +632,274 @@ document.addEventListener('DOMContentLoaded', function() {
                                                                        id="admin_1"
                                                                        {% if client and client.socio_1_administrador %}checked{% endif %}>
                                                                 <label class="form-check-label small" for="admin_1">
+                                                                    Sócio Administrador
+                                                                </label>
+                                                            </div>
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+
+                                    <!-- Sócio 2 (sempre visível) -->
+                                    <div class="card border-light mb-2 socio-card" id="socio_2">
+                                        <div class="card-body py-3">
+                                            <div class="d-flex justify-content-between align-items-center mb-2">
+                                                <span class="badge bg-primary">Sócio 2</span>
+                                                <button type="button" class="btn btn-sm btn-outline-danger" 
+                                                        onclick="this.closest('.socio-card').remove()">❌</button>
+                                            </div>
+                                            <div class="row align-items-center">
+                                                <div class="col-md-3 mb-2">
+                                                    <label class="form-label small mb-1">Nome do Sócio</label>
+                                                    <input type="text" class="form-control form-control-sm" 
+                                                           name="socio_2_nome" id="socio_2_nome"
+                                                           value="{{ client.socio_2_nome if client else '' }}"
+                                                           onkeyup="this.value=this.value.toUpperCase()"
+                                                           placeholder="Nome completo do sócio">
+                                                </div>
+                                                <div class="col-md-2 mb-2">
+                                                    <label class="form-label small mb-1">CPF</label>
+                                                    <input type="text" class="form-control form-control-sm cpf-mask" 
+                                                           name="socio_2_cpf" id="socio_2_cpf"
+                                                           value="{{ client.socio_2_cpf if client else '' }}"
+                                                           placeholder="000.000.000-00">
+                                                </div>
+                                                <div class="col-md-2 mb-2">
+                                                    <label class="form-label small mb-1">Data de Nascimento</label>
+                                                    <input type="date" class="form-control form-control-sm" 
+                                                           name="socio_2_data_nascimento" id="socio_2_data_nascimento"
+                                                           value="{{ client.socio_2_data_nascimento if client else '' }}">
+                                                </div>
+                                                <div class="col-md-2 mb-2">
+                                                    <label class="form-label small mb-1">% de Quotas</label>
+                                                    <input type="number" class="form-control form-control-sm" 
+                                                           name="socio_2_participacao" id="socio_2_participacao"
+                                                           value="{{ client.socio_2_participacao if client else '' }}"
+                                                           placeholder="50.00" step="0.01" min="0" max="100">
+                                                </div>
+                                                <div class="col-md-3 mb-2">
+                                                    <div class="row">
+                                                        <div class="col-6">
+                                                            <div class="form-check">
+                                                                <input class="form-check-input representante-legal" type="radio" 
+                                                                       name="representante_legal" value="socio_2" 
+                                                                       id="rep_legal_2"
+                                                                       {% if client and client.representante_legal == 'socio_2' %}checked{% endif %}>
+                                                                <label class="form-check-label small" for="rep_legal_2">
+                                                                    Representante Legal
+                                                                </label>
+                                                            </div>
+                                                        </div>
+                                                        <div class="col-6">
+                                                            <div class="form-check">
+                                                                <input class="form-check-input socio-admin" type="checkbox" 
+                                                                       name="socio_2_administrador" value="1" 
+                                                                       id="admin_2"
+                                                                       {% if client and client.socio_2_administrador %}checked{% endif %}>
+                                                                <label class="form-check-label small" for="admin_2">
+                                                                    Sócio Administrador
+                                                                </label>
+                                                            </div>
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+
+                                    <!-- Sócio 3 (sempre visível) -->
+                                    <div class="card border-light mb-2 socio-card" id="socio_3">
+                                        <div class="card-body py-3">
+                                            <div class="d-flex justify-content-between align-items-center mb-2">
+                                                <span class="badge bg-primary">Sócio 3</span>
+                                                <button type="button" class="btn btn-sm btn-outline-danger" 
+                                                        onclick="this.closest('.socio-card').remove()">❌</button>
+                                            </div>
+                                            <div class="row align-items-center">
+                                                <div class="col-md-3 mb-2">
+                                                    <label class="form-label small mb-1">Nome do Sócio</label>
+                                                    <input type="text" class="form-control form-control-sm" 
+                                                           name="socio_3_nome" id="socio_3_nome"
+                                                           value="{{ client.socio_3_nome if client else '' }}"
+                                                           onkeyup="this.value=this.value.toUpperCase()"
+                                                           placeholder="Nome completo do sócio">
+                                                </div>
+                                                <div class="col-md-2 mb-2">
+                                                    <label class="form-label small mb-1">CPF</label>
+                                                    <input type="text" class="form-control form-control-sm cpf-mask" 
+                                                           name="socio_3_cpf" id="socio_3_cpf"
+                                                           value="{{ client.socio_3_cpf if client else '' }}"
+                                                           placeholder="000.000.000-00">
+                                                </div>
+                                                <div class="col-md-2 mb-2">
+                                                    <label class="form-label small mb-1">Data de Nascimento</label>
+                                                    <input type="date" class="form-control form-control-sm" 
+                                                           name="socio_3_data_nascimento" id="socio_3_data_nascimento"
+                                                           value="{{ client.socio_3_data_nascimento if client else '' }}">
+                                                </div>
+                                                <div class="col-md-2 mb-2">
+                                                    <label class="form-label small mb-1">% de Quotas</label>
+                                                    <input type="number" class="form-control form-control-sm" 
+                                                           name="socio_3_participacao" id="socio_3_participacao"
+                                                           value="{{ client.socio_3_participacao if client else '' }}"
+                                                           placeholder="50.00" step="0.01" min="0" max="100">
+                                                </div>
+                                                <div class="col-md-3 mb-2">
+                                                    <div class="row">
+                                                        <div class="col-6">
+                                                            <div class="form-check">
+                                                                <input class="form-check-input representante-legal" type="radio" 
+                                                                       name="representante_legal" value="socio_3" 
+                                                                       id="rep_legal_3"
+                                                                       {% if client and client.representante_legal == 'socio_3' %}checked{% endif %}>
+                                                                <label class="form-check-label small" for="rep_legal_3">
+                                                                    Representante Legal
+                                                                </label>
+                                                            </div>
+                                                        </div>
+                                                        <div class="col-6">
+                                                            <div class="form-check">
+                                                                <input class="form-check-input socio-admin" type="checkbox" 
+                                                                       name="socio_3_administrador" value="1" 
+                                                                       id="admin_3"
+                                                                       {% if client and client.socio_3_administrador %}checked{% endif %}>
+                                                                <label class="form-check-label small" for="admin_3">
+                                                                    Sócio Administrador
+                                                                </label>
+                                                            </div>
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+
+                                    <!-- Sócio 4 (sempre visível) -->
+                                    <div class="card border-light mb-2 socio-card" id="socio_4">
+                                        <div class="card-body py-3">
+                                            <div class="d-flex justify-content-between align-items-center mb-2">
+                                                <span class="badge bg-primary">Sócio 4</span>
+                                                <button type="button" class="btn btn-sm btn-outline-danger" 
+                                                        onclick="this.closest('.socio-card').remove()">❌</button>
+                                            </div>
+                                            <div class="row align-items-center">
+                                                <div class="col-md-3 mb-2">
+                                                    <label class="form-label small mb-1">Nome do Sócio</label>
+                                                    <input type="text" class="form-control form-control-sm" 
+                                                           name="socio_4_nome" id="socio_4_nome"
+                                                           value="{{ client.socio_4_nome if client else '' }}"
+                                                           onkeyup="this.value=this.value.toUpperCase()"
+                                                           placeholder="Nome completo do sócio">
+                                                </div>
+                                                <div class="col-md-2 mb-2">
+                                                    <label class="form-label small mb-1">CPF</label>
+                                                    <input type="text" class="form-control form-control-sm cpf-mask" 
+                                                           name="socio_4_cpf" id="socio_4_cpf"
+                                                           value="{{ client.socio_4_cpf if client else '' }}"
+                                                           placeholder="000.000.000-00">
+                                                </div>
+                                                <div class="col-md-2 mb-2">
+                                                    <label class="form-label small mb-1">Data de Nascimento</label>
+                                                    <input type="date" class="form-control form-control-sm" 
+                                                           name="socio_4_data_nascimento" id="socio_4_data_nascimento"
+                                                           value="{{ client.socio_4_data_nascimento if client else '' }}">
+                                                </div>
+                                                <div class="col-md-2 mb-2">
+                                                    <label class="form-label small mb-1">% de Quotas</label>
+                                                    <input type="number" class="form-control form-control-sm" 
+                                                           name="socio_4_participacao" id="socio_4_participacao"
+                                                           value="{{ client.socio_4_participacao if client else '' }}"
+                                                           placeholder="50.00" step="0.01" min="0" max="100">
+                                                </div>
+                                                <div class="col-md-3 mb-2">
+                                                    <div class="row">
+                                                        <div class="col-6">
+                                                            <div class="form-check">
+                                                                <input class="form-check-input representante-legal" type="radio" 
+                                                                       name="representante_legal" value="socio_4" 
+                                                                       id="rep_legal_4"
+                                                                       {% if client and client.representante_legal == 'socio_4' %}checked{% endif %}>
+                                                                <label class="form-check-label small" for="rep_legal_4">
+                                                                    Representante Legal
+                                                                </label>
+                                                            </div>
+                                                        </div>
+                                                        <div class="col-6">
+                                                            <div class="form-check">
+                                                                <input class="form-check-input socio-admin" type="checkbox" 
+                                                                       name="socio_4_administrador" value="1" 
+                                                                       id="admin_4"
+                                                                       {% if client and client.socio_4_administrador %}checked{% endif %}>
+                                                                <label class="form-check-label small" for="admin_4">
+                                                                    Sócio Administrador
+                                                                </label>
+                                                            </div>
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+
+                                    <!-- Sócio 5 (sempre visível) -->
+                                    <div class="card border-light mb-2 socio-card" id="socio_5">
+                                        <div class="card-body py-3">
+                                            <div class="d-flex justify-content-between align-items-center mb-2">
+                                                <span class="badge bg-primary">Sócio 5</span>
+                                                <button type="button" class="btn btn-sm btn-outline-danger" 
+                                                        onclick="this.closest('.socio-card').remove()">❌</button>
+                                            </div>
+                                            <div class="row align-items-center">
+                                                <div class="col-md-3 mb-2">
+                                                    <label class="form-label small mb-1">Nome do Sócio</label>
+                                                    <input type="text" class="form-control form-control-sm" 
+                                                           name="socio_5_nome" id="socio_5_nome"
+                                                           value="{{ client.socio_5_nome if client else '' }}"
+                                                           onkeyup="this.value=this.value.toUpperCase()"
+                                                           placeholder="Nome completo do sócio">
+                                                </div>
+                                                <div class="col-md-2 mb-2">
+                                                    <label class="form-label small mb-1">CPF</label>
+                                                    <input type="text" class="form-control form-control-sm cpf-mask" 
+                                                           name="socio_5_cpf" id="socio_5_cpf"
+                                                           value="{{ client.socio_5_cpf if client else '' }}"
+                                                           placeholder="000.000.000-00">
+                                                </div>
+                                                <div class="col-md-2 mb-2">
+                                                    <label class="form-label small mb-1">Data de Nascimento</label>
+                                                    <input type="date" class="form-control form-control-sm" 
+                                                           name="socio_5_data_nascimento" id="socio_5_data_nascimento"
+                                                           value="{{ client.socio_5_data_nascimento if client else '' }}">
+                                                </div>
+                                                <div class="col-md-2 mb-2">
+                                                    <label class="form-label small mb-1">% de Quotas</label>
+                                                    <input type="number" class="form-control form-control-sm" 
+                                                           name="socio_5_participacao" id="socio_5_participacao"
+                                                           value="{{ client.socio_5_participacao if client else '' }}"
+                                                           placeholder="50.00" step="0.01" min="0" max="100">
+                                                </div>
+                                                <div class="col-md-3 mb-2">
+                                                    <div class="row">
+                                                        <div class="col-6">
+                                                            <div class="form-check">
+                                                                <input class="form-check-input representante-legal" type="radio" 
+                                                                       name="representante_legal" value="socio_5" 
+                                                                       id="rep_legal_5"
+                                                                       {% if client and client.representante_legal == 'socio_5' %}checked{% endif %}>
+                                                                <label class="form-check-label small" for="rep_legal_5">
+                                                                    Representante Legal
+                                                                </label>
+                                                            </div>
+                                                        </div>
+                                                        <div class="col-6">
+                                                            <div class="form-check">
+                                                                <input class="form-check-input socio-admin" type="checkbox" 
+                                                                       name="socio_5_administrador" value="1" 
+                                                                       id="admin_5"
+                                                                       {% if client and client.socio_5_administrador %}checked{% endif %}>
+                                                                <label class="form-check-label small" for="admin_5">
                                                                     Sócio Administrador
                                                                 </label>
                                                             </div>
@@ -654,6 +974,170 @@ document.addEventListener('DOMContentLoaded', function() {
                                             </div>
                                         </div>
                                     </div>
+
+                                    <!-- Contato 2 (sempre visível) -->
+                                    <div class="card border-light mb-2 contato-card" id="contato_2">
+                                        <div class="card-body py-3">
+                                            <div class="d-flex justify-content-between align-items-center mb-2">
+                                                <span class="badge bg-success">Contato 2</span>
+                                                <button type="button" class="btn btn-sm btn-outline-danger" 
+                                                        onclick="this.closest('.contato-card').remove()">❌</button>
+                                            </div>
+                                            <div class="row align-items-center">
+                                                <div class="col-md-3 mb-2">
+                                                    <label class="form-label small mb-1">Nome</label>
+                                                    <input type="text" class="form-control form-control-sm" 
+                                                           name="contato_2_nome" id="contato_2_nome"
+                                                           value="{{ client.contato_2_nome if client and client.contato_2_nome else '' }}"
+                                                           placeholder="Nome completo do contato">
+                                                </div>
+                                                <div class="col-md-3 mb-2">
+                                                    <label class="form-label small mb-1">Cargo</label>
+                                                    <input type="text" class="form-control form-control-sm" 
+                                                           name="contato_2_cargo" id="contato_2_cargo"
+                                                           value="{{ client.contato_2_cargo if client and client.contato_2_cargo else '' }}"
+                                                           placeholder="Ex: Gerente, Diretor, Sócio">
+                                                </div>
+                                                <div class="col-md-3 mb-2">
+                                                    <label class="form-label small mb-1">Telefone</label>
+                                                    <input type="tel" class="form-control form-control-sm phone-mask" 
+                                                           name="contato_2_telefone" id="contato_2_telefone"
+                                                           value="{{ client.contato_2_telefone if client and client.contato_2_telefone else '' }}"
+                                                           placeholder="(85) 99999-9999">
+                                                </div>
+                                                <div class="col-md-3 mb-2">
+                                                    <label class="form-label small mb-1">E-mail</label>
+                                                    <input type="email" class="form-control form-control-sm" 
+                                                           name="contato_2_email" id="contato_2_email"
+                                                           value="{{ client.contato_2_email if client and client.contato_2_email else '' }}"
+                                                           placeholder="contato@empresa.com">
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+
+                                    <!-- Contato 3 (sempre visível) -->
+                                    <div class="card border-light mb-2 contato-card" id="contato_3">
+                                        <div class="card-body py-3">
+                                            <div class="d-flex justify-content-between align-items-center mb-2">
+                                                <span class="badge bg-success">Contato 3</span>
+                                                <button type="button" class="btn btn-sm btn-outline-danger" 
+                                                        onclick="this.closest('.contato-card').remove()">❌</button>
+                                            </div>
+                                            <div class="row align-items-center">
+                                                <div class="col-md-3 mb-2">
+                                                    <label class="form-label small mb-1">Nome</label>
+                                                    <input type="text" class="form-control form-control-sm" 
+                                                           name="contato_3_nome" id="contato_3_nome"
+                                                           value="{{ client.contato_3_nome if client and client.contato_3_nome else '' }}"
+                                                           placeholder="Nome completo do contato">
+                                                </div>
+                                                <div class="col-md-3 mb-2">
+                                                    <label class="form-label small mb-1">Cargo</label>
+                                                    <input type="text" class="form-control form-control-sm" 
+                                                           name="contato_3_cargo" id="contato_3_cargo"
+                                                           value="{{ client.contato_3_cargo if client and client.contato_3_cargo else '' }}"
+                                                           placeholder="Ex: Gerente, Diretor, Sócio">
+                                                </div>
+                                                <div class="col-md-3 mb-2">
+                                                    <label class="form-label small mb-1">Telefone</label>
+                                                    <input type="tel" class="form-control form-control-sm phone-mask" 
+                                                           name="contato_3_telefone" id="contato_3_telefone"
+                                                           value="{{ client.contato_3_telefone if client and client.contato_3_telefone else '' }}"
+                                                           placeholder="(85) 99999-9999">
+                                                </div>
+                                                <div class="col-md-3 mb-2">
+                                                    <label class="form-label small mb-1">E-mail</label>
+                                                    <input type="email" class="form-control form-control-sm" 
+                                                           name="contato_3_email" id="contato_3_email"
+                                                           value="{{ client.contato_3_email if client and client.contato_3_email else '' }}"
+                                                           placeholder="contato@empresa.com">
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+
+                                    <!-- Contato 4 (sempre visível) -->
+                                    <div class="card border-light mb-2 contato-card" id="contato_4">
+                                        <div class="card-body py-3">
+                                            <div class="d-flex justify-content-between align-items-center mb-2">
+                                                <span class="badge bg-success">Contato 4</span>
+                                                <button type="button" class="btn btn-sm btn-outline-danger" 
+                                                        onclick="this.closest('.contato-card').remove()">❌</button>
+                                            </div>
+                                            <div class="row align-items-center">
+                                                <div class="col-md-3 mb-2">
+                                                    <label class="form-label small mb-1">Nome</label>
+                                                    <input type="text" class="form-control form-control-sm" 
+                                                           name="contato_4_nome" id="contato_4_nome"
+                                                           value="{{ client.contato_4_nome if client and client.contato_4_nome else '' }}"
+                                                           placeholder="Nome completo do contato">
+                                                </div>
+                                                <div class="col-md-3 mb-2">
+                                                    <label class="form-label small mb-1">Cargo</label>
+                                                    <input type="text" class="form-control form-control-sm" 
+                                                           name="contato_4_cargo" id="contato_4_cargo"
+                                                           value="{{ client.contato_4_cargo if client and client.contato_4_cargo else '' }}"
+                                                           placeholder="Ex: Gerente, Diretor, Sócio">
+                                                </div>
+                                                <div class="col-md-3 mb-2">
+                                                    <label class="form-label small mb-1">Telefone</label>
+                                                    <input type="tel" class="form-control form-control-sm phone-mask" 
+                                                           name="contato_4_telefone" id="contato_4_telefone"
+                                                           value="{{ client.contato_4_telefone if client and client.contato_4_telefone else '' }}"
+                                                           placeholder="(85) 99999-9999">
+                                                </div>
+                                                <div class="col-md-3 mb-2">
+                                                    <label class="form-label small mb-1">E-mail</label>
+                                                    <input type="email" class="form-control form-control-sm" 
+                                                           name="contato_4_email" id="contato_4_email"
+                                                           value="{{ client.contato_4_email if client and client.contato_4_email else '' }}"
+                                                           placeholder="contato@empresa.com">
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+
+                                    <!-- Contato 5 (sempre visível) -->
+                                    <div class="card border-light mb-2 contato-card" id="contato_5">
+                                        <div class="card-body py-3">
+                                            <div class="d-flex justify-content-between align-items-center mb-2">
+                                                <span class="badge bg-success">Contato 5</span>
+                                                <button type="button" class="btn btn-sm btn-outline-danger" 
+                                                        onclick="this.closest('.contato-card').remove()">❌</button>
+                                            </div>
+                                            <div class="row align-items-center">
+                                                <div class="col-md-3 mb-2">
+                                                    <label class="form-label small mb-1">Nome</label>
+                                                    <input type="text" class="form-control form-control-sm" 
+                                                           name="contato_5_nome" id="contato_5_nome"
+                                                           value="{{ client.contato_5_nome if client and client.contato_5_nome else '' }}"
+                                                           placeholder="Nome completo do contato">
+                                                </div>
+                                                <div class="col-md-3 mb-2">
+                                                    <label class="form-label small mb-1">Cargo</label>
+                                                    <input type="text" class="form-control form-control-sm" 
+                                                           name="contato_5_cargo" id="contato_5_cargo"
+                                                           value="{{ client.contato_5_cargo if client and client.contato_5_cargo else '' }}"
+                                                           placeholder="Ex: Gerente, Diretor, Sócio">
+                                                </div>
+                                                <div class="col-md-3 mb-2">
+                                                    <label class="form-label small mb-1">Telefone</label>
+                                                    <input type="tel" class="form-control form-control-sm phone-mask" 
+                                                           name="contato_5_telefone" id="contato_5_telefone"
+                                                           value="{{ client.contato_5_telefone if client and client.contato_5_telefone else '' }}"
+                                                           placeholder="(85) 99999-9999">
+                                                </div>
+                                                <div class="col-md-3 mb-2">
+                                                    <label class="form-label small mb-1">E-mail</label>
+                                                    <input type="email" class="form-control form-control-sm" 
+                                                           name="contato_5_email" id="contato_5_email"
+                                                           value="{{ client.contato_5_email if client and client.contato_5_email else '' }}"
+                                                           placeholder="contato@empresa.com">
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
                                 </div>
                             </div>
                         </div>
@@ -668,52 +1152,52 @@ document.addEventListener('DOMContentLoaded', function() {
                         </h5>
                     </div>
                     <div class="card-body">
-                        <!-- Linha 1: CNPJ Acesso Simples Nacional, CPF do Representante Legal, Código de Acesso Simples Nacional, Acesso ISS -->
+                        <!-- Linha 1: CNPJ Acesso Simples Nacional, CPF do Representante Legal, Código de Acesso Simples Nacional, Senha ISS -->
                         <div class="row mb-3">
                             <div class="col-md-3 mb-2">
                                 <label for="cnpjAcessoSn" class="form-label small">CNPJ Acesso Simples Nacional</label>
-                                <input type="text" class="form-control form-control-sm" 
+                                <input type="text" class="form-control form-control-sm cnpj-mask" 
                                        id="cnpjAcessoSn" name="cnpjAcessoSn" 
-                                       value="{{ client.cnpj if client and client.cnpj and client.cnpj|length > 11 else '' }}" 
-                                       placeholder="CNPJ da Empresa">
+                                       value="{{ client.cnpjAcessoSn if client else '' }}" 
+                                       placeholder="00.000.000/0001-00">
                             </div>
                             <div class="col-md-3 mb-2">
                                 <label for="cpfRepLegal" class="form-label small">CPF do Representante Legal</label>
-                                <input type="text" class="form-control form-control-sm" 
+                                <input type="text" class="form-control form-control-sm cpf-mask" 
                                        id="cpfRepLegal" name="cpfRepLegal" 
-                                       value="{{ client.cpfRepLegal if client and client.cpfRepLegal else '' }}" 
-                                       placeholder="CPF do Representante Legal">
+                                       value="{{ client.cpfRepLegal if client else '' }}" 
+                                       placeholder="000.000.000-00">
                             </div>
                             <div class="col-md-3 mb-2">
                                 <label for="codigoAcessoSn" class="form-label small">Código de Acesso Simples Nacional</label>
                                 <input type="text" class="form-control form-control-sm" 
                                        id="codigoAcessoSn" name="codigoAcessoSn" 
                                        value="{{ client.codigoAcessoSn if client else '' }}" 
-                                       placeholder="Código de Acesso do Simples Nacional">
+                                       placeholder="Código de Acesso">
                             </div>
                             <div class="col-md-3 mb-2">
-                                <label for="acessoIss" class="form-label small">Acesso ISS</label>
+                                <label for="senhaIss" class="form-label small">Senha ISS</label>
                                 <input type="text" class="form-control form-control-sm" 
-                                       id="acessoIss" name="acessoIss" 
-                                       value="{{ client.acessoIss if client else '' }}" 
+                                       id="senhaIss" name="senhaIss" 
+                                       value="{{ client.senhaIss if client else '' }}" 
                                        placeholder="Senha ISS">
                             </div>
                         </div>
 
-                        <!-- Linha 2: Acesso SEFIN, Acesso SEUMA, Acesso EmpWeb, Senha EmpWeb -->
+                        <!-- Linha 2: Senha SEFIN, Senha SEUMA, Acesso EmpWeb, Senha EmpWeb -->
                         <div class="row mb-3">
                             <div class="col-md-3 mb-2">
-                                <label for="acessoSefin" class="form-label small">Acesso SEFIN</label>
+                                <label for="senhaSefin" class="form-label small">Senha SEFIN</label>
                                 <input type="text" class="form-control form-control-sm" 
-                                       id="acessoSefin" name="acessoSefin" 
-                                       value="{{ client.acessoSefin if client else '' }}" 
+                                       id="senhaSefin" name="senhaSefin" 
+                                       value="{{ client.senhaSefin if client else '' }}" 
                                        placeholder="Senha SEFIN">
                             </div>
                             <div class="col-md-3 mb-2">
-                                <label for="acessoSeuma" class="form-label small">Acesso SEUMA</label>
+                                <label for="senhaSeuma" class="form-label small">Senha SEUMA</label>
                                 <input type="text" class="form-control form-control-sm" 
-                                       id="acessoSeuma" name="acessoSeuma" 
-                                       value="{{ client.acessoSeuma if client else '' }}" 
+                                       id="senhaSeuma" name="senhaSeuma" 
+                                       value="{{ client.senhaSeuma if client else '' }}" 
                                        placeholder="Senha SEUMA">
                             </div>
                             <div class="col-md-3 mb-2">
@@ -732,10 +1216,39 @@ document.addEventListener('DOMContentLoaded', function() {
                             </div>
                         </div>
 
-                        <!-- Linha 3: ANVISA Empresa - Login, ANVISA Empresa - Senha, ANVISA Gestor - Login, ANVISA Gestor - Senha -->
-                        <!-- Linha 3 removida: campos ANVISA Empresa/Gestor Login/Senha -->
+                        <!-- Linha 3: Login ANVISA Empresa, Senha ANVISA Empresa, Login ANVISA Gestor, Senha ANVISA Gestor -->
+                        <div class="row mb-3">
+                            <div class="col-md-3 mb-2">
+                                <label for="anvisaEmpresa" class="form-label small">Login ANVISA Empresa</label>
+                                <input type="text" class="form-control form-control-sm" 
+                                       id="anvisaEmpresa" name="anvisaEmpresa" 
+                                       value="{{ client.anvisaEmpresa if client else '' }}" 
+                                       placeholder="Login ANVISA Empresa">
+                            </div>
+                            <div class="col-md-3 mb-2">
+                                <label for="senhaAnvisaEmpresa" class="form-label small">Senha ANVISA Empresa</label>
+                                <input type="text" class="form-control form-control-sm" 
+                                       id="senhaAnvisaEmpresa" name="senhaAnvisaEmpresa" 
+                                       value="{{ client.senhaAnvisaEmpresa if client else '' }}" 
+                                       placeholder="Senha ANVISA Empresa">
+                            </div>
+                            <div class="col-md-3 mb-2">
+                                <label for="anvisaGestor" class="form-label small">Login ANVISA Gestor</label>
+                                <input type="text" class="form-control form-control-sm" 
+                                       id="anvisaGestor" name="anvisaGestor" 
+                                       value="{{ client.anvisaGestor if client else '' }}" 
+                                       placeholder="Login ANVISA Gestor">
+                            </div>
+                            <div class="col-md-3 mb-2">
+                                <label for="senhaAnvisaGestor" class="form-label small">Senha ANVISA Gestor</label>
+                                <input type="text" class="form-control form-control-sm" 
+                                       id="senhaAnvisaGestor" name="senhaAnvisaGestor" 
+                                       value="{{ client.senhaAnvisaGestor if client else '' }}" 
+                                       placeholder="Senha ANVISA Gestor">
+                            </div>
+                        </div>
 
-                        <!-- Linha 4: Acesso CRF, Acesso FAP/INSS -->
+                        <!-- Linha 4: Acesso CRF, Senha FAP/INSS -->
                         <div class="row mb-3">
                             <div class="col-md-3 mb-2">
                                 <label for="acessoCrf" class="form-label small">Acesso CRF</label>
@@ -745,93 +1258,11 @@ document.addEventListener('DOMContentLoaded', function() {
                                        placeholder="CRF do Responsável">
                             </div>
                             <div class="col-md-3 mb-2">
-                                <label for="acessoFapInss" class="form-label small">Acesso FAP/INSS</label>
+                                <label for="senhaFapInss" class="form-label small">Senha FAP/INSS</label>
                                 <input type="text" class="form-control form-control-sm" 
-                                       id="acessoFapInss" name="acessoFapInss" 
-                                       value="{{ client.acessoFapInss if client else '' }}" 
+                                       id="senhaFapInss" name="senhaFapInss" 
+                                       value="{{ client.senhaFapInss if client else '' }}" 
                                        placeholder="Senha FAP/INSS">
-                            </div>
-                        </div>
-
-                        <!-- Linha 2: Acesso ISS, Acesso SEFIN, Acesso SEUMA, Acesso SEMACE -->
-                        <div class="row mb-3">
-                            <div class="col-md-3 mb-2">
-                                <label for="acessoIss" class="form-label small">Acesso ISS</label>
-                                <input type="text" class="form-control form-control-sm" 
-                                       id="acessoIss" name="acessoIss" 
-                                       value="{{ client.acessoIss if client else '' }}" 
-                                       placeholder="Login ISS">
-                            </div>
-                            <div class="col-md-3 mb-2">
-                                <label for="acessoSefin" class="form-label small">Acesso SEFIN</label>
-                                <input type="text" class="form-control form-control-sm" 
-                                       id="acessoSefin" name="acessoSefin" 
-                                       value="{{ client.acessoSefin if client else '' }}" 
-                                       placeholder="Login SEFIN">
-                            </div>
-                            <div class="col-md-3 mb-2">
-                                <label for="acessoSeuma" class="form-label small">Acesso SEUMA</label>
-                                <input type="text" class="form-control form-control-sm" 
-                                       id="acessoSeuma" name="acessoSeuma" 
-                                       value="{{ client.acessoSeuma if client else '' }}" 
-                                       placeholder="Login SEUMA">
-                            </div>
-                            <div class="col-md-3 mb-2">
-                                <label for="acessoSemace" class="form-label small">Acesso SEMACE</label>
-                                <input type="text" class="form-control form-control-sm" 
-                                       id="acessoSemace" name="acessoSemace" 
-                                       value="{{ client.acessoSemace if client else '' }}" 
-                                       placeholder="Login SEMACE">
-                            </div>
-                        </div>
-
-                        <!-- Linha 3: Acesso IBAMA, Acesso FAP/INSS, Acesso CRF, Senha SEMACE -->
-                        <div class="row mb-3">
-                            <div class="col-md-3 mb-2">
-                                <label for="acessoIbama" class="form-label small">Acesso IBAMA</label>
-                                <input type="text" class="form-control form-control-sm" 
-                                       id="acessoIbama" name="acessoIbama" 
-                                       value="{{ client.acessoIbama if client else '' }}" 
-                                       placeholder="Login IBAMA">
-                            </div>
-                            <div class="col-md-3 mb-2">
-                                <label for="acessoFapInss" class="form-label small">Acesso FAP/INSS</label>
-                                <input type="text" class="form-control form-control-sm" 
-                                       id="acessoFapInss" name="acessoFapInss" 
-                                       value="{{ client.acessoFapInss if client else '' }}" 
-                                       placeholder="Login FAP/INSS">
-                            </div>
-                            <div class="col-md-3 mb-2">
-                                <label for="acessoCrf" class="form-label small">Acesso CRF</label>
-                                <input type="text" class="form-control form-control-sm" 
-                                       id="acessoCrf" name="acessoCrf" 
-                                       value="{{ client.acessoCrf if client else '' }}" 
-                                       placeholder="Login CRF">
-                            </div>
-                            <div class="col-md-3 mb-2">
-                                <label for="senhaSemace" class="form-label small">Senha SEMACE</label>
-                                <input type="text" class="form-control form-control-sm" 
-                                       id="senhaSemace" name="senhaSemace" 
-                                       value="{{ client.senhaSemace if client else '' }}" 
-                                       placeholder="Senha SEMACE">
-                            </div>
-                        </div>
-
-                        <!-- Linha 4: ANVISA Gestor, ANVISA Empresa -->
-                        <div class="row mb-3">
-                            <div class="col-md-3 mb-2">
-                                <label for="anvisaGestor" class="form-label small">ANVISA Gestor</label>
-                                <input type="text" class="form-control form-control-sm" 
-                                       id="anvisaGestor" name="anvisaGestor" 
-                                       value="{{ client.anvisaGestor if client else '' }}" 
-                                       placeholder="ANVISA Gestor">
-                            </div>
-                            <div class="col-md-3 mb-2">
-                                <label for="anvisaEmpresa" class="form-label small">ANVISA Empresa</label>
-                                <input type="text" class="form-control form-control-sm" 
-                                       id="anvisaEmpresa" name="anvisaEmpresa" 
-                                       value="{{ client.anvisaEmpresa if client else '' }}" 
-                                       placeholder="ANVISA Empresa">
                             </div>
                         </div>
                     </div>
@@ -1149,6 +1580,31 @@ document.addEventListener('DOMContentLoaded', function() {
             } else {
                 console.error('❌ Campo Doméstica não encontrado!');
             }
+            
+            // CONTROLE DO CAMPO "CNPJ ACESSO SIMPLES NACIONAL"
+            const cnpjAcessoSnInput = document.getElementById('cnpjAcessoSn');
+            if (cnpjAcessoSnInput) {
+                const numeros = value.replace(/\D/g, '');
+                console.log('🔍 Controlando CNPJ Acesso SN - Números:', numeros, 'Length:', numeros.length);
+                
+                if (numeros.length === 14) {
+                    // CNPJ completo - Preencher automaticamente com o mesmo CNPJ
+                    cnpjAcessoSnInput.value = value; // Usa o valor já formatado
+                    console.log('🏢 CNPJ COMPLETO - PREENCHENDO CNPJ Acesso SN automaticamente:', value);
+                } else if (numeros.length === 11) {
+                    // CPF completo - Limpar o campo (não se aplica a CPF)
+                    cnpjAcessoSnInput.value = '';
+                    console.log('👤 CPF DETECTADO - LIMPANDO CNPJ Acesso SN');
+                } else {
+                    // Incompleto - Limpar o campo
+                    cnpjAcessoSnInput.value = '';
+                    console.log('❌ INCOMPLETO - LIMPANDO CNPJ Acesso SN');
+                }
+                
+                console.log('📊 CNPJ Acesso SN final value:', cnpjAcessoSnInput.value);
+            } else {
+                console.error('❌ Campo CNPJ Acesso Simples Nacional não encontrado!');
+            }
         };
         cpfCnpjInput.addEventListener('input', onCpfCnpjChange);
         cpfCnpjInput.addEventListener('change', onCpfCnpjChange);
@@ -1253,12 +1709,117 @@ document.addEventListener('DOMContentLoaded', function() {
 
     // Carregar dados dos sócios e contatos se estiver editando
     {% if client %}
+    console.log('🚀 CORREÇÃO 03 - CARREGANDO SÓCIOS EXISTENTES');
     const dadosCliente = {{ client|tojson }};
     console.log('🔍 DADOS DO CLIENTE RECEBIDOS:', dadosCliente);
     console.log('🔍 SOCIO_1_NOME:', dadosCliente.socio_1_nome);
     console.log('🔍 SOCIO_2_NOME:', dadosCliente.socio_2_nome);
     console.log('🔍 SOCIO_3_NOME:', dadosCliente.socio_3_nome);
-    carregarSocios(dadosCliente);
+    console.log('� CHAMANDO FUNÇÃO CORRIGIDA carregarSociosCorrigido...');
+    // CORREÇÃO 03: Carregar TODOS os sócios automaticamente (2 a 10)
+    setTimeout(function() {
+        console.log('🔧 CORREÇÃO 03 - CARREGANDO TODOS OS SÓCIOS AUTOMATICAMENTE...');
+        
+        const container = document.getElementById('sociosContainer');
+        if (!container) {
+            console.error('❌ sociosContainer não encontrado');
+            return;
+        }
+        
+        // Loop para carregar sócios de 2 a 10
+        for (let i = 2; i <= 10; i++) {
+            const nomeField = `socio_${i}_nome`;
+            const cpfField = `socio_${i}_cpf`;
+            const nascimentoField = `socio_${i}_data_nascimento`;
+            const participacaoField = `socio_${i}_participacao`;
+            const administradorField = `socio_${i}_administrador`;
+            
+            if (dadosCliente[nomeField] && dadosCliente[nomeField].trim()) {
+                console.log(`➕ Criando card para sócio ${i}:`, dadosCliente[nomeField]);
+                
+                const cardSocio = document.createElement('div');
+                cardSocio.className = 'card border-light mb-2 socio-card';
+                cardSocio.id = `socio_${i}`;
+                
+                // Verificar se é representante legal
+                const isRepLegal = dadosCliente.representante_legal === `socio_${i}`;
+                const isAdmin = dadosCliente[administradorField];
+                
+                cardSocio.innerHTML = `
+                    <div class="card-body py-3">
+                        <div class="d-flex justify-content-between align-items-center mb-2">
+                            <span class="badge bg-primary">Sócio ${i}</span>
+                            <button type="button" class="btn btn-sm btn-outline-danger" 
+                                    onclick="this.closest('.socio-card').remove()">❌</button>
+                        </div>
+                        <div class="row align-items-center">
+                            <div class="col-md-3 mb-2">
+                                <label class="form-label small mb-1">Nome do Sócio</label>
+                                <input type="text" class="form-control form-control-sm" 
+                                       name="socio_${i}_nome" 
+                                       value="${dadosCliente[nomeField]}"
+                                       onkeyup="this.value=this.value.toUpperCase()"
+                                       placeholder="Nome completo do sócio">
+                            </div>
+                            <div class="col-md-2 mb-2">
+                                <label class="form-label small mb-1">CPF</label>
+                                <input type="text" class="form-control form-control-sm cpf-mask" 
+                                       name="socio_${i}_cpf" 
+                                       value="${dadosCliente[cpfField] || ''}"
+                                       placeholder="000.000.000-00">
+                            </div>
+                            <div class="col-md-2 mb-2">
+                                <label class="form-label small mb-1">Data de Nascimento</label>
+                                <input type="date" class="form-control form-control-sm" 
+                                       name="socio_${i}_data_nascimento"
+                                       value="${dadosCliente[nascimentoField] || ''}">
+                            </div>
+                            <div class="col-md-2 mb-2">
+                                <label class="form-label small mb-1">% de Quotas</label>
+                                <input type="number" class="form-control form-control-sm" 
+                                       name="socio_${i}_participacao" 
+                                       value="${dadosCliente[participacaoField] || ''}"
+                                       placeholder="50.00" step="0.01" min="0" max="100">
+                            </div>
+                            <div class="col-md-3 mb-2">
+                                <div class="row">
+                                    <div class="col-6">
+                                        <div class="form-check">
+                                            <input class="form-check-input representante-legal" type="radio" 
+                                                   name="representante_legal" value="socio_${i}" 
+                                                   id="rep_legal_${i}"
+                                                   ${isRepLegal ? 'checked' : ''}>
+                                            <label class="form-check-label small" for="rep_legal_${i}">
+                                                Representante Legal
+                                            </label>
+                                        </div>
+                                    </div>
+                                    <div class="col-6">
+                                        <div class="form-check">
+                                            <input class="form-check-input socio-admin" type="checkbox" 
+                                                   name="socio_${i}_administrador" value="1" 
+                                                   id="admin_${i}"
+                                                   ${isAdmin ? 'checked' : ''}>
+                                            <label class="form-check-label small" for="admin_${i}">
+                                                Sócio Administrador
+                                            </label>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                `;
+                
+                container.appendChild(cardSocio);
+                console.log(`✅ Sócio ${i} adicionado com todos os campos:`, dadosCliente[nomeField]);
+            }
+        }
+        
+        console.log('🎉 CORREÇÃO 03 CONCLUÍDA - TODOS OS SÓCIOS CARREGADOS!');
+        
+    }, 1000); // Delay para garantir que tudo carregou
+    console.log('🔍 EXECUTANDO carregarContatos...');
     carregarContatos(dadosCliente);
     {% endif %}
 
@@ -1274,6 +1835,10 @@ document.addEventListener('DOMContentLoaded', function() {
 // Função para configurar controles dos sócios
 function configurarControleSocios() {
     console.log('👥 Configurando controles dos sócios');
+    
+    // TESTE: Verificar se função adicionarSocio está acessível
+    console.log('🧪 TESTE: Função adicionarSocio existe?', typeof adicionarSocio === 'function');
+    console.log('🧪 TESTE: numeroSocios inicial:', numeroSocios);
     
     // Adicionar eventos para todos os radio buttons de representante legal existentes
     document.querySelectorAll('.representante-legal').forEach(function(radio) {
@@ -1293,231 +1858,435 @@ let numeroSocios = 1;
 // Variável global para controlar o número de contatos
 let numeroContatos = 1;
 
-// Função para adicionar novo sócio
-function adicionarSocio() {
-    numeroSocios++;
+    // 🔍 SISTEMA SIMPLIFICADO - Botão com JavaScript inline
+    console.log('✅ Sistema básico carregado');
+
+// Função para remover sócio (CORRIGIDA)
+    // ✅ Sistema pronto para uso
     const container = document.getElementById('sociosContainer');
+    if (!container) return;
     
-    const novoSocio = document.createElement('div');
-    novoSocio.className = 'card border-light mb-2 socio-card';
-    novoSocio.id = `socio_${numeroSocios}`;
+    const sociosCards = container.querySelectorAll('[id^="socio_"]');
+    numeroSocios = sociosCards.length;
     
-    novoSocio.innerHTML = `
-        <div class="card-body py-3">
-            <div class="row align-items-center">
-                <div class="col-md-3 mb-2">
-                    <label class="form-label small mb-1">Nome do Sócio</label>
-                    <input type="text" class="form-control form-control-sm" 
-                           name="socio_${numeroSocios}_nome" id="socio_${numeroSocios}_nome"
-                           placeholder="Nome completo do sócio">
+    console.log(`🔄 Numeração atualizada - Total de sócios: ${numeroSocios}`);
+}
+
+// FOCO NO PROBLEMA: QUADRO SOCIETÁRIO - VERSÃO ULTRA SIMPLES
+function carregarSocios(dadosCliente) {
+    alert('🚨 VERSÃO ULTRA SIMPLES - FOCO QUADRO SOCIETÁRIO');
+    console.log('� CARREGANDO SÓCIOS - VERSÃO ULTRA SIMPLES');
+    
+    if (!dadosCliente) {
+        alert('❌ ERRO: Dados do cliente não fornecidos');
+        return;
+    }
+    
+    // FORÇAR criação de 3 cards imediatamente
+    console.log('🔧 FORÇANDO criação de 3 cards para os 3 sócios');
+    
+    // Card 2
+    setTimeout(() => {
+        adicionarSocio();
+        // Preencher dados do sócio 2
+        const nome2 = dadosCliente.socio_2_nome;
+        const cpf2 = dadosCliente.socio_2_cpf;
+        const nasc2 = dadosCliente.socio_2_data_nascimento;
+        const part2 = dadosCliente.socio_2_participacao;
+        
+        if (nome2) {
+            const inputNome2 = document.querySelector('input[name="socio_2_nome"]');
+            const inputCpf2 = document.querySelector('input[name="socio_2_cpf"]');
+            const inputNasc2 = document.querySelector('input[name="socio_2_data_nascimento"]');
+            const inputPart2 = document.querySelector('input[name="socio_2_participacao"]');
+            
+            if (inputNome2) inputNome2.value = nome2;
+            if (inputCpf2) inputCpf2.value = cpf2 || '';
+            if (inputNasc2) inputNasc2.value = nasc2 || '';
+            if (inputPart2) inputPart2.value = part2 || '';
+            
+            console.log(`✅ Preenchido sócio 2: ${nome2}`);
+        }
+    }, 100);
+    
+    // Card 3
+    setTimeout(() => {
+        adicionarSocio();
+        // Preencher dados do sócio 3
+        const nome3 = dadosCliente.socio_3_nome;
+        const cpf3 = dadosCliente.socio_3_cpf;
+        const nasc3 = dadosCliente.socio_3_data_nascimento;
+        const part3 = dadosCliente.socio_3_participacao;
+        
+        if (nome3) {
+            const inputNome3 = document.querySelector('input[name="socio_3_nome"]');
+            const inputCpf3 = document.querySelector('input[name="socio_3_cpf"]');
+            const inputNasc3 = document.querySelector('input[name="socio_3_data_nascimento"]');
+            const inputPart3 = document.querySelector('input[name="socio_3_participacao"]');
+            
+            if (inputNome3) inputNome3.value = nome3;
+            if (inputCpf3) inputCpf3.value = cpf3 || '';
+            if (inputNasc3) inputNasc3.value = nasc3 || '';
+            if (inputPart3) inputPart3.value = part3 || '';
+            
+            console.log(`✅ Preenchido sócio 3: ${nome3}`);
+        }
+    }, 200);
+    
+    // Preencher primeiro sócio (já existe)
+    const nome1 = dadosCliente.socio_1_nome;
+    if (nome1) {
+        const inputNome1 = document.querySelector('input[name="socio_1_nome"]');
+        const inputCpf1 = document.querySelector('input[name="socio_1_cpf"]');
+        const inputNasc1 = document.querySelector('input[name="socio_1_data_nascimento"]');
+        const inputPart1 = document.querySelector('input[name="socio_1_participacao"]');
+        
+        if (inputNome1) inputNome1.value = nome1;
+        if (inputCpf1) inputCpf1.value = dadosCliente.socio_1_cpf || '';
+        if (inputNasc1) inputNasc1.value = dadosCliente.socio_1_data_nascimento || '';
+        if (inputPart1) inputPart1.value = dadosCliente.socio_1_participacao || '';
+        
+        console.log(`✅ Preenchido sócio 1: ${nome1}`);
+    }
+    
+    alert('✅ QUADRO SOCIETÁRIO CARREGADO - 3 SÓCIOS!');
+}
+
+function preencherFormularioSocio(numero, dadosSocio) {
+    console.log(`📝 Preenchendo formulário sócio ${numero}:`, dadosSocio);
+    
+    // Preencher os campos
+    const campos = {
+        [`socio_${numero}_nome`]: dadosSocio.nome,
+        [`socio_${numero}_cpf`]: dadosSocio.cpf,
+        [`socio_${numero}_data_nascimento`]: dadosSocio.nascimento,
+        [`socio_${numero}_participacao`]: dadosSocio.participacao
+    };
+    
+    for (const [campo, valor] of Object.entries(campos)) {
+        const input = document.querySelector(`input[name="${campo}"]`);
+        if (input && valor) {
+            input.value = valor;
+            console.log(`✅ Preenchido ${campo}: ${valor}`);
+        }
+    }
+    
+    // Checkboxes
+    const adminCheckbox = document.querySelector(`input[name="socio_${numero}_administrador"]`);
+    if (adminCheckbox) {
+        adminCheckbox.checked = dadosSocio.admin;
+    }
+    
+    const respLegalCheckbox = document.querySelector(`input[name="socio_${numero}_resp_legal"]`);
+    if (respLegalCheckbox) {
+        respLegalCheckbox.checked = dadosSocio.respLegal;
+    }
+}
+
+function criarCardSocio(numero, dadosSocio) {
+    const container = document.getElementById('socios-container');
+    
+    const cardHtml = `
+    <div class="card socio-card mb-3" id="socio_${numero}">
+        <div class="card-header d-flex justify-content-between align-items-center">
+            <h6 class="mb-0">Sócio ${numero}</h6>
+            <button type="button" class="btn btn-danger btn-sm" onclick="removerSocio(${numero})">
+                <i class="fas fa-trash"></i> Remover
+            </button>
+        </div>
+        <div class="card-body">
+            <div class="row">
+                <div class="col-md-6">
+                    <label class="form-label">Nome do Sócio ${numero}:</label>
+                    <input type="text" class="form-control upper-input" name="socio_${numero}_nome" value="${dadosSocio.nome}">
                 </div>
-                <div class="col-md-2 mb-2">
-                    <label class="form-label small mb-1">CPF</label>
-                    <input type="text" class="form-control form-control-sm cpf-mask" 
-                           name="socio_${numeroSocios}_cpf" id="socio_${numeroSocios}_cpf"
-                           placeholder="000.000.000-00">
+                <div class="col-md-6">
+                    <label class="form-label">CPF do Sócio ${numero}:</label>
+                    <input type="text" class="form-control" name="socio_${numero}_cpf" value="${dadosSocio.cpf}">
                 </div>
-                <div class="col-md-2 mb-2">
-                    <label class="form-label small mb-1">Data de Nascimento</label>
-                    <input type="date" class="form-control form-control-sm" 
-                           name="socio_${numeroSocios}_data_nascimento" id="socio_${numeroSocios}_data_nascimento">
+            </div>
+            <div class="row mt-2">
+                <div class="col-md-4">
+                    <label class="form-label">Data de Nascimento:</label>
+                    <input type="date" class="form-control" name="socio_${numero}_data_nascimento" value="${dadosSocio.nascimento}">
                 </div>
-                <div class="col-md-2 mb-2">
-                    <label class="form-label small mb-1">% de Quotas</label>
-                    <input type="number" class="form-control form-control-sm" 
-                           name="socio_${numeroSocios}_participacao" id="socio_${numeroSocios}_participacao"
-                           placeholder="50.00" step="0.01" min="0" max="100">
+                <div class="col-md-4">
+                    <label class="form-label">Participação (%):</label>
+                    <input type="text" class="form-control" name="socio_${numero}_participacao" value="${dadosSocio.participacao}">
                 </div>
-                <div class="col-md-2 mb-2">
-                    <div class="row">
-                        <div class="col-12 mb-1">
-                            <div class="form-check">
-                                <input class="form-check-input representante-legal" type="radio" 
-                                       name="representante_legal" value="socio_${numeroSocios}" 
-                                       id="rep_legal_${numeroSocios}">
-                                <label class="form-check-label small" for="rep_legal_${numeroSocios}">
-                                    Representante Legal
-                                </label>
-                            </div>
-                        </div>
-                        <div class="col-12">
-                            <div class="form-check">
-                                <input class="form-check-input socio-admin" type="checkbox" 
-                                       name="socio_${numeroSocios}_administrador" value="1" 
-                                       id="admin_${numeroSocios}">
-                                <label class="form-check-label small" for="admin_${numeroSocios}">
-                                    Sócio Administrador
-                                </label>
-                            </div>
-                        </div>
+                <div class="col-md-4">
+                    <div class="form-check mt-4">
+                        <input class="form-check-input" type="checkbox" name="socio_${numero}_administrador" ${dadosSocio.admin ? 'checked' : ''}>
+                        <label class="form-check-label">Administrador</label>
                     </div>
-                </div>
-                <div class="col-md-1 mb-2">
-                    <label class="form-label small mb-1">&nbsp;</label>
-                    <button type="button" class="btn btn-outline-danger btn-sm w-100" 
-                            onclick="removerSocio(${numeroSocios})" title="Remover sócio">
-                        <i class="bi bi-trash"></i>
-                    </button>
+                    <div class="form-check">
+                        <input class="form-check-input" type="checkbox" name="socio_${numero}_resp_legal" ${dadosSocio.respLegal ? 'checked' : ''}>
+                        <label class="form-check-label">Responsável Legal</label>
+                    </div>
                 </div>
             </div>
         </div>
-    `;
+    </div>`;
     
-    container.appendChild(novoSocio);
-    
-    // Aplicar máscaras aos novos campos
-    const novoCpfInput = novoSocio.querySelector('.cpf-mask');
-    
-    if (novoCpfInput) {
-        novoCpfInput.addEventListener('input', function() {
-            formatCPF(this);
-        });
-    }
-    
-    // Aplicar eventos para controle de representante legal e atualização do CPF do representante legal
-    const radioRepresentante = novoSocio.querySelector('.representante-legal');
-    if (radioRepresentante) {
-        radioRepresentante.addEventListener('change', function() {
-            if (this.checked) {
-                atualizarCpfRepresentanteLegal();
-                console.log('✅ Representante legal selecionado:', this.value);
-            }
-        });
-    }
-    // Atualiza ao digitar CPF do sócio
-    if (novoCpfInput) {
-        novoCpfInput.addEventListener('input', atualizarCpfRepresentanteLegal);
-    }
-    // Atualiza ao adicionar novo sócio
-    atualizarCpfRepresentanteLegal();
-    
-    // Animação de entrada
-    novoSocio.style.opacity = '0';
-    novoSocio.style.transform = 'translateY(-20px)';
-    setTimeout(() => {
-        novoSocio.style.transition = 'all 0.3s ease';
-        novoSocio.style.opacity = '1';
-        novoSocio.style.transform = 'translateY(0)';
-    }, 10);
+    container.insertAdjacentHTML('beforeend', cardHtml);
+    console.log(`✅ Card do sócio ${numero} criado e inserido`);
 }
-
-// Função para remover sócio
-function removerSocio(numero) {
-    const socio = document.getElementById(`socio_${numero}`);
-    if (socio && numero > 1) { // Não permite remover o primeiro sócio
-        // Animação de saída
-        socio.style.transition = 'all 0.3s ease';
-        socio.style.opacity = '0';
-        socio.style.transform = 'translateY(-20px)';
-        
-        setTimeout(() => {
-            socio.remove();
-        }, 300);
-    }
-}
-
-// Função para carregar dados dos sócios (para edição)
-function carregarSocios(dadosCliente) {
-    console.log('🔍 INICIANDO CARREGAR SÓCIOS...');
+    if (!dadosCliente) {
+        console.log('❌ Dados do cliente não fornecidos');
+function carregarContatos(dadosCliente) {
+    alert('🚨 EXECUTANDO VERSÃO DEFINITIVA carregarContatos! 2025-08-24 08:30:00');
+    console.log('� EXECUTANDO VERSÃO DEFINITIVA carregarContatos! 2025-08-24 08:30:00');
+    
     if (!dadosCliente) {
         console.log('❌ Dados do cliente não fornecidos');
         return;
     }
     
-    console.log('🔍 Total de propriedades no dadosCliente:', Object.keys(dadosCliente).length);
+    const container = document.getElementById('contatos-container');
+    if (!container) {
+        console.log('❌ Container de contatos não encontrado');
+        return;
+    }
     
-    // Primeiro, identificar quantos sócios existem
-    let sociosEncontrados = [];
-    for (let i = 1; i <= 10; i++) {
-        const nome = dadosCliente[`socio_${i}_nome`];
+    // Identificar quantos contatos existem
+    let contatosComDados = [];
+    for (let i = 1; i <= 5; i++) {
+        const nome = dadosCliente[`contato_${i}_nome`];
         if (nome && nome.trim() !== '') {
-            sociosEncontrados.push(i);
-            console.log(`✅ Sócio ${i} encontrado: ${nome}`);
+            contatosComDados.push({
+                numero: i,
+                nome: nome,
+                cargo: dadosCliente[`contato_${i}_cargo`] || '',
+                telefone: dadosCliente[`contato_${i}_telefone`] || '',
+                email: dadosCliente[`contato_${i}_email`] || ''
+            });
         }
     }
     
-    console.log(`🔍 Total de sócios encontrados: ${sociosEncontrados.length}`);
+    console.log(`✅ Encontrados ${contatosComDados.length} contatos:`, contatosComDados);
     
-    // Adicionar cards para todos os sócios que não seja o primeiro (que já existe no HTML)
-    sociosEncontrados.forEach(numeroSocio => {
-        if (numeroSocio > 1) {
-            console.log(`➕ Adicionando card para sócio ${numeroSocio}...`);
+    // Se só tem 1 contato, não precisamos criar cards adicionais
+    if (contatosComDados.length <= 1) {
+        console.log('ℹ️ Apenas 1 contato - preenchendo formulário principal');
+        if (contatosComDados.length === 1) {
+            const contato = contatosComDados[0];
+            preencherFormularioContato(1, contato);
+        }
+        return;
+    }
+    
+    // Para múltiplos contatos, criar cards adicionais
+    console.log(`🔧 Criando ${contatosComDados.length - 1} cards de contatos adicionais...`);
+    
+    // Preencher primeiro contato (já existe no HTML)
+    preencherFormularioContato(1, contatosComDados[0]);
+    
+    // Criar cards para contatos 2+
+    for (let i = 1; i < contatosComDados.length; i++) {
+        const contato = contatosComDados[i];
+        const numeroCard = i + 1;
+        
+        console.log(`➕ Criando card para contato ${numeroCard}: ${contato.nome}`);
+        
+        // Criar o card diretamente
+        criarCardContato(numeroCard, contato);
+    }
+    
+    // Atualizar contador global
+    numeroContatos = contatosComDados.length;
+    console.log(`✅ Carregamento de contatos concluído! Total: ${numeroContatos}`);
+}
+
+function preencherFormularioContato(numero, dadosContato) {
+    console.log(`📝 Preenchendo formulário contato ${numero}:`, dadosContato);
+    
+    // Preencher os campos
+    const campos = {
+        [`contato_${numero}_nome`]: dadosContato.nome,
+        [`contato_${numero}_cargo`]: dadosContato.cargo,
+        [`contato_${numero}_telefone`]: dadosContato.telefone,
+        [`contato_${numero}_email`]: dadosContato.email
+    };
+    
+    for (const [campo, valor] of Object.entries(campos)) {
+        const input = document.querySelector(`input[name="${campo}"]`);
+        if (input && valor) {
+            input.value = valor;
+            console.log(`✅ Preenchido ${campo}: ${valor}`);
+        }
+    }
+}
+
+function criarCardContato(numero, dadosContato) {
+    const container = document.getElementById('contatos-container');
+    
+    const cardHtml = `
+    <div class="card contato-card mb-3" id="contato_${numero}">
+        <div class="card-header d-flex justify-content-between align-items-center">
+            <h6 class="mb-0">Contato ${numero}</h6>
+            <button type="button" class="btn btn-danger btn-sm" onclick="removerContato(${numero})">
+                <i class="fas fa-trash"></i> Remover
+            </button>
+        </div>
+        <div class="card-body">
+            <div class="row">
+                <div class="col-md-6">
+                    <label class="form-label">Nome do Contato:</label>
+                    <input type="text" class="form-control upper-input" name="contato_${numero}_nome" value="${dadosContato.nome}">
+                </div>
+                <div class="col-md-6">
+                    <label class="form-label">Cargo:</label>
+                    <input type="text" class="form-control upper-input" name="contato_${numero}_cargo" value="${dadosContato.cargo}">
+                </div>
+            </div>
+            <div class="row mt-2">
+                <div class="col-md-6">
+                    <label class="form-label">Telefone:</label>
+                    <input type="text" class="form-control" name="contato_${numero}_telefone" value="${dadosContato.telefone}">
+                </div>
+                <div class="col-md-6">
+                    <label class="form-label">Email:</label>
+                    <input type="email" class="form-control" name="contato_${numero}_email" value="${dadosContato.email}">
+                </div>
+            </div>
+        </div>
+    </div>`;
+    
+    container.insertAdjacentHTML('beforeend', cardHtml);
+    console.log(`✅ Card do contato ${numero} criado e inserido`);
+}
+    
+    console.log('🔍 Total de propriedades no dadosCliente:', Object.keys(dadosCliente).length);
+    
+    // Debug específico: mostrar TODOS os campos de contatos que existem
+    console.log('🔍 =====DEBUG CAMPOS CONTATOS=====');
+    for (let i = 1; i <= 10; i++) {
+        const nome = dadosCliente[`contato_${i}_nome`];
+        const cargo = dadosCliente[`contato_${i}_cargo`];
+        const telefone = dadosCliente[`contato_${i}_telefone`];
+        const email = dadosCliente[`contato_${i}_email`];
+        console.log(`Contato ${i}: nome='${nome}', cargo='${cargo}', tel='${telefone}', email='${email}'`);
+    }
+    console.log('🔍 =============================');
+    
+    // Primeiro, identificar quantos contatos existem
+    let contatosEncontrados = [];
+    for (let i = 1; i <= 10; i++) {
+        const nome = dadosCliente[`contato_${i}_nome`];
+        if (nome && nome.trim() !== '') {
+            contatosEncontrados.push(i);
+            console.log(`✅ Contato ${i} encontrado: ${nome}`);
+        }
+    }
+    
+    console.log(`🔍 Total de contatos encontrados: ${contatosEncontrados.length}`);
+    console.log(`🔍 Lista de contatos: [${contatosEncontrados.join(', ')}]`);
+    
+    // VERIFICAÇÃO CRÍTICA: Verificar se contatosContainer existe
+    const contatosContainer = document.getElementById('contatosContainer');
+    console.log('🔍 VERIFICAÇÃO CRÍTICA: contatosContainer existe?', !!contatosContainer);
+    
+    if (!contatosContainer) {
+        console.error('❌ ERRO CRÍTICO: contatosContainer NÃO existe! O JavaScript não pode adicionar contatos.');
+        console.log('🔍 Elementos com ID que contém "contato":', 
+            Array.from(document.querySelectorAll('[id*="contato"]')).map(el => el.id));
+        return; // Para a execução se não encontrar o container
+    }
+    
+    // Adicionar cards para todos os contatos que não seja o primeiro (que já existe no HTML)
+    console.log('🔧 INICIANDO CRIAÇÃO DE CARDS DE CONTATOS...');
+    contatosEncontrados.forEach(numeroContato => {
+        if (numeroContato > 1) {
+            console.log(`➕ Adicionando card para contato ${numeroContato}...`);
             
             // Verificar se o card já existe
-            if (!document.getElementById(`socio_${numeroSocio}`)) {
-                adicionarSocio(); // Adicionar card de sócio
-                numeroSocios = Math.max(numeroSocios, numeroSocio); // Atualizar contador global
-                console.log(`✅ Card adicionado para sócio ${numeroSocio}`);
+            const cardExiste = document.getElementById(`contato_${numeroContato}`);
+            console.log(`🔍 Card do contato ${numeroContato} existe? ${!!cardExiste}`);
+            
+            if (!cardExiste) {
+                console.log(`📝 Chamando adicionarContato() para criar card ${numeroContato}...`);
+                console.log(`🔧 Estado ANTES da chamada - numeroContatos: ${numeroContatos}`);
+                adicionarContato(); // Adicionar card de contato
+                console.log(`🔧 Estado DEPOIS da chamada - numeroContatos: ${numeroContatos}`);
+                
+                // PROBLEMA: adicionarContato() incrementa numeroContatos, mas pode não estar alinhado
+                // com o numeroContato que precisamos. Vamos forçar o alinhamento:
+                if (numeroContatos !== numeroContato) {
+                    console.log(`⚠️ CORREÇÃO: numeroContatos (${numeroContatos}) != numeroContato esperado (${numeroContato})`);
+                    
+                    // Renomear o card criado para o número correto
+                    const cardCriado = document.getElementById(`contato_${numeroContatos}`);
+                    if (cardCriado) {
+                        cardCriado.id = `contato_${numeroContato}`;
+                        
+                        // Renomear todos os campos dentro do card
+                        const inputs = cardCriado.querySelectorAll('input');
+                        inputs.forEach(input => {
+                            if (input.name) {
+                                input.name = input.name.replace(`_${numeroContatos}_`, `_${numeroContato}_`);
+                            }
+                            if (input.id) {
+                                input.id = input.id.replace(`_${numeroContatos}`, `_${numeroContato}`);
+                            }
+                        });
+                        
+                        // Corrigir botão de remoção
+                        const btnRemover = cardCriado.querySelector('button[onclick*="removerContato"]');
+                        if (btnRemover) {
+                            btnRemover.onclick = () => removerContato(numeroContato);
+                        }
+                        
+                        console.log(`✅ Card renomeado de contato_${numeroContatos} para contato_${numeroContato}`);
+                    }
+                }
+                
+                console.log(`✅ Card adicionado para contato ${numeroContato}`);
             } else {
-                console.log(`ℹ️ Card do sócio ${numeroSocio} já existe`);
+                console.log(`ℹ️ Card do contato ${numeroContato} já existe`);
             }
         }
     });
     
     // Aguardar um momento para que os elementos sejam criados no DOM
+    console.log('⏳ Aguardando criação dos elementos de contatos no DOM...');
     setTimeout(() => {
-        console.log('🔍 Preenchendo dados dos sócios...');
+        console.log('🔍 Preenchendo dados dos contatos...');
         
-        // Agora preencher os dados de todos os sócios
-        sociosEncontrados.forEach(numeroSocio => {
-            const nome = dadosCliente[`socio_${numeroSocio}_nome`];
-            console.log(`🔍 Preenchendo sócio ${numeroSocio}: ${nome}`);
+        // Verificar estado do DOM após timeout
+        console.log('🔍 Estado do DOM após timeout:');
+        for (let i = 1; i <= 10; i++) {
+            const card = document.getElementById(`contato_${i}`);
+            console.log(`   Card contato ${i}: ${!!card ? 'EXISTE' : 'NÃO EXISTE'}`);
+        }
+        
+        // Preencher os campos de todos os contatos
+        contatosEncontrados.forEach(numeroContato => {
+            const nome = dadosCliente[`contato_${numeroContato}_nome`];
+            console.log(`🔍 Preenchendo contato ${numeroContato}: ${nome}`);
             
-            // Buscar os elementos
-            const nomeInput = document.getElementById(`socio_${numeroSocio}_nome`);
-            const cpfInput = document.getElementById(`socio_${numeroSocio}_cpf`);
-            const dataNascInput = document.getElementById(`socio_${numeroSocio}_data_nascimento`);
-            const participacaoInput = document.getElementById(`socio_${numeroSocio}_participacao`);
-            const repLegalInput = document.getElementById(`rep_legal_${numeroSocio}`);
-            const adminInput = document.getElementById(`admin_${numeroSocio}`);
+            // Preencher os campos
+            const nomeInput = document.getElementById(`contato_${numeroContato}_nome`);
+            const cargoInput = document.getElementById(`contato_${numeroContato}_cargo`);
+            const telefoneInput = document.getElementById(`contato_${numeroContato}_telefone`);
+            const emailInput = document.getElementById(`contato_${numeroContato}_email`);
             
-            console.log(`🔍 Elementos encontrados para sócio ${numeroSocio}:`, {
+            console.log(`🔍 Elementos encontrados para contato ${numeroContato}:`, {
                 nome: !!nomeInput,
-                cpf: !!cpfInput,
-                dataNasc: !!dataNascInput,
-                participacao: !!participacaoInput,
-                repLegal: !!repLegalInput,
-                admin: !!adminInput
+                cargo: !!cargoInput,
+                telefone: !!telefoneInput,
+                email: !!emailInput
             });
             
-            // Preencher os campos
             if (nomeInput) nomeInput.value = nome || '';
-            if (cpfInput) cpfInput.value = dadosCliente[`socio_${numeroSocio}_cpf`] || '';
-            if (dataNascInput) dataNascInput.value = dadosCliente[`socio_${numeroSocio}_data_nascimento`] || '';
-            if (participacaoInput) participacaoInput.value = dadosCliente[`socio_${numeroSocio}_participacao`] || '';
-            if (repLegalInput && dadosCliente.representante_legal === `socio_${numeroSocio}`) repLegalInput.checked = true;
-            if (adminInput && dadosCliente[`socio_${numeroSocio}_administrador`]) adminInput.checked = true;
+            if (cargoInput) cargoInput.value = dadosCliente[`contato_${numeroContato}_cargo`] || '';
+            if (telefoneInput) telefoneInput.value = dadosCliente[`contato_${numeroContato}_telefone`] || '';
+            if (emailInput) emailInput.value = dadosCliente[`contato_${numeroContato}_email`] || '';
             
-            console.log(`✅ Campos preenchidos para sócio ${numeroSocio}`);
+            console.log(`✅ Contato ${numeroContato} preenchido com sucesso`);
         });
         
-        console.log('✅ CARREGAR SÓCIOS FINALIZADO');
-    }, 100); // Pequeno delay para garantir que os elementos foram criados
-}
-
-function carregarContatos(dadosCliente) {
-    if (!dadosCliente) return;
-    
-    // Procurar por campos de contatos nos dados do cliente
-    for (let i = 1; i <= 10; i++) { // Suporte para até 10 contatos
-        const nome = dadosCliente[`contato_${i}_nome`];
-        if (nome) {
-            if (i > 1) {
-                adicionarContato(); // Adicionar card de contato se não for o primeiro
-            }
-            
-            // Preencher os campos
-            const nomeInput = document.getElementById(`contato_${i}_nome`);
-            const cargoInput = document.getElementById(`contato_${i}_cargo`);
-            const telefoneInput = document.getElementById(`contato_${i}_telefone`);
-            const emailInput = document.getElementById(`contato_${i}_email`);
-            
-            if (nomeInput) nomeInput.value = nome || '';
-            if (cargoInput) cargoInput.value = dadosCliente[`contato_${i}_cargo`] || '';
-            if (telefoneInput) telefoneInput.value = dadosCliente[`contato_${i}_telefone`] || '';
-            if (emailInput) emailInput.value = dadosCliente[`contato_${i}_email`] || '';
-        }
-    }
+        console.log('✅ CARREGAR CONTATOS FINALIZADO');
+    }, 500); // Delay aumentado para garantir que os elementos foram criados
 }
 
 // Função para confirmar exclusão
@@ -1529,12 +2298,26 @@ function confirmDelete(clientId, clientName) {
 
 // Funções para gerenciar contatos
 function adicionarContato() {
-    numeroContatos++;
-    const container = document.getElementById('contatosContainer');
+    console.log(`🔧 ADICIONARCONTATO: Iniciando... numeroContatos atual: ${numeroContatos}`);
     
-    const novoContato = document.createElement('div');
-    novoContato.className = 'card border-light mb-2 contato-card';
-    novoContato.id = `contato_${numeroContatos}`;
+    // VERIFICAÇÃO CRÍTICA: Container existe?
+    const container = document.getElementById('contatosContainer');
+    if (!container) {
+        console.error('❌ ERRO CRÍTICO: contatosContainer não encontrado na função adicionarContato!');
+        return false; // Para a função
+    }
+    
+    numeroContatos++;
+    console.log(`🔧 ADICIONARCONTATO: Incrementado para: ${numeroContatos}`);
+    console.log(`🔧 ADICIONARCONTATO: Container encontrado:`, !!container);
+    
+    try {
+        const novoContato = document.createElement('div');
+        novoContato.className = 'card border-light mb-2 contato-card';
+        novoContato.id = `contato_${numeroContatos}`;
+        console.log(`🔧 ADICIONARCONTATO: Criando card com ID: contato_${numeroContatos}`);
+    
+    // Reutilizar a mesma variável novoContato
     novoContato.innerHTML = `
         <div class="card-body py-3">
             <div class="d-flex justify-content-between align-items-center mb-2">
@@ -1580,6 +2363,19 @@ function adicionarContato() {
         phoneInput.addEventListener('input', function() {
             formatPhone(this);
         });
+    }
+    
+    console.log(`✅ ADICIONARCONTATO: Card contato_${numeroContatos} criado e adicionado ao DOM`);
+    
+    // Verificar se o elemento foi realmente adicionado
+    setTimeout(() => {
+        const verificar = document.getElementById(`contato_${numeroContatos}`);
+        console.log(`🔍 ADICIONARCONTATO: Verificação após 100ms - Card existe? ${!!verificar}`);
+    }, 100);
+    
+    } catch (error) {
+        console.error('❌ ERRO na função adicionarContato:', error);
+        return false;
     }
 }
 
@@ -1852,9 +2648,484 @@ function togglePasswordVisibility(inputId, button) {
 // CSS para caixa alta
 const style = document.createElement('style');
 style.textContent = `
-    .upper-input { text-transform: uppercase; }
+    .upper-input { 
+        text-transform: uppercase; 
+        background-color: #f8f9fa;
+        border: 1px solid #28a745;
+    }
+    .upper-input:focus { 
+        background-color: #ffffff;
+        border-color: #28a745;
+        box-shadow: 0 0 0 0.2rem rgba(40, 167, 69, 0.25);
+    }
     .conditional-required { display: none; }
 `;
 document.head.appendChild(style);
+
+// === FUNÇÃO PARA MAIÚSCULAS OBRIGATÓRIAS ===
+function setupUppercaseFields() {
+    // Lista de campos que devem ficar sempre em maiúsculas
+    const uppercaseFields = [
+        'sistemaUtilizado'   // Sistema Utilizado
+    ];
+    
+    // Configurar campos de input de texto
+    uppercaseFields.forEach(fieldId => {
+        const field = document.getElementById(fieldId);
+        if (field) {
+            // Adicionar classe CSS para maiúsculas
+            field.classList.add('upper-input');
+            
+            // Event listener para converter em tempo real
+            field.addEventListener('input', function(e) {
+                const cursorPos = e.target.selectionStart;
+                e.target.value = e.target.value.toUpperCase();
+                e.target.setSelectionRange(cursorPos, cursorPos);
+            });
+        }
+    });
+    
+    // Configurar campos select para maiúsculas obrigatórias
+    const selectFields = ['estado', 'regimeEstadual', 'regimeFederal'];
+    selectFields.forEach(fieldId => {
+        const field = document.getElementById(fieldId);
+        if (field) {
+            // Adicionar classe CSS para maiúsculas
+            field.classList.add('upper-input');
+            
+            // Event listener para converter em tempo real (select options já vêm em maiúsculas do HTML)
+            field.addEventListener('change', function(e) {
+                // Para selects, o value já vem correto do HTML, mas garantimos maiúscula
+                if (e.target.value) {
+                    e.target.value = e.target.value.toUpperCase();
+                }
+            });
+        }
+    });
+}
+
+// === FUNÇÃO PARA NOMES DE SÓCIOS DINÂMICOS ===
+function setupSocioUppercase(socioNumber) {
+    const nomeField = document.getElementById(`socio_${socioNumber}_nome`);
+    if (nomeField) {
+        nomeField.classList.add('upper-input');
+        
+        nomeField.addEventListener('input', function(e) {
+            const cursorPos = e.target.selectionStart;
+            e.target.value = e.target.value.toUpperCase();
+            e.target.setSelectionRange(cursorPos, cursorPos);
+        });
+        
+        // Também forçar maiúscula ao sair do campo
+        nomeField.addEventListener('blur', function(e) {
+            e.target.value = e.target.value.toUpperCase();
+        });
+    }
+}
+
+// Executar configuração quando página carregar
+document.addEventListener('DOMContentLoaded', function() {
+    setupUppercaseFields();
+    
+    // Configurar campos existentes de sócios (1-10)
+    for (let i = 1; i <= 10; i++) {
+        setupSocioUppercase(i);
+    }
+});
+
+// Observador para novos sócios adicionados dinamicamente
+const sociosContainer = document.getElementById('sociosContainer');
+if (sociosContainer) {
+    const observer = new MutationObserver(function(mutations) {
+        mutations.forEach(function(mutation) {
+            mutation.addedNodes.forEach(function(node) {
+                if (node.nodeType === Node.ELEMENT_NODE) {
+                    // Procurar por campos de nome de sócio no novo elemento
+                    const nomeInputs = node.querySelectorAll('input[name*="_nome"]');
+                    nomeInputs.forEach(input => {
+                        input.classList.add('upper-input');
+                        input.addEventListener('input', function(e) {
+                            const cursorPos = e.target.selectionStart;
+                            e.target.value = e.target.value.toUpperCase();
+                            e.target.setSelectionRange(cursorPos, cursorPos);
+                        });
+                    });
+                }
+            });
+        });
+    });
+    
+    observer.observe(sociosContainer, {
+        childList: true,
+        subtree: true
+    });
+}
+
+// NOVA FUNÇÃO SIMPLES PARA CONTATOS - SOBRESCREVER A ANTERIOR
+function carregarContatosSimples(dadosCliente) {
+    alert('🚨 FUNÇÃO SIMPLES CONTATOS ATIVADA!');
+    console.log('🔧 CARREGANDO CONTATOS - VERSÃO SIMPLES');
+    
+    if (!dadosCliente) {
+        alert('❌ ERRO: Dados do cliente não fornecidos');
+        return;
+    }
+    
+    // FORÇAR criação imediata dos cards
+    setTimeout(() => {
+        // Card 2
+        if (dadosCliente.contato_2_nome) {
+            adicionarContato();
+            setTimeout(() => {
+                const nome2 = document.querySelector('input[name="contato_2_nome"]');
+                const cargo2 = document.querySelector('input[name="contato_2_cargo"]');
+                const tel2 = document.querySelector('input[name="contato_2_telefone"]');
+                const email2 = document.querySelector('input[name="contato_2_email"]');
+                
+                if (nome2) nome2.value = dadosCliente.contato_2_nome;
+                if (cargo2) cargo2.value = dadosCliente.contato_2_cargo || '';
+                if (tel2) tel2.value = dadosCliente.contato_2_telefone || '';
+                if (email2) email2.value = dadosCliente.contato_2_email || '';
+                
+                console.log(`✅ Contato 2 preenchido: ${dadosCliente.contato_2_nome}`);
+            }, 100);
+        }
+        
+        // Card 3
+        if (dadosCliente.contato_3_nome) {
+            setTimeout(() => {
+                adicionarContato();
+                setTimeout(() => {
+                    const nome3 = document.querySelector('input[name="contato_3_nome"]');
+                    const cargo3 = document.querySelector('input[name="contato_3_cargo"]');
+                    const tel3 = document.querySelector('input[name="contato_3_telefone"]');
+                    const email3 = document.querySelector('input[name="contato_3_email"]');
+                    
+                    if (nome3) nome3.value = dadosCliente.contato_3_nome;
+                    if (cargo3) cargo3.value = dadosCliente.contato_3_cargo || '';
+                    if (tel3) tel3.value = dadosCliente.contato_3_telefone || '';
+                    if (email3) email3.value = dadosCliente.contato_3_email || '';
+                    
+                    console.log(`✅ Contato 3 preenchido: ${dadosCliente.contato_3_nome}`);
+                }, 100);
+            }, 200);
+        }
+    }, 500);
+    
+    // Preencher primeiro contato (já existe)
+    const nome1 = document.querySelector('input[name="contato_1_nome"]');
+    const cargo1 = document.querySelector('input[name="contato_1_cargo"]');
+    const tel1 = document.querySelector('input[name="contato_1_telefone"]');
+    const email1 = document.querySelector('input[name="contato_1_email"]');
+    
+    if (nome1 && dadosCliente.contato_1_nome) {
+        nome1.value = dadosCliente.contato_1_nome;
+        if (cargo1) cargo1.value = dadosCliente.contato_1_cargo || '';
+        if (tel1) tel1.value = dadosCliente.contato_1_telefone || '';
+        if (email1) email1.value = dadosCliente.contato_1_email || '';
+        console.log(`✅ Contato 1 preenchido: ${dadosCliente.contato_1_nome}`);
+    }
+    
+    alert('✅ CONTATOS SIMPLES CARREGADOS!');
+}
+
+// Sobrescrever a função problemática
+window.carregarContatos = carregarContatosSimples;
+
+// NOVA FUNÇÃO PARA SÓCIOS - FORÇA BRUTA
+function carregarSociosForcaBruta(dadosCliente) {
+    alert('🚨 FORÇA BRUTA - SEMPRE 3 SÓCIOS!');
+    console.log('⚡ Executando força bruta para sócios');
+    
+    // SEMPRE criar 2 sócios adicionais (total = 3)
+    console.log('🔧 Criando sócio 2...');
+    setTimeout(() => {
+        adicionarSocio();
+        console.log('✅ Sócio 2 adicionado');
+        
+        // Preencher sócio 2 se tiver dados
+        setTimeout(() => {
+            const input2 = document.querySelector('input[name="socio_2_nome"]');
+            if (input2) {
+                if (dadosCliente && dadosCliente.socio_2_nome) {
+                    input2.value = dadosCliente.socio_2_nome;
+                    console.log('✅ Sócio 2 preenchido com dados reais');
+                } else {
+                    input2.value = 'SÓCIO 2 - TESTE';
+                    console.log('⚠️ Sócio 2 preenchido com dados de teste');
+                }
+            }
+        }, 200);
+    }, 100);
+    
+    console.log('🔧 Criando sócio 3...');
+    setTimeout(() => {
+        adicionarSocio();
+        console.log('✅ Sócio 3 adicionado');
+        
+        // Preencher sócio 3 se tiver dados
+        setTimeout(() => {
+            const input3 = document.querySelector('input[name="socio_3_nome"]');
+            if (input3) {
+                if (dadosCliente && dadosCliente.socio_3_nome) {
+                    input3.value = dadosCliente.socio_3_nome;
+                    console.log('✅ Sócio 3 preenchido com dados reais');
+                } else {
+                    input3.value = 'SÓCIO 3 - TESTE';
+                    console.log('⚠️ Sócio 3 preenchido com dados de teste');
+                }
+            }
+        }, 200);
+    }, 300);
+    
+    // Preencher sócio 1 (já existe)
+    setTimeout(() => {
+        const input1 = document.querySelector('input[name="socio_1_nome"]');
+        if (input1) {
+            if (dadosCliente && dadosCliente.socio_1_nome) {
+                input1.value = dadosCliente.socio_1_nome;
+                console.log('✅ Sócio 1 preenchido com dados reais');
+            } else {
+                input1.value = 'SÓCIO 1 - TESTE';
+                console.log('⚠️ Sócio 1 preenchido com dados de teste');
+            }
+        }
+    }, 50);
+    
+    // Verificação final
+    setTimeout(() => {
+        const cards = document.querySelectorAll('.socio-card, [id*="socio"], .card:has(input[name*="socio"])');
+        alert(`🎯 CRIADOS: ${cards.length} cards de sócios!`);
+        console.log(`🏁 Resultado final: ${cards.length} cards encontrados`);
+    }, 1000);
+}
+
+// SOLUÇÃO SIMPLES E FINAL
+window.carregarSocios = function(dadosCliente) {
+    console.log('🔧 SOLUÇÃO SIMPLES - Carregando sócios...');
+    
+    if (!dadosCliente) return;
+    
+    // Usar a função original adicionarSocio que já funciona
+    setTimeout(() => {
+        // Se tem sócio 2, adicionar card
+        if (dadosCliente.socio_2_nome) {
+            adicionarSocio();
+            setTimeout(() => {
+                const nome2 = document.querySelector('input[name="socio_2_nome"]');
+                if (nome2) nome2.value = dadosCliente.socio_2_nome;
+                
+                const cpf2 = document.querySelector('input[name="socio_2_cpf"]');
+                if (cpf2) cpf2.value = dadosCliente.socio_2_cpf || '';
+            }, 200);
+        }
+        
+        // Se tem sócio 3, adicionar card
+        if (dadosCliente.socio_3_nome) {
+            setTimeout(() => {
+                adicionarSocio();
+                setTimeout(() => {
+                    const nome3 = document.querySelector('input[name="socio_3_nome"]');
+                    if (nome3) nome3.value = dadosCliente.socio_3_nome;
+                    
+                    const cpf3 = document.querySelector('input[name="socio_3_cpf"]');
+                    if (cpf3) cpf3.value = dadosCliente.socio_3_cpf || '';
+                }, 200);
+            }, 400);
+        }
+        
+        // Preencher sócio 1
+        const nome1 = document.querySelector('input[name="socio_1_nome"]');
+        if (nome1) nome1.value = dadosCliente.socio_1_nome || '';
+        
+        const cpf1 = document.querySelector('input[name="socio_1_cpf"]');
+        if (cpf1) cpf1.value = dadosCliente.socio_1_cpf || '';
+    }, 100);
+};
+
+// Função final para carregar sócios
+function carregarSocios(dadosCliente) {
+    console.log('� SOLUÇÃO DEFINITIVA - Carregando sócios...');
+    
+    if (!dadosCliente) return;
+    
+    // Aguardar DOM estar pronto
+    setTimeout(() => {
+        const container = document.getElementById('socios-container');
+        if (!container) {
+            console.error('❌ Container socios-container não encontrado');
+            return;
+        }
+        
+        // Criar HTML completo para 3 sócios (incluindo o primeiro)
+        const htmlCompleto = `
+        <!-- Sócio 1 -->
+        <div class="card socio-card mb-3" id="socio_1">
+            <div class="card-header d-flex justify-content-between align-items-center">
+                <h6 class="mb-0">Sócio 1</h6>
+            </div>
+            <div class="card-body">
+                <div class="row">
+                    <div class="col-md-6">
+                        <label class="form-label">Nome do Sócio:</label>
+                        <input type="text" class="form-control upper-input" name="socio_1_nome" value="${dadosCliente.socio_1_nome || ''}">
+                    </div>
+                    <div class="col-md-6">
+                        <label class="form-label">CPF:</label>
+                        <input type="text" class="form-control" name="socio_1_cpf" value="${dadosCliente.socio_1_cpf || ''}">
+                    </div>
+                </div>
+                <div class="row mt-2">
+                    <div class="col-md-4">
+                        <label class="form-label">Data de Nascimento:</label>
+                        <input type="date" class="form-control" name="socio_1_data_nascimento" value="${dadosCliente.socio_1_data_nascimento || ''}">
+                    </div>
+                    <div class="col-md-4">
+                        <label class="form-label">Participação (%):</label>
+                        <input type="number" class="form-control" name="socio_1_participacao" step="0.01" value="${dadosCliente.socio_1_participacao || ''}">
+                    </div>
+                    <div class="col-md-4">
+                        <div class="form-check mt-4">
+                            <input class="form-check-input" type="checkbox" name="socio_1_administrador" ${dadosCliente.socio_1_administrador ? 'checked' : ''}>
+                            <label class="form-check-label">Administrador</label>
+                        </div>
+                        <div class="form-check">
+                            <input class="form-check-input" type="checkbox" name="socio_1_resp_legal" ${dadosCliente.socio_1_resp_legal ? 'checked' : ''}>
+                            <label class="form-check-label">Resp. Legal</label>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Sócio 2 -->
+        <div class="card socio-card mb-3" id="socio_2" ${!dadosCliente.socio_2_nome ? 'style="display:none;"' : ''}>
+            <div class="card-header d-flex justify-content-between align-items-center">
+                <h6 class="mb-0">Sócio 2</h6>
+                <button type="button" class="btn btn-danger btn-sm" onclick="document.getElementById('socio_2').style.display='none'">
+                    <i class="fas fa-trash"></i> Remover
+                </button>
+            </div>
+            <div class="card-body">
+                <div class="row">
+                    <div class="col-md-6">
+                        <label class="form-label">Nome do Sócio:</label>
+                        <input type="text" class="form-control upper-input" name="socio_2_nome" value="${dadosCliente.socio_2_nome || ''}">
+                    </div>
+                    <div class="col-md-6">
+                        <label class="form-label">CPF:</label>
+                        <input type="text" class="form-control" name="socio_2_cpf" value="${dadosCliente.socio_2_cpf || ''}">
+                    </div>
+                </div>
+                <div class="row mt-2">
+                    <div class="col-md-4">
+                        <label class="form-label">Data de Nascimento:</label>
+                        <input type="date" class="form-control" name="socio_2_data_nascimento" value="${dadosCliente.socio_2_data_nascimento || ''}">
+                    </div>
+                    <div class="col-md-4">
+                        <label class="form-label">Participação (%):</label>
+                        <input type="number" class="form-control" name="socio_2_participacao" step="0.01" value="${dadosCliente.socio_2_participacao || ''}">
+                    </div>
+                    <div class="col-md-4">
+                        <div class="form-check mt-4">
+                            <input class="form-check-input" type="checkbox" name="socio_2_administrador" ${dadosCliente.socio_2_administrador ? 'checked' : ''}>
+                            <label class="form-check-label">Administrador</label>
+                        </div>
+                        <div class="form-check">
+                            <input class="form-check-input" type="checkbox" name="socio_2_resp_legal" ${dadosCliente.socio_2_resp_legal ? 'checked' : ''}>
+                            <label class="form-check-label">Resp. Legal</label>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Sócio 3 -->
+        <div class="card socio-card mb-3" id="socio_3" ${!dadosCliente.socio_3_nome ? 'style="display:none;"' : ''}>
+            <div class="card-header d-flex justify-content-between align-items-center">
+                <h6 class="mb-0">Sócio 3</h6>
+                <button type="button" class="btn btn-danger btn-sm" onclick="document.getElementById('socio_3').style.display='none'">
+                    <i class="fas fa-trash"></i> Remover
+                </button>
+            </div>
+            <div class="card-body">
+                <div class="row">
+                    <div class="col-md-6">
+                        <label class="form-label">Nome do Sócio:</label>
+                        <input type="text" class="form-control upper-input" name="socio_3_nome" value="${dadosCliente.socio_3_nome || ''}">
+                    </div>
+                    <div class="col-md-6">
+                        <label class="form-label">CPF:</label>
+                        <input type="text" class="form-control" name="socio_3_cpf" value="${dadosCliente.socio_3_cpf || ''}">
+                    </div>
+                </div>
+                <div class="row mt-2">
+                    <div class="col-md-4">
+                        <label class="form-label">Data de Nascimento:</label>
+                        <input type="date" class="form-control" name="socio_3_data_nascimento" value="${dadosCliente.socio_3_data_nascimento || ''}">
+                    </div>
+                    <div class="col-md-4">
+                        <label class="form-label">Participação (%):</label>
+                        <input type="number" class="form-control" name="socio_3_participacao" step="0.01" value="${dadosCliente.socio_3_participacao || ''}">
+                    </div>
+                    <div class="col-md-4">
+                        <div class="form-check mt-4">
+                            <input class="form-check-input" type="checkbox" name="socio_3_administrador" ${dadosCliente.socio_3_administrador ? 'checked' : ''}>
+                            <label class="form-check-label">Administrador</label>
+                        </div>
+                        <div class="form-check">
+                            <input class="form-check-input" type="checkbox" name="socio_3_resp_legal" ${dadosCliente.socio_3_resp_legal ? 'checked' : ''}>
+                            <label class="form-check-label">Resp. Legal</label>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        `;
+        
+        // Substituir todo o conteúdo do container
+        container.innerHTML = htmlCompleto;
+        
+        console.log('✅ Sócios carregados com HTML completo');
+        
+        // Mostrar cards que têm dados
+        if (dadosCliente.socio_2_nome) {
+            document.getElementById('socio_2').style.display = 'block';
+        }
+        if (dadosCliente.socio_3_nome) {
+            document.getElementById('socio_3').style.display = 'block';
+        }
+        
+    }, 100);
+}
+
+// Função simples para mostrar sócios ocultos
+function mostrarSocio(numero) {
+    const socio = document.getElementById(`socio_${numero}`);
+    if (socio) {
+        socio.style.display = 'block';
+    }
+}
+
+// Substituir as funções problemáticas
+window.carregarSocios = carregarSocios;
+window.adicionarSocio = () => {
+    // Mostrar sócio 2 se estiver oculto
+    const socio2 = document.getElementById('socio_2');
+    const socio3 = document.getElementById('socio_3');
+    
+    if (socio2 && socio2.style.display === 'none') {
+        socio2.style.display = 'block';
+        return;
+    }
+    
+    if (socio3 && socio3.style.display === 'none') {
+        socio3.style.display = 'block';
+        return;
+    }
+    
+    alert('Máximo de 3 sócios permitidos');
+};
+
 </script>
 {% endblock %}
