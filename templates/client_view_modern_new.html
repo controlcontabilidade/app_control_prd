@@ -103,15 +103,15 @@
                                                             </div>
                                                             <div class="col-md-6">
                                                                 <label class="form-label text-muted">Estado</label>
-                                                                <p class="mb-0"><span class="badge bg-primary">{{ client.estado or '-' }}</span></p>
+                                                                <p class="mb-0"><span class="badge bg-primary">{{ (client.estado or '-')|upper }}</span></p>
                                                             </div>
                                                             <div class="col-md-6">
                                                                 <label class="form-label text-muted">Regime Federal</label>
-                                                                <p class="mb-0"><span class="badge bg-secondary">{{ client.regimeFederal or client.tributacao or '-' }}</span></p>
+                                                                <p class="mb-0"><span class="badge bg-secondary">{{ (client.regimeFederal or client.tributacao or '-')|upper }}</span></p>
                                                             </div>
                                                             <div class="col-md-6">
                                                                 <label class="form-label text-muted">Regime Estadual</label>
-                                                                <p class="mb-0"><span class="badge bg-secondary">{{ client.regimeEstadual or '-' }}</span></p>
+                                                                <p class="mb-0"><span class="badge bg-secondary">{{ (client.regimeEstadual or '-')|upper }}</span></p>
                                                             </div>
                                                             <div class="col-md-6">
                                                                 <label class="form-label text-muted">Segmento</label>
@@ -149,7 +149,7 @@
                             </div>
                             <div class="col-md-6 mb-2">
                                 <label class="form-label text-muted">Nome</label>
-                                <p class="mb-0"><strong>{{ socio_nome }}</strong></p>
+                                <p class="mb-0"><strong>{{ socio_nome|upper }}</strong></p>
                             </div>
                             {% set socio_cpf = client.get('socio_' ~ i ~ '_cpf') or client.get('socio' ~ i ~ '_cpf') or client.get('socio' ~ i ~ 'Cpf') %}
                             {% if socio_cpf %}
@@ -342,7 +342,7 @@
                     <strong>Informações Sensíveis</strong> - Dados de acesso confidenciais
                 </div>
 
-                <!-- Linha 1: CNPJ Acesso Simples Nacional, CPF do Representante Legal, Código de Acesso Simples Nacional, Acesso ISS -->
+                <!-- Linha 1: CNPJ Acesso Simples Nacional, CPF do Representante Legal, Código de Acesso Simples Nacional, Senha ISS -->
                 <div class="row mb-3">
                     <div class="col-md-3 mb-2">
                         <label class="form-label text-muted small">CNPJ Acesso Simples Nacional</label>
@@ -357,20 +357,20 @@
                         <p class="mb-0 border rounded p-2 bg-light"><small>{{ client.codigoAcessoSn if client.codigoAcessoSn else '-' }}</small></p>
                     </div>
                     <div class="col-md-3 mb-2">
-                        <label class="form-label text-muted small">Acesso ISS</label>
-                        <p class="mb-0 border rounded p-2 bg-light"><small>{{ client.acessoIss if client.acessoIss else '-' }}</small></p>
+                        <label class="form-label text-muted small">Senha ISS</label>
+                        <p class="mb-0 border rounded p-2 bg-light"><small>{{ client.senhaIss if client.senhaIss else '-' }}</small></p>
                     </div>
                 </div>
 
-                <!-- Linha 2: Acesso SEFIN, Acesso SEUMA, Acesso EmpWeb, Senha EmpWeb -->
+                <!-- Linha 2: Senha SEFIN, Senha SEUMA, Acesso EmpWeb, Senha EmpWeb -->
                 <div class="row mb-3">
                     <div class="col-md-3 mb-2">
-                        <label class="form-label text-muted small">Acesso SEFIN</label>
-                        <p class="mb-0 border rounded p-2 bg-light"><small>{{ client.acessoSefin if client.acessoSefin else '-' }}</small></p>
+                        <label class="form-label text-muted small">Senha SEFIN</label>
+                        <p class="mb-0 border rounded p-2 bg-light"><small>{{ client.senhaSefin if client.senhaSefin else '-' }}</small></p>
                     </div>
                     <div class="col-md-3 mb-2">
-                        <label class="form-label text-muted small">Acesso SEUMA</label>
-                        <p class="mb-0 border rounded p-2 bg-light"><small>{{ client.acessoSeuma if client.acessoSeuma else '-' }}</small></p>
+                        <label class="form-label text-muted small">Senha SEUMA</label>
+                        <p class="mb-0 border rounded p-2 bg-light"><small>{{ client.senhaSeuma if client.senhaSeuma else '-' }}</small></p>
                     </div>
                     <div class="col-md-3 mb-2">
                         <label class="form-label text-muted small">Acesso EmpWeb</label>
@@ -382,67 +382,35 @@
                     </div>
                 </div>
 
-                <!-- Linha 3: Acesso SEFIN, Acesso SEUMA, Acesso CRF, Acesso FAP/INSS -->
+                <!-- Linha 3: Login ANVISA Empresa, Senha ANVISA Empresa, Login ANVISA Gestor, Senha ANVISA Gestor -->
                 <div class="row mb-3">
                     <div class="col-md-3 mb-2">
-                        <label class="form-label text-muted small">Acesso SEFIN</label>
-                        <p class="mb-0 border rounded p-2 bg-light"><small>{{ client.acessoSefin if client.acessoSefin else '-' }}</small></p>
+                        <label class="form-label text-muted small">Login ANVISA Empresa</label>
+                        <p class="mb-0 border rounded p-2 bg-light"><small>{{ client.anvisaEmpresa if client.anvisaEmpresa else '-' }}</small></p>
                     </div>
                     <div class="col-md-3 mb-2">
-                        <label class="form-label text-muted small">Acesso SEUMA</label>
-                        <p class="mb-0 border rounded p-2 bg-light"><small>{{ client.acessoSeuma if client.acessoSeuma else '-' }}</small></p>
+                        <label class="form-label text-muted small">Senha ANVISA Empresa</label>
+                        <p class="mb-0 border rounded p-2 bg-light"><small>{{ client.senhaAnvisaEmpresa if client.senhaAnvisaEmpresa else '-' }}</small></p>
                     </div>
+                    <div class="col-md-3 mb-2">
+                        <label class="form-label text-muted small">Login ANVISA Gestor</label>
+                        <p class="mb-0 border rounded p-2 bg-light"><small>{{ client.anvisaGestor if client.anvisaGestor else '-' }}</small></p>
+                    </div>
+                    <div class="col-md-3 mb-2">
+                        <label class="form-label text-muted small">Senha ANVISA Gestor</label>
+                        <p class="mb-0 border rounded p-2 bg-light"><small>{{ client.senhaAnvisaGestor if client.senhaAnvisaGestor else '-' }}</small></p>
+                    </div>
+                </div>
+
+                <!-- Linha 4: Acesso CRF, Senha FAP/INSS -->
+                <div class="row mb-3">
                     <div class="col-md-3 mb-2">
                         <label class="form-label text-muted small">Acesso CRF</label>
                         <p class="mb-0 border rounded p-2 bg-light"><small>{{ client.acessoCrf if client.acessoCrf else '-' }}</small></p>
                     </div>
                     <div class="col-md-3 mb-2">
-                        <label class="form-label text-muted small">Acesso FAP/INSS</label>
-                        <p class="mb-0 border rounded p-2 bg-light"><small>{{ client.acessoFapInss if client.acessoFapInss else '-' }}</small></p>
-                    </div>
-                </div>
-
-                <!-- Linha 4: Acesso ISS, Acesso SEFIN, Acesso SEUMA, Acesso SEMACE -->
-                <div class="row mb-3">
-                    <div class="col-md-3 mb-2">
-                        <label class="form-label text-muted small">Acesso ISS</label>
-                        <p class="mb-0 border rounded p-2 bg-light"><small>{{ client.acessoIss if client.acessoIss else '-' }}</small></p>
-                    </div>
-                    <div class="col-md-3 mb-2">
-                        <label class="form-label text-muted small">Acesso SEFIN</label>
-                        <p class="mb-0 border rounded p-2 bg-light"><small>{{ client.acessoSefin if client.acessoSefin else '-' }}</small></p>
-                    </div>
-                    <div class="col-md-3 mb-2">
-                        <label class="form-label text-muted small">Acesso SEUMA</label>
-                        <p class="mb-0 border rounded p-2 bg-light"><small>{{ client.acessoSeuma if client.acessoSeuma else '-' }}</small></p>
-                    </div>
-                    <div class="col-md-3 mb-2">
-                        <label class="form-label text-muted small">Acesso SEMACE</label>
-                        <p class="mb-0 border rounded p-2 bg-light"><small>{{ client.acessoSemace if client.acessoSemace else '-' }}</small></p>
-                    </div>
-                </div>
-
-                <!-- Linha 5: Acesso IBAMA, Senha SEMACE -->
-                <div class="row mb-3">
-                    <div class="col-md-3 mb-2">
-                        <label class="form-label text-muted small">Acesso IBAMA</label>
-                        <p class="mb-0 border rounded p-2 bg-light"><small>{{ client.acessoIbama if client.acessoIbama else '-' }}</small></p>
-                    </div>
-                    <div class="col-md-3 mb-2">
-                        <label class="form-label text-muted small">Senha SEMACE</label>
-                        <p class="mb-0 border rounded p-2 bg-light"><small>{{ client.senhaSemace if client.senhaSemace else '-' }}</small></p>
-                    </div>
-                </div>
-
-                <!-- Linha 6: ANVISA Gestor, ANVISA Empresa -->
-                <div class="row mb-3">
-                    <div class="col-md-3 mb-2">
-                        <label class="form-label text-muted small">ANVISA Gestor</label>
-                        <p class="mb-0 border rounded p-2 bg-light"><small>{{ client.anvisaGestor if client.anvisaGestor else '-' }}</small></p>
-                    </div>
-                    <div class="col-md-3 mb-2">
-                        <label class="form-label text-muted small">ANVISA Empresa</label>
-                        <p class="mb-0 border rounded p-2 bg-light"><small>{{ client.anvisaEmpresa if client.anvisaEmpresa else '-' }}</small></p>
+                        <label class="form-label text-muted small">Senha FAP/INSS</label>
+                        <p class="mb-0 border rounded p-2 bg-light"><small>{{ client.senhaFapInss if client.senhaFapInss else '-' }}</small></p>
                     </div>
                 </div>
             </div>
@@ -593,9 +561,11 @@
                 <div class="mb-2 d-flex justify-content-between align-items-center">
                     <span class="text-muted">Serviços:</span>
                     <span>
+                        {% if client.bpoFinanceiro %}<span class="badge bg-info px-3">BPO</span>{% endif %}
                         {% if client.ct %}<span class="badge bg-success px-3">CT</span>{% endif %}
                         {% if client.fs %}<span class="badge bg-success px-3">FS</span>{% endif %}
                         {% if client.dp %}<span class="badge bg-success px-3">DP</span>{% endif %}
+                        {% if not client.bpoFinanceiro and not client.ct and not client.fs and not client.dp %}<span class="badge bg-secondary px-3">Nenhum</span>{% endif %}
                     </span>
                 </div>
                 <div class="mb-2 d-flex justify-content-between align-items-center">
@@ -623,7 +593,7 @@
                 <hr />
                 <div class="mb-2 d-flex justify-content-between align-items-center">
                     <span class="text-muted">Sistema Utilizado:</span>
-                    <span class="fw-bold">{{ client.sistemaUtilizado or '-' }}</span>
+                    <span class="fw-bold">{{ (client.sistemaUtilizado or '-')|upper }}</span>
                 </div>
                 <div class="mb-2 d-flex justify-content-between align-items-center">
                     <span class="text-muted">Gera Arquivo do Sped:</span>

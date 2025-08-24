@@ -330,19 +330,19 @@
         <div class="card-body">
             <div class="row">
                 <div class="col-md-4 mb-3">
-                    <label for="socio1" class="form-label">Sócio 1</label>
-                    <input type="text" class="form-control" id="socio1" name="socio1" 
-                           value="{{ client.socio1 if client else '' }}">
+                    <label for="socio_1_nome" class="form-label">Sócio 1</label>
+                    <input type="text" class="form-control" id="socio_1_nome" name="socio_1_nome" 
+                           value="{{ client.socio_1_nome if client else '' }}">
                 </div>
                 <div class="col-md-4 mb-3">
-                    <label for="socio2" class="form-label">Sócio 2</label>
-                    <input type="text" class="form-control" id="socio2" name="socio2" 
-                           value="{{ client.socio2 if client else '' }}">
+                    <label for="socio_2_nome" class="form-label">Sócio 2</label>
+                    <input type="text" class="form-control" id="socio_2_nome" name="socio_2_nome" 
+                           value="{{ client.socio_2_nome if client else '' }}">
                 </div>
                 <div class="col-md-4 mb-3">
-                    <label for="socio3" class="form-label">Sócio 3</label>
-                    <input type="text" class="form-control" id="socio3" name="socio3" 
-                           value="{{ client.socio3 if client else '' }}">
+                    <label for="socio_3_nome" class="form-label">Sócio 3</label>
+                    <input type="text" class="form-control" id="socio_3_nome" name="socio_3_nome" 
+                           value="{{ client.socio_3_nome if client else '' }}">
                 </div>
             </div>
         </div>
@@ -489,5 +489,71 @@ const telefoneFixo = document.getElementById('telefoneFixo');
 const telefoneCelular = document.getElementById('telefoneCelular');
 if (telefoneFixo) maskPhone(telefoneFixo);
 if (telefoneCelular) maskPhone(telefoneCelular);
+
+// === CÓDIGO PARA MAIÚSCULAS OBRIGATÓRIAS ===
+// CSS para caixa alta
+const style = document.createElement('style');
+style.textContent = `
+    .upper-input { 
+        text-transform: uppercase; 
+        background-color: #f8f9fa;
+        border: 1px solid #28a745;
+    }
+    .upper-input:focus { 
+        background-color: #ffffff;
+        border-color: #28a745;
+        box-shadow: 0 0 0 0.2rem rgba(40, 167, 69, 0.25);
+    }
+`;
+document.head.appendChild(style);
+
+// === FUNÇÃO PARA MAIÚSCULAS OBRIGATÓRIAS ===
+function setupUppercaseFields() {
+    // Lista de campos que devem ficar sempre em maiúsculas
+    const uppercaseFields = [
+        'sistemaUtilizado'   // Sistema Utilizado
+    ];
+    
+    // Configurar campos de input de texto
+    uppercaseFields.forEach(fieldId => {
+        const field = document.getElementById(fieldId);
+        if (field) {
+            // Adicionar classe CSS para maiúsculas
+            field.classList.add('upper-input');
+            
+            // Event listener para converter em tempo real
+            field.addEventListener('input', function(e) {
+                const cursorPos = e.target.selectionStart;
+                e.target.value = e.target.value.toUpperCase();
+                e.target.setSelectionRange(cursorPos, cursorPos);
+            });
+        }
+    });
+    
+    // Configurar campos de sócios (nomes dos sócios)
+    const socioFields = ['socio_1_nome', 'socio_2_nome', 'socio_3_nome'];
+    socioFields.forEach(fieldId => {
+        const field = document.getElementById(fieldId);
+        if (field) {
+            field.classList.add('upper-input');
+            
+            field.addEventListener('input', function(e) {
+                const cursorPos = e.target.selectionStart;
+                e.target.value = e.target.value.toUpperCase();
+                e.target.setSelectionRange(cursorPos, cursorPos);
+            });
+            
+            // Também forçar maiúscula ao sair do campo
+            field.addEventListener('blur', function(e) {
+                e.target.value = e.target.value.toUpperCase();
+            });
+        }
+    });
+}
+
+// Executar configuração quando página carregar
+document.addEventListener('DOMContentLoaded', function() {
+    setupUppercaseFields();
+});
 </script>
 {% endblock %}

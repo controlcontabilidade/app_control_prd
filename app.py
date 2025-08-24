@@ -2317,28 +2317,20 @@ def save_client():
         # Debug específico para senhas e credenciais
         print("🔍 === DEBUG SENHAS E CREDENCIAIS ===")
         senhas_credenciais = {
-            'cpfCnpjSn': request.form.get('cpfCnpjSn', ''),
+            'cnpjAcessoSn': request.form.get('cnpjAcessoSn', ''),
+            'cpfRepLegal': request.form.get('cpfRepLegal', ''),
             'codigoAcessoSn': request.form.get('codigoAcessoSn', ''),
-            'acessoIss': request.form.get('acessoIss', ''),
             'senhaIss': request.form.get('senhaIss', ''),
-            'acessoSefin': request.form.get('acessoSefin', ''),
             'senhaSefin': request.form.get('senhaSefin', ''),
-            'acessoSeuma': request.form.get('acessoSeuma', ''),
             'senhaSeuma': request.form.get('senhaSeuma', ''),
             'acessoEmpWeb': request.form.get('acessoEmpWeb', ''),
             'senhaEmpWeb': request.form.get('senhaEmpWeb', ''),
-            'acessoFapInss': request.form.get('acessoFapInss', ''),
-            'senhaFapInss': request.form.get('senhaFapInss', ''),
-            'acessoCrf': request.form.get('acessoCrf', ''),
-            'senhaCrf': request.form.get('senhaCrf', ''),
-            'emailGestor': request.form.get('emailGestor', ''),
-            'senhaEmailGestor': request.form.get('senhaEmailGestor', ''),
-            'anvisaGestor': request.form.get('anvisaGestor', ''),
             'anvisaEmpresa': request.form.get('anvisaEmpresa', ''),
-            'acessoIbama': request.form.get('acessoIbama', ''),
-            'senhaIbama': request.form.get('senhaIbama', ''),
-            'acessoSemace': request.form.get('acessoSemace', ''),
-            'senhaSemace': request.form.get('senhaSemace', ''),
+            'senhaAnvisaEmpresa': request.form.get('senhaAnvisaEmpresa', ''),
+            'anvisaGestor': request.form.get('anvisaGestor', ''),
+            'senhaAnvisaGestor': request.form.get('senhaAnvisaGestor', ''),
+            'acessoCrf': request.form.get('acessoCrf', ''),
+            'senhaFapInss': request.form.get('senhaFapInss', ''),
         }
         for key, value in senhas_credenciais.items():
             if value:  # Só mostrar se tiver valor
@@ -2373,33 +2365,28 @@ def save_client():
         # Continuar com outros dados
         client_data.update({
             
-            # Bloco 5: Senhas e Credenciais
-            'cpfCnpjSn': request.form.get('cpfCnpjSn', ''),
-            'codigoAcessoSn': request.form.get('codigoAcessoSn', ''),
-            # --- NOVOS CAMPOS ADICIONADOS ---
+            # Bloco 5: Senhas e Credenciais (ORGANIZADO CONFORME TEMPLATE)
+            # Linha 1: CNPJ Acesso Simples Nacional, CPF do Representante Legal, Código de Acesso Simples Nacional, Senha ISS
             'cnpjAcessoSn': request.form.get('cnpjAcessoSn', ''),
             'cpfRepLegal': request.form.get('cpfRepLegal', ''),
-            # --- FIM NOVOS CAMPOS ---
-            'acessoIss': request.form.get('acessoIss', ''),
+            'codigoAcessoSn': request.form.get('codigoAcessoSn', ''),
             'senhaIss': request.form.get('senhaIss', ''),
-            'acessoSefin': request.form.get('acessoSefin', ''),
+            
+            # Linha 2: Senha SEFIN, Senha SEUMA, Acesso EmpWeb, Senha EmpWeb
             'senhaSefin': request.form.get('senhaSefin', ''),
-            'acessoSeuma': request.form.get('acessoSeuma', ''),
             'senhaSeuma': request.form.get('senhaSeuma', ''),
             'acessoEmpWeb': request.form.get('acessoEmpWeb', ''),
             'senhaEmpWeb': request.form.get('senhaEmpWeb', ''),
-            'acessoFapInss': request.form.get('acessoFapInss', ''),
-            'senhaFapInss': request.form.get('senhaFapInss', ''),
-            'acessoCrf': request.form.get('acessoCrf', ''),
-            'senhaCrf': request.form.get('senhaCrf', ''),
-            'emailGestor': request.form.get('emailGestor', ''),
-            'senhaEmailGestor': request.form.get('senhaEmailGestor', ''),
-            'anvisaGestor': request.form.get('anvisaGestor', ''),
+            
+            # Linha 3: Login ANVISA Empresa, Senha ANVISA Empresa, Login ANVISA Gestor, Senha ANVISA Gestor
             'anvisaEmpresa': request.form.get('anvisaEmpresa', ''),
-            'acessoIbama': request.form.get('acessoIbama', ''),
-            'senhaIbama': request.form.get('senhaIbama', ''),
-            'acessoSemace': request.form.get('acessoSemace', ''),
-            'senhaSemace': request.form.get('senhaSemace', ''),
+            'senhaAnvisaEmpresa': request.form.get('senhaAnvisaEmpresa', ''),
+            'anvisaGestor': request.form.get('anvisaGestor', ''),
+            'senhaAnvisaGestor': request.form.get('senhaAnvisaGestor', ''),
+            
+            # Linha 4: Acesso CRF, Senha FAP/INSS
+            'acessoCrf': request.form.get('acessoCrf', ''),
+            'senhaFapInss': request.form.get('senhaFapInss', ''),
             
             # Bloco 6: Procurações (CORRIGIDO - alinhado com formulário)
             'procReceita': request.form.get('procReceita') == 'on',

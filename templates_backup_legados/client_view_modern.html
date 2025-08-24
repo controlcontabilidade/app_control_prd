@@ -116,7 +116,7 @@
                         <label class="form-label text-muted">Estado</label>
                         <p class="mb-0">
                             {% if client.estado %}
-                                <span class="badge bg-primary">{{ client.estado }}</span>
+                                <span class="badge bg-primary">{{ client.estado|upper }}</span>
                             {% else %}
                                 -
                             {% endif %}
@@ -130,7 +130,7 @@
                         <label class="form-label text-muted">Regime Federal</label>
                         <p class="mb-0">
                             {% if client.regimeFederal or client.tributacao %}
-                                <span class="badge bg-secondary">{{ client.regimeFederal or client.tributacao }}</span>
+                                <span class="badge bg-secondary">{{ (client.regimeFederal or client.tributacao)|upper }}</span>
                             {% else %}
                                 -
                             {% endif %}
@@ -140,7 +140,7 @@
                         <label class="form-label text-muted">Regime Estadual</label>
                         <p class="mb-0">
                             {% if client.regimeEstadual %}
-                                <span class="badge bg-secondary">{{ client.regimeEstadual }}</span>
+                                <span class="badge bg-secondary">{{ client.regimeEstadual|upper }}</span>
                             {% else %}
                                 -
                             {% endif %}
@@ -283,7 +283,7 @@
                         <p class="mb-0">
                             {% if client.sistemaUtilizado %}
                                 <i class="bi bi-pc-display me-1"></i>
-                                {{ client.sistemaUtilizado }}
+                                {{ client.sistemaUtilizado|upper }}
                             {% else %}
                                 -
                             {% endif %}
@@ -328,7 +328,7 @@
                             </div>
                             <div class="col-md-6 mb-2">
                                 <label class="form-label text-muted">Nome</label>
-                                <p class="mb-0"><strong>{{ socio_nome }}</strong></p>
+                                <p class="mb-0"><strong>{{ socio_nome|upper }}</strong></p>
                             </div>
                             <div class="col-md-6 mb-2">
                                 <label class="form-label text-muted">CPF</label>
@@ -633,9 +633,11 @@
                 <div class="mb-2 d-flex justify-content-between align-items-center">
                     <span class="text-muted">Serviços:</span>
                     <span>
+                        {% if client.bpoFinanceiro %}<span class="badge bg-info px-3">BPO</span>{% endif %}
                         {% if client.ct %}<span class="badge bg-success px-3">CT</span>{% endif %}
                         {% if client.fs %}<span class="badge bg-success px-3">FS</span>{% endif %}
                         {% if client.dp %}<span class="badge bg-success px-3">DP</span>{% endif %}
+                        {% if not client.bpoFinanceiro and not client.ct and not client.fs and not client.dp %}<span class="badge bg-secondary px-3">Nenhum</span>{% endif %}
                     </span>
                 </div>
                 <div class="mb-2 d-flex justify-content-between align-items-center">

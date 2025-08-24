@@ -1,0 +1,45 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>TESTE ISOLADO - CARREGAR SÓCIOS</title>
+</head>
+<body>
+    <h1>TESTE ISOLADO - JAVASCRIPT CARREGAR SÓCIOS</h1>
+    <div id="resultado"></div>
+    
+    <script>
+        // Dados exatos que vêm do backend
+        const dadosCliente = {"nomeEmpresa": "TESTE DEBUG SOCIOS MULTIPLOS LTDA", "razaoSocialReceita": "TESTE DEBUG SOCIOS MULTIPLOS LTDA", "nomeFantasiaReceita": "TESTE DEBUG", "cnpj": "", "perfil": "PESSOA JURÍDICA", "perfilCliente": "PESSOA JURÍDICA", "inscEst": "99999999", "inscMun": "88888888", "estado": "SP", "cidade": "SÃO PAULO", "regimeFederal": "LUCRO PRESUMIDO", "regimeEstadual": "SIMPLES NACIONAL", "segmento": "COMÉRCIO", "atividade": "VENDAS", "tributacao": "LUCRO PRESUMIDO", "cpfCnpj": "", "ct": false, "fs": false, "dp": false, "bpoFinanceiro": false, "codFortesCt": "", "codFortesFs": "", "codFortesPs": "", "codDominio": "", "sistemaUtilizado": "TESTE", "socio_1_nome": "PRIMEIRO SOCIO COMPLETO", "socio_1_cpf": "111.111.111-11", "socio_1_data_nascimento": "1980-01-01", "socio_1_administrador": true, "socio_1_participacao": "50.00", "socio_1_resp_legal": true, "socio_2_nome": "SEGUNDO SOCIO COMPLETO", "socio_2_cpf": "222.222.222-22", "socio_2_data_nascimento": "1985-05-15", "socio_2_administrador": false, "socio_2_participacao": "30.00", "socio_2_resp_legal": false, "socio_3_nome": "TERCEIRO SOCIO COMPLETO", "socio_3_cpf": "333.333.333-33", "socio_3_data_nascimento": "1990-12-31", "socio_3_administrador": false, "socio_3_participacao": "20.00", "socio_3_resp_legal": false, "socio_4_nome": "", "socio_4_cpf": "", "socio_4_data_nascimento": "", "socio_4_administrador": false, "socio_4_participacao": "", "socio_4_resp_legal": false, "socio_5_nome": "", "socio_5_cpf": "", "socio_5_data_nascimento": "", "socio_5_administrador": false, "socio_5_participacao": "", "socio_5_resp_legal": false, "socio_6_nome": "", "socio_6_cpf": "", "socio_6_data_nascimento": "", "socio_6_administrador": false, "socio_6_participacao": "", "socio_6_resp_legal": false, "socio_7_nome": "", "socio_7_cpf": "", "socio_7_data_nascimento": "", "socio_7_administrador": false, "socio_7_participacao": "", "socio_7_resp_legal": false, "socio_8_nome": "", "socio_8_cpf": "", "socio_8_data_nascimento": "", "socio_8_administrador": false, "socio_8_participacao": "", "socio_8_resp_legal": false, "socio_9_nome": "", "socio_9_cpf": "", "socio_9_data_nascimento": "", "socio_9_administrador": false, "socio_9_participacao": "", "socio_9_resp_legal": false, "socio_10_nome": "", "socio_10_cpf": "", "socio_10_data_nascimento": "", "socio_10_administrador": false, "socio_10_participacao": "", "socio_10_resp_legal": false, "socio1_nome": "PRIMEIRO SOCIO COMPLETO", "socio1_cpf": "111.111.111-11", "socio1_nascimento": "1980-01-01", "socio1_admin": true, "socio1_cotas": "50.00", "socio1_resp_legal": true, "socio1": "PRIMEIRO SOCIO COMPLETO", "socio2_nome": "SEGUNDO SOCIO COMPLETO", "socio3_nome": "TERCEIRO SOCIO COMPLETO", "socio4_nome": "", "socio5_nome": "", "socio6_nome": "", "socio7_nome": "", "socio8_nome": "", "socio9_nome": "", "socio10_nome": "", "id": "1756032228826"};
+        
+        console.log('🔍 TESTE ISOLADO INICIADO');
+        console.log('🔍 dadosCliente:', dadosCliente);
+        
+        let resultado = '';
+        resultado += '<h2>TESTE DE DETECÇÃO DE SÓCIOS</h2>';
+        
+        // Simular o mesmo loop do template original
+        let sociosEncontrados = [];
+        for (let i = 1; i <= 10; i++) {
+            const nome = dadosCliente[`socio_${i}_nome`];
+            console.log(`🔍 Verificando sócio ${i}: '${nome}'`);
+            
+            if (nome && nome.trim() !== '') {
+                sociosEncontrados.push(i);
+                resultado += `<p>✅ Sócio ${i} encontrado: <strong>${nome}</strong></p>`;
+                console.log(`✅ Sócio ${i} encontrado: ${nome}`);
+            } else {
+                resultado += `<p>❌ Sócio ${i}: vazio ou indefinido</p>`;
+                console.log(`❌ Sócio ${i}: vazio ou indefinido`);
+            }
+        }
+        
+        resultado += `<h3>RESULTADO: ${sociosEncontrados.length} sócios encontrados</h3>`;
+        resultado += `<p>Lista: [${sociosEncontrados.join(', ')}]</p>`;
+        
+        console.log(`📊 Total encontrados: ${sociosEncontrados.length}`);
+        console.log(`📊 Lista: [${sociosEncontrados.join(', ')}]`);
+        
+        document.getElementById('resultado').innerHTML = resultado;
+    </script>
+</body>
+</html>
