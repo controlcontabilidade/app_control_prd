@@ -549,8 +549,11 @@
                     <span class="text-muted">Cliente desde:</span>
                     <span class="fw-bold">
                         {% if client.dataInicioServicos or client.mesAnoInicio %}
-                            {{ client.dataInicioServicos or client.mesAnoInicio }}
-                        {% else %}-{% endif %}
+                            <i class="bi bi-calendar-event me-1 text-primary"></i>
+                            {{ (client.dataInicioServicos or client.mesAnoInicio)|format_mm_yyyy }}
+                        {% else %}
+                            <span class="text-muted">-</span>
+                        {% endif %}
                     </span>
                 </div>
                 <div class="mb-2 d-flex justify-content-between align-items-center">
@@ -598,7 +601,7 @@
                 <div class="mb-2 d-flex justify-content-between align-items-center">
                     <span class="text-muted">Gera Arquivo do Sped:</span>
                     <span class="fw-bold text-dark">
-                        {{ 'SIM' if client.geraSped in ['SIM', True, 'true', 'True', 1] else 'NÃO' }}
+                        {{ 'SIM' if client.geraArquivoSped in ['SIM', True, 'true', 'True', 1] else 'NÃO' }}
                     </span>
                 </div>
             </div>
