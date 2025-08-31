@@ -1,5 +1,5 @@
 {% extends "base.html" %}
-{% block title %}{% if client %}Editar Cliente{% else %}Novo Cliente{% endif %}{% endblock %}
+{% block title %}{% if view_mode %}Visualizar Cliente{% elif client %}Editar Cliente{% else %}Novo Cliente{% endif %}{% endblock %}
 
 {% block head %}
 <script>
@@ -63,12 +63,129 @@ console.log('🌐 URL:', window.location.href);
     box-shadow: none;
     border-color: #80bdff;
 }
+
+/* Estilos para modo de visualização */
+.view-mode input[readonly], 
+.view-mode select[readonly], 
+.view-mode textarea[readonly] {
+    background-color: #f8f9fa !important;
+    border-color: #e9ecef !important;
+    cursor: default !important;
+}
+
+.view-mode input[type="checkbox"]:disabled,
+.view-mode input[type="radio"]:disabled {
+    opacity: 0.6;
+    cursor: not-allowed;
+}
+
+.view-mode .btn:not(.view-mode-show) {
+    display: none !important;
+}
+
+.view-mode-banner {
+    background: linear-gradient(135deg, #17a2b8, #007bff);
+    color: white;
+    padding: 0.5rem 1rem;
+    border-radius: 0.375rem;
+    margin-bottom: 1rem;
+    font-weight: 500;
+}
 </style>
 {% endblock %}
 
 {% block scripts %}
 <script>
+console.log('🔍 DEBUG: view_mode =', {{ view_mode|tojson }});
+console.log('🔍 DEBUG: client =', {{ client is defined }});
+{% if view_mode %}
+console.log('✅ MODO VISUALIZAÇÃO ATIVO');
+{% else %}
+console.log('✏️ MODO EDIÇÃO/CRIAÇÃO ATIVO');
+{% endif %}
+
+// ===== FUNÇÃO INLINE SIMPLES PARA CPF/CNPJ =====
+function formatarCpfCnpjInline(input) {
+    console.log('🎯 FUNÇÃO INLINE CHAMADA:', input.value);
+    
+    const valor = input.value.replace(/\D/g, '');
+    const domesticaSelect = document.getElementById('domestica');
+    const labelCpfCnpj = document.querySelector('label[for="cpfCnpj"]');
+    
+    console.log('📋 Valor limpo:', valor, 'Length:', valor.length);
+    
+    // Formatação
+    let valorFormatado = '';
+    if (valor.length <= 11) {
+        // CPF: 000.000.000-00
+        valorFormatado = valor.replace(/(\d{3})(\d{3})(\d{3})(\d{2})/, '$1.$2.$3-$4');
+    } else {
+        // CNPJ: 00.000.000/0000-00
+        valorFormatado = valor.replace(/(\d{2})(\d{3})(\d{3})(\d{4})(\d{2})/, '$1.$2.$3/$4-$5');
+    }
+    
+    input.value = valorFormatado;
+    console.log('✅ Valor formatado:', valorFormatado);
+    
+    // Atualizar label e Doméstica
+    if (valor.length === 11) {
+        console.log('👤 CPF - habilitando Doméstica');
+        if (labelCpfCnpj) labelCpfCnpj.innerHTML = '<i class="bi bi-person me-1"></i>CPF <span class="text-danger">*</span>';
+        if (domesticaSelect) domesticaSelect.disabled = false;
+    } else if (valor.length === 14) {
+        console.log('🏢 CNPJ - desabilitando Doméstica');
+        if (labelCpfCnpj) labelCpfCnpj.innerHTML = '<i class="bi bi-building me-1"></i>CNPJ <span class="text-danger">*</span>';
+        if (domesticaSelect) {
+            domesticaSelect.disabled = true;
+            domesticaSelect.value = 'NÃO';
+        }
+    } else {
+        console.log('⏳ Incompleto');
+        if (labelCpfCnpj) labelCpfCnpj.innerHTML = '<i class="bi bi-card-text me-1"></i>CPF/CNPJ <span class="text-danger">*</span>';
+        if (domesticaSelect) {
+            domesticaSelect.disabled = true;
+            domesticaSelect.value = 'NÃO';
+        }
+    }
+    
+    console.log('✅ Função inline concluída');
+}
+
 document.addEventListener('DOMContentLoaded', function() {
+    // ===== INICIALIZAÇÃO PRIORITÁRIA =====
+    console.log('🚀 DOM Carregado - Inicializando validações CPF/CNPJ PRIMEIRO');
+    
+    // Aguardar um pouco para garantir que o DOM está 100% pronto
+    setTimeout(function() {
+        console.log('🔧 Configurando CPF/CNPJ e Doméstica...');
+        const cpfCnpjInput = document.getElementById('cpfCnpj');
+        const domesticaSelect = document.getElementById('domestica');
+        
+        if (cpfCnpjInput && domesticaSelect) {
+            console.log('✅ Campos encontrados - configurando event listener');
+            
+            // Event listener combinado
+            cpfCnpjInput.addEventListener('input', function() {
+                console.log('📋 Input detectado:', this.value);
+                // Chamar ambas as funcionalidades
+                try {
+                    if (typeof atualizarCpfCnpjEDomestica === 'function') {
+                        atualizarCpfCnpjEDomestica();
+                    } else {
+                        console.log('⚠️ Função atualizarCpfCnpjEDomestica não definida ainda');
+                    }
+                } catch (e) {
+                    console.error('❌ Erro ao executar atualizarCpfCnpjEDomestica:', e);
+                }
+            });
+            
+            console.log('✅ CPF/CNPJ configurado com sucesso!');
+        } else {
+            console.error('❌ Campos CPF/CNPJ ou Doméstica não encontrados!');
+        }
+    }, 100); // 100ms de delay
+    
+    // ===== RESTO DAS FUNCIONALIDADES =====
     function atualizarCpfRepresentanteLegal() {
         console.log('🔍 Atualizando CPF do Representante Legal...');
         
@@ -125,6 +242,28 @@ document.addEventListener('DOMContentLoaded', function() {
     });
     // Atualiza ao carregar a página
     atualizarCpfRepresentanteLegal();
+    
+    {% if view_mode %}
+    // Aplicar readonly para todos os campos no modo visualização
+    document.querySelectorAll('input, select, textarea').forEach(function(field) {
+        if (field.type !== 'hidden') {
+            field.readOnly = true;
+            field.disabled = false; // Manter habilitado para scroll e seleção de texto
+        }
+    });
+    
+    // Desabilitar checkboxes e radios
+    document.querySelectorAll('input[type="checkbox"], input[type="radio"]').forEach(function(field) {
+        field.disabled = true;
+    });
+    
+    // Remover event listeners de botões dinâmicos
+    document.querySelectorAll('button').forEach(function(btn) {
+        if (!btn.classList.contains('view-mode-show')) {
+            btn.style.display = 'none';
+        }
+    });
+    {% endif %}
 });
 </script>
 {% endblock %}
@@ -133,8 +272,29 @@ document.addEventListener('DOMContentLoaded', function() {
 <div class="container-fluid py-4">
     <div class="row justify-content-center">
         <div class="col-12">
+            {% if view_mode %}
+            <!-- Banner de modo visualização -->
+            <div class="view-mode-banner d-flex justify-content-between align-items-center">
+                <div>
+                    <i class="bi bi-eye me-2"></i>
+                    <strong>Modo Visualização</strong> - Dados somente para leitura
+                </div>
+                <div>
+                    <a href="{{ url_for('edit_client', client_id=client.id) }}" 
+                       class="btn btn-light btn-sm view-mode-show">
+                        <i class="bi bi-pencil me-1"></i>Editar
+                    </a>
+                </div>
+            </div>
+            {% endif %}
             <!-- Formulário Principal -->
+            {% if view_mode %}
+            <!-- Formulário em modo visualização (readonly) -->
+            <form class="needs-validation view-mode" novalidate>
+            {% else %}
+            <!-- Formulário em modo edição/criação -->
             <form method="POST" action="{{ url_for('save_client') }}" class="needs-validation" novalidate>
+            {% endif %}
                 <!-- Campo hidden para ID do cliente -->
                 {% if client %}
                 <input type="hidden" name="id" value="{{ client.id }}">
@@ -159,7 +319,8 @@ document.addEventListener('DOMContentLoaded', function() {
                                     <span class="text-danger required-field">*</span>
                                 </label>
                                 <input type="text" class="form-control upper-input" id="nomeEmpresa" name="nomeEmpresa" 
-                                       value="{{ client.nomeEmpresa if client else '' }}" required>
+                                       value="{{ client.nomeEmpresa if client else '' }}" required
+                                       {% if view_mode %}readonly{% endif %}>
                                 <div class="invalid-feedback">
                                     Por favor, informe o nome da empresa.
                                 </div>
@@ -197,7 +358,10 @@ document.addEventListener('DOMContentLoaded', function() {
                                 </label>
                                 <input type="text" class="form-control upper-input" id="cpfCnpj" name="cpfCnpj"
                                        value="{{ client.cpfCnpj if client else '' }}" 
-                                       placeholder="00.000.000/0001-00" required>
+                                       placeholder="" required
+                                       oninput="formatarCpfCnpjInline(this)"
+                                       onblur="formatarCpfCnpjInline(this)"
+                                       onchange="formatarCpfCnpjInline(this)">
                                 <div class="invalid-feedback">
                                     Por favor, informe o CPF ou CNPJ.
                                 </div>
@@ -213,33 +377,33 @@ document.addEventListener('DOMContentLoaded', function() {
                                 </label>
                                 <select class="form-select" id="estado" name="estado" required>
                                     <option value="">Selecione o estado</option>
-                                    <option value="AC" {% if client and client.estado == 'AC' %}selected{% endif %}>Acre</option>
-                                    <option value="AL" {% if client and client.estado == 'AL' %}selected{% endif %}>Alagoas</option>
-                                    <option value="AP" {% if client and client.estado == 'AP' %}selected{% endif %}>Amapá</option>
-                                    <option value="AM" {% if client and client.estado == 'AM' %}selected{% endif %}>Amazonas</option>
-                                    <option value="BA" {% if client and client.estado == 'BA' %}selected{% endif %}>Bahia</option>
-                                    <option value="CE" {% if client and client.estado == 'CE' %}selected{% endif %}>Ceará</option>
-                                    <option value="DF" {% if client and client.estado == 'DF' %}selected{% endif %}>Distrito Federal</option>
-                                    <option value="ES" {% if client and client.estado == 'ES' %}selected{% endif %}>Espírito Santo</option>
-                                    <option value="GO" {% if client and client.estado == 'GO' %}selected{% endif %}>Goiás</option>
-                                    <option value="MA" {% if client and client.estado == 'MA' %}selected{% endif %}>Maranhão</option>
-                                    <option value="MT" {% if client and client.estado == 'MT' %}selected{% endif %}>Mato Grosso</option>
-                                    <option value="MS" {% if client and client.estado == 'MS' %}selected{% endif %}>Mato Grosso do Sul</option>
-                                    <option value="MG" {% if client and client.estado == 'MG' %}selected{% endif %}>Minas Gerais</option>
-                                    <option value="PA" {% if client and client.estado == 'PA' %}selected{% endif %}>Pará</option>
-                                    <option value="PB" {% if client and client.estado == 'PB' %}selected{% endif %}>Paraíba</option>
-                                    <option value="PR" {% if client and client.estado == 'PR' %}selected{% endif %}>Paraná</option>
-                                    <option value="PE" {% if client and client.estado == 'PE' %}selected{% endif %}>Pernambuco</option>
-                                    <option value="PI" {% if client and client.estado == 'PI' %}selected{% endif %}>Piauí</option>
-                                    <option value="RJ" {% if client and client.estado == 'RJ' %}selected{% endif %}>Rio de Janeiro</option>
-                                    <option value="RN" {% if client and client.estado == 'RN' %}selected{% endif %}>Rio Grande do Norte</option>
-                                    <option value="RS" {% if client and client.estado == 'RS' %}selected{% endif %}>Rio Grande do Sul</option>
-                                    <option value="RO" {% if client and client.estado == 'RO' %}selected{% endif %}>Rondônia</option>
-                                    <option value="RR" {% if client and client.estado == 'RR' %}selected{% endif %}>Roraima</option>
-                                    <option value="SC" {% if client and client.estado == 'SC' %}selected{% endif %}>Santa Catarina</option>
-                                    <option value="SP" {% if client and client.estado == 'SP' %}selected{% endif %}>São Paulo</option>
-                                    <option value="SE" {% if client and client.estado == 'SE' %}selected{% endif %}>Sergipe</option>
-                                    <option value="TO" {% if client and client.estado == 'TO' %}selected{% endif %}>Tocantins</option>
+                                    <option value="AC" {% if client and client.estado == 'AC' %}selected{% endif %}>ACRE</option>
+                                    <option value="AL" {% if client and client.estado == 'AL' %}selected{% endif %}>ALAGOAS</option>
+                                    <option value="AP" {% if client and client.estado == 'AP' %}selected{% endif %}>AMAPÁ</option>
+                                    <option value="AM" {% if client and client.estado == 'AM' %}selected{% endif %}>AMAZONAS</option>
+                                    <option value="BA" {% if client and client.estado == 'BA' %}selected{% endif %}>BAHIA</option>
+                                    <option value="CE" {% if client and client.estado == 'CE' %}selected{% endif %}>CEARÁ</option>
+                                    <option value="DF" {% if client and client.estado == 'DF' %}selected{% endif %}>DISTRITO FEDERAL</option>
+                                    <option value="ES" {% if client and client.estado == 'ES' %}selected{% endif %}>ESPÍRITO SANTO</option>
+                                    <option value="GO" {% if client and client.estado == 'GO' %}selected{% endif %}>GOIÁS</option>
+                                    <option value="MA" {% if client and client.estado == 'MA' %}selected{% endif %}>MARANHÃO</option>
+                                    <option value="MT" {% if client and client.estado == 'MT' %}selected{% endif %}>MATO GROSSO</option>
+                                    <option value="MS" {% if client and client.estado == 'MS' %}selected{% endif %}>MATO GROSSO DO SUL</option>
+                                    <option value="MG" {% if client and client.estado == 'MG' %}selected{% endif %}>MINAS GERAIS</option>
+                                    <option value="PA" {% if client and client.estado == 'PA' %}selected{% endif %}>PARÁ</option>
+                                    <option value="PB" {% if client and client.estado == 'PB' %}selected{% endif %}>PARAÍBA</option>
+                                    <option value="PR" {% if client and client.estado == 'PR' %}selected{% endif %}>PARANÁ</option>
+                                    <option value="PE" {% if client and client.estado == 'PE' %}selected{% endif %}>PERNAMBUCO</option>
+                                    <option value="PI" {% if client and client.estado == 'PI' %}selected{% endif %}>PIAUÍ</option>
+                                    <option value="RJ" {% if client and client.estado == 'RJ' %}selected{% endif %}>RIO DE JANEIRO</option>
+                                    <option value="RN" {% if client and client.estado == 'RN' %}selected{% endif %}>RIO GRANDE DO NORTE</option>
+                                    <option value="RS" {% if client and client.estado == 'RS' %}selected{% endif %}>RIO GRANDE DO SUL</option>
+                                    <option value="RO" {% if client and client.estado == 'RO' %}selected{% endif %}>RONDÔNIA</option>
+                                    <option value="RR" {% if client and client.estado == 'RR' %}selected{% endif %}>RORAIMA</option>
+                                    <option value="SC" {% if client and client.estado == 'SC' %}selected{% endif %}>SANTA CATARINA</option>
+                                    <option value="SP" {% if client and client.estado == 'SP' %}selected{% endif %}>SÃO PAULO</option>
+                                    <option value="SE" {% if client and client.estado == 'SE' %}selected{% endif %}>SERGIPE</option>
+                                    <option value="TO" {% if client and client.estado == 'TO' %}selected{% endif %}>TOCANTINS</option>
                                 </select>
                                 <div class="invalid-feedback">
                                     Por favor, selecione o estado.
@@ -329,9 +493,9 @@ document.addEventListener('DOMContentLoaded', function() {
                                 </label>
                                 <select class="form-select" id="regimeEstadual" name="regimeEstadual">
                                     <option value="">Selecione o regime estadual</option>
-                                    <option value="SIMPLES" {% if client and client.regimeEstadual == 'SIMPLES' %}selected{% endif %}>Simples Nacional</option>
-                                    <option value="NORMAL" {% if client and client.regimeEstadual == 'NORMAL' %}selected{% endif %}>Regime Normal</option>
-                                    <option value="REGIME_ESPECIAL" {% if client and client.regimeEstadual == 'REGIME_ESPECIAL' %}selected{% endif %}>Regime Especial</option>
+                                    <option value="SIMPLES" {% if client and client.regimeEstadual == 'SIMPLES' %}selected{% endif %}>SIMPLES NACIONAL</option>
+                                    <option value="NORMAL" {% if client and client.regimeEstadual == 'NORMAL' %}selected{% endif %}>REGIME NORMAL</option>
+                                    <option value="REGIME_ESPECIAL" {% if client and client.regimeEstadual == 'REGIME_ESPECIAL' %}selected{% endif %}>REGIME ESPECIAL</option>
                                 </select>
                                 <div class="invalid-feedback">
                                     Por favor, selecione o regime estadual.
@@ -345,10 +509,10 @@ document.addEventListener('DOMContentLoaded', function() {
                                 <select class="form-select" id="regimeFederal" name="regimeFederal">
                                     <option value="">Selecione o regime federal</option>
                                     <option value="MEI" {% if client and client.regimeFederal == 'MEI' %}selected{% endif %}>MEI</option>
-                                    <option value="SIMPLES_NACIONAL" {% if client and client.regimeFederal == 'SIMPLES_NACIONAL' or client.regimeFederal == 'SIMPLES' %}selected{% endif %}>Simples Nacional</option>
-                                    <option value="LUCRO_PRESUMIDO" {% if client and client.regimeFederal == 'LUCRO_PRESUMIDO' %}selected{% endif %}>Lucro Presumido</option>
-                                    <option value="LUCRO_REAL" {% if client and client.regimeFederal == 'LUCRO_REAL' %}selected{% endif %}>Lucro Real</option>
-                                    <option value="REGIME_ESPECIAL" {% if client and client.regimeFederal == 'REGIME_ESPECIAL' %}selected{% endif %}>Regime Especial</option>
+                                    <option value="SIMPLES_NACIONAL" {% if client and client.regimeFederal == 'SIMPLES_NACIONAL' or client.regimeFederal == 'SIMPLES' %}selected{% endif %}>SIMPLES NACIONAL</option>
+                                    <option value="LUCRO_PRESUMIDO" {% if client and client.regimeFederal == 'LUCRO_PRESUMIDO' %}selected{% endif %}>LUCRO PRESUMIDO</option>
+                                    <option value="LUCRO_REAL" {% if client and client.regimeFederal == 'LUCRO_REAL' %}selected{% endif %}>LUCRO REAL</option>
+                                    <option value="REGIME_ESPECIAL" {% if client and client.regimeFederal == 'REGIME_ESPECIAL' %}selected{% endif %}>REGIME ESPECIAL</option>
                                 </select>
                                 <div class="invalid-feedback">
                                     Por favor, selecione o regime federal.
@@ -437,8 +601,16 @@ document.addEventListener('DOMContentLoaded', function() {
                                 </label>
                                 <input type="text" class="form-control" id="dataInicioServicos" name="dataInicioServicos" 
                                        value="{{ client.dataInicioServicos if client else '' }}"
-                                       placeholder="mm/aaaa" pattern="^(0[1-9]|1[0-2])\/\d{4}$" 
-                                       title="Formato: MM/AAAA (Ex: 08/2025)">
+                                       placeholder="MM/AAAA" pattern="^(0[1-9]|1[0-2])\/\d{4}$" maxlength="7"
+                                       title="Formato: MM/AAAA (Ex: 08/2025)"
+                                       data-bs-toggle="tooltip" data-bs-placement="top" 
+                                       data-bs-title="Digite apenas números. Formato: MM/AAAA">
+                                <div class="form-text">
+                                    <small class="text-muted">
+                                        <i class="bi bi-info-circle me-1"></i>
+                                        Exemplo: 08/2025 para Agosto de 2025
+                                    </small>
+                                </div>
                             </div>
 
                             <!-- Perfil do Cliente -->
@@ -465,9 +637,20 @@ document.addEventListener('DOMContentLoaded', function() {
                                     <i class="bi bi-pc-display me-1"></i>
                                     Sistema Utilizado
                                 </label>
-                                <input type="text" class="form-control" id="sistemaUtilizado" name="sistemaUtilizado" 
-                                       value="{{ client.sistemaUtilizado if client else '' }}"
-                                       placeholder="Nome do sistema principal">
+                                <select class="form-select" id="sistemaUtilizado" name="sistemaUtilizado">
+                                    <option value="">Selecione o sistema</option>
+                                    {% if sistemas %}
+                                        {% for sistema in sistemas %}
+                                        <option value="{{ sistema }}" {% if client and client.sistemaUtilizado == sistema %}selected{% endif %}>{{ sistema }}</option>
+                                        {% endfor %}
+                                    {% else %}
+                                        <option value="FORTES" {% if client and client.sistemaUtilizado == 'FORTES' %}selected{% endif %}>FORTES</option>
+                                        <option value="DOMÍNIO" {% if client and client.sistemaUtilizado == 'DOMÍNIO' %}selected{% endif %}>DOMÍNIO</option>
+                                        <option value="SAGE" {% if client and client.sistemaUtilizado == 'SAGE' %}selected{% endif %}>SAGE</option>
+                                        <option value="ALTERDATA" {% if client and client.sistemaUtilizado == 'ALTERDATA' %}selected{% endif %}>ALTERDATA</option>
+                                        <option value="OUTROS" {% if client and client.sistemaUtilizado == 'OUTROS' %}selected{% endif %}>OUTROS</option>
+                                    {% endif %}
+                                </select>
                             </div>
 
                             <!-- Gera arquivo do Sped -->
@@ -551,7 +734,44 @@ document.addEventListener('DOMContentLoaded', function() {
                                             class="btn btn-outline-primary btn-sm" 
                                             id="btnAdicionarSocio"
                                             onclick="
-                                                console.log('🔴 BOTÃO CLICADO DIRETAMENTE');
+                                                console.log('🔴 [CORREÇÃO 09] BOTÃO CLICADO - Verificando sócios ocultos');
+                                                
+                                                // CORREÇÃO 09: Primeiro verificar se há sócios estáticos ocultos (2-5)
+                                                var sociosEstaticosOcultos = [];
+                                                for (var i = 2; i <= 5; i++) {
+                                                    var socioEstatico = document.getElementById('socio_' + i);
+                                                    if (socioEstatico && socioEstatico.style.display === 'none') {
+                                                        sociosEstaticosOcultos.push(i);
+                                                    }
+                                                }
+                                                
+                                                if (sociosEstaticosOcultos.length > 0) {
+                                                    // Mostrar o primeiro sócio oculto
+                                                    var proximoSocio = sociosEstaticosOcultos[0];
+                                                    var socioElement = document.getElementById('socio_' + proximoSocio);
+                                                    socioElement.style.display = 'block';
+                                                    console.log('✅ [CORREÇÃO 09] Sócio', proximoSocio, 'revelado (estava oculto)');
+                                                    
+                                                    // Aplicar máscara CPF ao sócio revelado
+                                                    var cpfInput = socioElement.querySelector('.cpf-mask');
+                                                    if (cpfInput) {
+                                                        if (cpfInput.value && cpfInput.value.length > 0) {
+                                                            formatCPF(cpfInput);
+                                                            console.log('🔧 [CORREÇÃO 09] CPF formatado no sócio revelado:', cpfInput.value);
+                                                        }
+                                                    }
+                                                    
+                                                    // Focar no primeiro campo do sócio revelado
+                                                    var firstInput = socioElement.querySelector('input');
+                                                    if (firstInput) firstInput.focus();
+                                                    
+                                                    return; // Sair da função - não criar sócio dinâmico
+                                                }
+                                                
+                                                // Se chegou aqui, todos os sócios estáticos (2-5) já estão visíveis
+                                                // Proceder com criação de sócio dinâmico (6+)
+                                                console.log('🔧 [CORREÇÃO 09] Todos sócios estáticos visíveis - criando dinâmico');
+                                                
                                                 var container = document.getElementById('sociosContainer');
                                                 if (!container) {
                                                     alert('Container não encontrado!');
@@ -571,7 +791,55 @@ document.addEventListener('DOMContentLoaded', function() {
                                                 div.id = 'socio_' + num;
                                                 div.innerHTML = '<div class=\&quot;card-body py-3\&quot;><div class=\&quot;d-flex justify-content-between align-items-center mb-2\&quot;><span class=\&quot;badge bg-primary\&quot;>Sócio ' + num + '</span><button type=\&quot;button\&quot; class=\&quot;btn btn-sm btn-outline-danger\&quot; onclick=\&quot;this.closest(\\\&quot;.socio-card\\\&quot;).remove();\&quot;>❌</button></div><div class=\&quot;row align-items-center\&quot;><div class=\&quot;col-md-3 mb-2\&quot;><label class=\&quot;form-label small mb-1\&quot;>Nome do Sócio</label><input type=\&quot;text\&quot; class=\&quot;form-control form-control-sm\&quot; name=\&quot;socio_' + num + '_nome\&quot; onkeyup=\&quot;this.value=this.value.toUpperCase()\&quot; placeholder=\&quot;Nome completo do sócio\&quot;></div><div class=\&quot;col-md-2 mb-2\&quot;><label class=\&quot;form-label small mb-1\&quot;>CPF</label><input type=\&quot;text\&quot; class=\&quot;form-control form-control-sm cpf-mask\&quot; name=\&quot;socio_' + num + '_cpf\&quot; placeholder=\&quot;000.000.000-00\&quot;></div><div class=\&quot;col-md-2 mb-2\&quot;><label class=\&quot;form-label small mb-1\&quot;>Data de Nascimento</label><input type=\&quot;date\&quot; class=\&quot;form-control form-control-sm\&quot; name=\&quot;socio_' + num + '_data_nascimento\&quot;></div><div class=\&quot;col-md-2 mb-2\&quot;><label class=\&quot;form-label small mb-1\&quot;>% de Quotas</label><input type=\&quot;number\&quot; class=\&quot;form-control form-control-sm\&quot; name=\&quot;socio_' + num + '_participacao\&quot; placeholder=\&quot;50.00\&quot; step=\&quot;0.01\&quot; min=\&quot;0\&quot; max=\&quot;100\&quot;></div><div class=\&quot;col-md-3 mb-2\&quot;><div class=\&quot;row\&quot;><div class=\&quot;col-6\&quot;><div class=\&quot;form-check\&quot;><input class=\&quot;form-check-input representante-legal\&quot; type=\&quot;radio\&quot; name=\&quot;representante_legal\&quot; value=\&quot;socio_' + num + '\&quot; id=\&quot;rep_legal_' + num + '\&quot;><label class=\&quot;form-check-label small\&quot; for=\&quot;rep_legal_' + num + '\&quot;>Representante Legal</label></div></div><div class=\&quot;col-6\&quot;><div class=\&quot;form-check\&quot;><input class=\&quot;form-check-input socio-admin\&quot; type=\&quot;checkbox\&quot; name=\&quot;socio_' + num + '_administrador\&quot; value=\&quot;1\&quot; id=\&quot;admin_' + num + '\&quot;><label class=\&quot;form-check-label small\&quot; for=\&quot;admin_' + num + '\&quot;>Sócio Administrador</label></div></div></div></div></div></div>';
                                                 container.appendChild(div);
-                                                console.log('✅ Sócio', num, 'adicionado com TODOS os campos!');
+                                                
+                                                // CORREÇÃO 07: Reaplicar máscaras aos novos campos CPF
+                                                console.log('🔧 [CORREÇÃO 07] Aplicando máscara CPF ao sócio', num);
+                                                var cpfInput = div.querySelector('.cpf-mask');
+                                                if (cpfInput) {
+                                                    // Event listener para input em tempo real
+                                                    cpfInput.addEventListener('input', function() {
+                                                        formatCPF(this);
+                                                    });
+                                                    
+                                                    // Event listener para blur (quando sai do campo)
+                                                    cpfInput.addEventListener('blur', function() {
+                                                        if (this.value && this.value.length > 0) {
+                                                            formatCPF(this);
+                                                        }
+                                                    });
+                                                    
+                                                    // Formatar se já tiver valor
+                                                    if (cpfInput.value && cpfInput.value.length > 0) {
+                                                        formatCPF(cpfInput);
+                                                    }
+                                                    
+                                                    console.log('✅ [CORREÇÃO 07] Máscara CPF aplicada ao sócio', num);
+                                                } else {
+                                                    console.error('❌ [CORREÇÃO 07] Campo CPF não encontrado no sócio', num);
+                                                }
+                                                
+                                                // Aplicar event listener para atualizar CPF do Representante Legal
+                                                var radioInput = div.querySelector('.representante-legal');
+                                                if (radioInput) {
+                                                    radioInput.addEventListener('change', function() {
+                                                        if (this.checked) {
+                                                            atualizarCpfRepresentanteLegal();
+                                                        }
+                                                    });
+                                                }
+                                                
+                                                // Aplicar event listener para atualizar CPF quando digitado
+                                                if (cpfInput) {
+                                                    cpfInput.addEventListener('input', function() {
+                                                        // Verificar se este sócio é o representante legal selecionado
+                                                        var radio = div.querySelector('.representante-legal');
+                                                        if (radio && radio.checked) {
+                                                            atualizarCpfRepresentanteLegal();
+                                                        }
+                                                    });
+                                                }
+                                                
+                                                console.log('✅ [CORREÇÃO 09] Sócio dinâmico', num, 'adicionado com TODOS os campos e máscaras!');
                                                 var input = div.querySelector('input');
                                                 if (input) input.focus();
                                             ">
@@ -587,9 +855,10 @@ document.addEventListener('DOMContentLoaded', function() {
                                             <div class="row align-items-center">
                                                 <div class="col-md-3 mb-2">
                                                     <label class="form-label small mb-1">Nome do Sócio</label>
-                                                    <input type="text" class="form-control form-control-sm" 
+                                                    <input type="text" class="form-control form-control-sm upper-input" 
                                                            name="socio_1_nome" id="socio_1_nome"
                                                            value="{{ client.socio_1_nome if client else '' }}"
+                                                           onkeyup="this.value=this.value.toUpperCase()"
                                                            placeholder="Nome completo do sócio">
                                                 </div>
                                                 <div class="col-md-2 mb-2">
@@ -642,8 +911,8 @@ document.addEventListener('DOMContentLoaded', function() {
                                         </div>
                                     </div>
 
-                                    <!-- Sócio 2 (sempre visível) -->
-                                    <div class="card border-light mb-2 socio-card" id="socio_2">
+                                    <!-- Sócio 2 (CORREÇÃO 09: inicialmente oculto) -->
+                                    <div class="card border-light mb-2 socio-card" id="socio_2" style="display: none;">
                                         <div class="card-body py-3">
                                             <div class="d-flex justify-content-between align-items-center mb-2">
                                                 <span class="badge bg-primary">Sócio 2</span>
@@ -709,8 +978,8 @@ document.addEventListener('DOMContentLoaded', function() {
                                         </div>
                                     </div>
 
-                                    <!-- Sócio 3 (sempre visível) -->
-                                    <div class="card border-light mb-2 socio-card" id="socio_3">
+                                    <!-- Sócio 3 (CORREÇÃO 09: inicialmente oculto) -->
+                                    <div class="card border-light mb-2 socio-card" id="socio_3" style="display: none;">
                                         <div class="card-body py-3">
                                             <div class="d-flex justify-content-between align-items-center mb-2">
                                                 <span class="badge bg-primary">Sócio 3</span>
@@ -776,8 +1045,8 @@ document.addEventListener('DOMContentLoaded', function() {
                                         </div>
                                     </div>
 
-                                    <!-- Sócio 4 (sempre visível) -->
-                                    <div class="card border-light mb-2 socio-card" id="socio_4">
+                                    <!-- Sócio 4 (CORREÇÃO 09: inicialmente oculto) -->
+                                    <div class="card border-light mb-2 socio-card" id="socio_4" style="display: none;">
                                         <div class="card-body py-3">
                                             <div class="d-flex justify-content-between align-items-center mb-2">
                                                 <span class="badge bg-primary">Sócio 4</span>
@@ -843,8 +1112,8 @@ document.addEventListener('DOMContentLoaded', function() {
                                         </div>
                                     </div>
 
-                                    <!-- Sócio 5 (sempre visível) -->
-                                    <div class="card border-light mb-2 socio-card" id="socio_5">
+                                    <!-- Sócio 5 (CORREÇÃO 09: inicialmente oculto) -->
+                                    <div class="card border-light mb-2 socio-card" id="socio_5" style="display: none;">
                                         <div class="card-body py-3">
                                             <div class="d-flex justify-content-between align-items-center mb-2">
                                                 <span class="badge bg-primary">Sócio 5</span>
@@ -975,8 +1244,8 @@ document.addEventListener('DOMContentLoaded', function() {
                                         </div>
                                     </div>
 
-                                    <!-- Contato 2 (sempre visível) -->
-                                    <div class="card border-light mb-2 contato-card" id="contato_2">
+                                    <!-- Contato 2 (CORREÇÃO 09: inicialmente oculto) -->
+                                    <div class="card border-light mb-2 contato-card" id="contato_2" style="display: none;">
                                         <div class="card-body py-3">
                                             <div class="d-flex justify-content-between align-items-center mb-2">
                                                 <span class="badge bg-success">Contato 2</span>
@@ -1016,8 +1285,8 @@ document.addEventListener('DOMContentLoaded', function() {
                                         </div>
                                     </div>
 
-                                    <!-- Contato 3 (sempre visível) -->
-                                    <div class="card border-light mb-2 contato-card" id="contato_3">
+                                    <!-- Contato 3 (CORREÇÃO 09: inicialmente oculto) -->
+                                    <div class="card border-light mb-2 contato-card" id="contato_3" style="display: none;">
                                         <div class="card-body py-3">
                                             <div class="d-flex justify-content-between align-items-center mb-2">
                                                 <span class="badge bg-success">Contato 3</span>
@@ -1057,8 +1326,8 @@ document.addEventListener('DOMContentLoaded', function() {
                                         </div>
                                     </div>
 
-                                    <!-- Contato 4 (sempre visível) -->
-                                    <div class="card border-light mb-2 contato-card" id="contato_4">
+                                    <!-- Contato 4 (CORREÇÃO 09: inicialmente oculto) -->
+                                    <div class="card border-light mb-2 contato-card" id="contato_4" style="display: none;">
                                         <div class="card-body py-3">
                                             <div class="d-flex justify-content-between align-items-center mb-2">
                                                 <span class="badge bg-success">Contato 4</span>
@@ -1098,8 +1367,8 @@ document.addEventListener('DOMContentLoaded', function() {
                                         </div>
                                     </div>
 
-                                    <!-- Contato 5 (sempre visível) -->
-                                    <div class="card border-light mb-2 contato-card" id="contato_5">
+                                    <!-- Contato 5 (CORREÇÃO 09: inicialmente oculto) -->
+                                    <div class="card border-light mb-2 contato-card" id="contato_5" style="display: none;">
                                         <div class="card-body py-3">
                                             <div class="d-flex justify-content-between align-items-center mb-2">
                                                 <span class="badge bg-success">Contato 5</span>
@@ -1410,6 +1679,7 @@ document.addEventListener('DOMContentLoaded', function() {
                 </div>
 
                 <!-- Botões de ação -->
+                {% if not view_mode %}
                 <div class="card">
                     <div class="card-body">
                         <div class="d-flex justify-content-between align-items-center">
@@ -1433,6 +1703,21 @@ document.addEventListener('DOMContentLoaded', function() {
                         </div>
                     </div>
                 </div>
+                {% else %}
+                <!-- Botões de visualização -->
+                <div class="card">
+                    <div class="card-body text-center">
+                        <a href="{{ url_for('edit_client', client_id=client.id) }}" class="btn btn-primary me-3">
+                            <i class="bi bi-pencil me-1"></i>
+                            Editar Cliente
+                        </a>
+                        <a href="/" class="btn btn-secondary">
+                            <i class="bi bi-arrow-left me-1"></i>
+                            Voltar
+                        </a>
+                    </div>
+                </div>
+                {% endif %}
             </form>
         </div>
     </div>
@@ -1482,15 +1767,144 @@ function formatPhone(input) {
     input.value = value;
 }
 
-// Formatação de CPF
+// Formatação de CPF - CORREÇÃO 07: Versão melhorada
 function formatCPF(input) {
+    // Salvar posição do cursor
+    const cursorPos = input.selectionStart;
+    const valueLength = input.value.length;
+    
+    // Remover tudo que não é dígito
     let value = input.value.replace(/\D/g, '');
-    if (value.length <= 11) {
-        value = value.replace(/(\d{3})(\d)/, '$1.$2');
-        value = value.replace(/(\d{3})(\d)/, '$1.$2');
-        value = value.replace(/(\d{3})(\d{1,2})$/, '$1-$2');
+    
+    // Aplicar formatação apenas se tiver dígitos
+    if (value.length > 0) {
+        // Limitar a 11 dígitos
+        if (value.length > 11) {
+            value = value.substring(0, 11);
+        }
+        
+        // Aplicar formatação progressiva
+        if (value.length >= 4) {
+            value = value.replace(/^(\d{3})(\d)/, '$1.$2');
+        }
+        if (value.length >= 8) {
+            value = value.replace(/^(\d{3}\.\d{3})(\d)/, '$1.$2');
+        }
+        if (value.length >= 12) {
+            value = value.replace(/^(\d{3}\.\d{3}\.\d{3})(\d)/, '$1-$2');
+        }
     }
+    
+    // Atualizar valor
     input.value = value;
+    
+    // Calcular nova posição do cursor baseado na diferença de tamanho
+    const lengthDiff = value.length - valueLength;
+    const newCursorPos = Math.min(Math.max(cursorPos + lengthDiff, 0), value.length);
+    
+    // Restaurar posição do cursor
+    if (input.setSelectionRange) {
+        setTimeout(() => {
+            input.setSelectionRange(newCursorPos, newCursorPos);
+        }, 0);
+    }
+}
+
+// CORREÇÃO 07: Função utilitária para reaplicar formatação CPF em todos os campos
+function reaplicarFormatacaoCPF() {
+    console.log('🔧 [CORREÇÃO 07] Reaplicando formatação CPF em todos os campos...');
+    
+    const camposCpf = document.querySelectorAll('.cpf-mask, input[name*="_cpf"]');
+    let contador = 0;
+    
+    camposCpf.forEach(function(input) {
+        if (input.value && input.value.length > 0) {
+            const valorAntes = input.value;
+            formatCPF(input);
+            
+            if (valorAntes !== input.value) {
+                console.log('✅ [CORREÇÃO 07] CPF reformatado:', input.name || input.id, valorAntes, '→', input.value);
+                contador++;
+            }
+        }
+        
+        // Garantir que tem event listeners
+        if (!input.hasAttribute('data-cpf-listener')) {
+            input.addEventListener('input', function() {
+                formatCPF(this);
+            });
+            
+            input.addEventListener('blur', function() {
+                if (this.value && this.value.length > 0) {
+                    formatCPF(this);
+                }
+            });
+            
+            input.setAttribute('data-cpf-listener', 'true');
+        }
+    });
+    
+    console.log(`✅ [CORREÇÃO 07] Reaplicação concluída: ${contador} campos reformatados de ${camposCpf.length} encontrados`);
+    return contador;
+}
+
+// Formatação de CNPJ
+function formatCNPJ(input) {
+    // Salvar posição do cursor
+    const cursorPos = input.selectionStart;
+    const valueLength = input.value.length;
+    
+    // Remover tudo que não é dígito
+    let value = input.value.replace(/\D/g, '');
+    
+    // Aplicar formatação apenas se tiver dígitos
+    if (value.length > 0) {
+        // Limitar a 14 dígitos
+        if (value.length > 14) {
+            value = value.substring(0, 14);
+        }
+        
+        // Aplicar formatação progressiva para CNPJ: 00.000.000/0000-00
+        if (value.length >= 3) {
+            value = value.replace(/^(\d{2})(\d)/, '$1.$2');
+        }
+        if (value.length >= 6) {
+            value = value.replace(/^(\d{2}\.\d{3})(\d)/, '$1.$2');
+        }
+        if (value.length >= 9) {
+            value = value.replace(/^(\d{2}\.\d{3}\.\d{3})(\d)/, '$1/$2');
+        }
+        if (value.length >= 13) {
+            value = value.replace(/^(\d{2}\.\d{3}\.\d{3}\/\d{4})(\d)/, '$1-$2');
+        }
+    }
+    
+    // Atualizar valor
+    input.value = value;
+    
+    // Calcular nova posição do cursor baseado na diferença de tamanho
+    const lengthDiff = value.length - valueLength;
+    const newCursorPos = Math.min(Math.max(cursorPos + lengthDiff, 0), value.length);
+    
+    // Restaurar posição do cursor
+    if (input.setSelectionRange) {
+        setTimeout(() => {
+            input.setSelectionRange(newCursorPos, newCursorPos);
+        }, 0);
+    }
+}
+
+// Formatação dinâmica de CPF/CNPJ
+function formatCPFCNPJ(input) {
+    const value = input.value.replace(/\D/g, '');
+    
+    if (value.length <= 11) {
+        // Formatar como CPF
+        formatCPF(input);
+    } else {
+        // Formatar como CNPJ
+        formatCNPJ(input);
+    }
 }
 
 // Formatação de Data (DD/MM/AAAA)
@@ -1505,134 +1919,103 @@ function formatDate(input) {
 
 // Aplicar máscaras aos campos existentes
 document.addEventListener('DOMContentLoaded', function() {
-    console.log('🚀 DOM carregado - iniciando configurações');
-    
     // =============================================================
-    // CONFIGURAR EVENT LISTENER DO CPF/CNPJ (PRIMEIRA PRIORIDADE)
+    // CORREÇÃO: CPF/CNPJ -> Label + Doméstica (IMPLEMENTAÇÃO SIMPLES)
     // =============================================================
-    console.log('🔗 Configurando event listener do CPF/CNPJ...');
-    const cpfCnpjInput = document.getElementById('cpfCnpj');
-    const domesticaSelect = document.getElementById('domestica');
+    console.log('� DOM carregado - configurando CPF/CNPJ e Doméstica');
     
-    console.log('📍 Campo CPF/CNPJ encontrado:', !!cpfCnpjInput);
-    console.log('🏠 Campo Doméstica encontrado:', !!domesticaSelect);
-    
-    if (cpfCnpjInput) {
-        const onCpfCnpjChange = function(e) {
-            console.log('🎯 CPF/CNPJ INPUT EVENT DISPARADO!');
-            console.log('📝 Valor recebido:', e.target.value);
-            
-            let value = e.target.value.replace(/\D/g, ''); // Remove tudo que não é dígito
-            console.log('🔢 Valor limpo:', value, 'Length:', value.length);
-            
-            if (value.length <= 11) {
-                // Formato CPF: 999.999.999-99
-                value = value.replace(/(\d{3})(\d)/, '$1.$2');
-                value = value.replace(/(\d{3})(\d)/, '$1.$2');
-                value = value.replace(/(\d{3})(\d{1,2})$/, '$1-$2');
-            } else if (value.length <= 14) {
-                // Formato CNPJ: 99.999.999/9999-99
-                value = value.replace(/^(\d{2})(\d)/, '$1.$2');
-                value = value.replace(/^(\d{2})\.(\d{3})(\d)/, '$1.$2.$3');
-                value = value.replace(/\.(\d{3})(\d)/, '.$1/$2');
-                value = value.replace(/(\d{4})(\d)/, '$1-$2');
-            }
-            
-            e.target.value = value;
-            
-            // Feedback visual para o usuário
-            const label = document.querySelector('label[for="cpfCnpj"]');
-            const cleanValue = value.replace(/\D/g, '');
-            
-            if (cleanValue.length === 11) {
-                label.innerHTML = '<i class="bi bi-person me-1"></i>CPF <span class="text-danger">*</span>';
-                console.log('👤 Label atualizado para CPF');
-            } else if (cleanValue.length === 14) {
-                label.innerHTML = '<i class="bi bi-building me-1"></i>CNPJ <span class="text-danger">*</span>';
-                console.log('🏢 Label atualizado para CNPJ');
-            } else {
-                label.innerHTML = '<i class="bi bi-card-text me-1"></i>CPF/CNPJ <span class="text-danger">*</span>';
-                console.log('📄 Label resetado');
-            }
-            
-            // CONTROLE DO CAMPO DOMÉSTICA
-            if (domesticaSelect) {
-                const numeros = value.replace(/\D/g, '');
-                console.log('🔍 Controlando Doméstica - Números:', numeros, 'Length:', numeros.length);
-                
-                if (numeros.length === 11) {
-                    // CPF completo - Habilitar Doméstica
-                    domesticaSelect.disabled = false;
-                    console.log('✅ CPF COMPLETO - HABILITANDO Doméstica');
-                } else if (numeros.length === 14) {
-                    // CNPJ completo - Desabilitar Doméstica e forçar NÃO
-                    domesticaSelect.disabled = true;
-                    domesticaSelect.value = 'NÃO';
-                    console.log('🏢 CNPJ COMPLETO - DESABILITANDO Doméstica');
-                } else {
-                    // Incompleto - Desabilitar Doméstica
-                    domesticaSelect.disabled = true;
-                    domesticaSelect.value = 'NÃO';
-                    console.log('❌ INCOMPLETO - DESABILITANDO Doméstica');
-                }
-                
-                console.log('📊 Estado final - disabled:', domesticaSelect.disabled, 'value:', domesticaSelect.value);
-            } else {
-                console.error('❌ Campo Doméstica não encontrado!');
-            }
-            
-            // CONTROLE DO CAMPO "CNPJ ACESSO SIMPLES NACIONAL"
-            const cnpjAcessoSnInput = document.getElementById('cnpjAcessoSn');
-            if (cnpjAcessoSnInput) {
-                const numeros = value.replace(/\D/g, '');
-                console.log('🔍 Controlando CNPJ Acesso SN - Números:', numeros, 'Length:', numeros.length);
-                
-                if (numeros.length === 14) {
-                    // CNPJ completo - Preencher automaticamente com o mesmo CNPJ
-                    cnpjAcessoSnInput.value = value; // Usa o valor já formatado
-                    console.log('🏢 CNPJ COMPLETO - PREENCHENDO CNPJ Acesso SN automaticamente:', value);
-                } else if (numeros.length === 11) {
-                    // CPF completo - Limpar o campo (não se aplica a CPF)
-                    cnpjAcessoSnInput.value = '';
-                    console.log('👤 CPF DETECTADO - LIMPANDO CNPJ Acesso SN');
-                } else {
-                    // Incompleto - Limpar o campo
-                    cnpjAcessoSnInput.value = '';
-                    console.log('❌ INCOMPLETO - LIMPANDO CNPJ Acesso SN');
-                }
-                
-                console.log('📊 CNPJ Acesso SN final value:', cnpjAcessoSnInput.value);
-            } else {
-                console.error('❌ Campo CNPJ Acesso Simples Nacional não encontrado!');
-            }
-        };
-        cpfCnpjInput.addEventListener('input', onCpfCnpjChange);
-        cpfCnpjInput.addEventListener('change', onCpfCnpjChange);
-        cpfCnpjInput.addEventListener('blur', function(){
-            // Dispara com evento sintético para reaplicar regras no blur
-            cpfCnpjInput.dispatchEvent(new Event('input'));
-        });
+    function atualizarCpfCnpjEDomestica() {
+        const cpfCnpjInput = document.getElementById('cpfCnpj');
+        const domesticaSelect = document.getElementById('domestica');
+        const labelCpfCnpj = document.querySelector('label[for="cpfCnpj"]');
         
-        console.log('✅ Event listener do CPF/CNPJ configurado com sucesso!');
-        
-        // Configurar estado inicial baseado no valor atual (para edição)
-        if (cpfCnpjInput.value) {
-            console.log('🔄 Configurando estado inicial baseado no valor atual:', cpfCnpjInput.value);
-            cpfCnpjInput.dispatchEvent(new Event('input'));
+        if (!cpfCnpjInput || !domesticaSelect) {
+            console.log('❌ Campos não encontrados');
+            return;
         }
-    } else {
-        console.error('❌ Campo CPF/CNPJ não encontrado!');
+        
+        // Aplicar formatação dinâmica primeiro
+        formatCPFCNPJ(cpfCnpjInput);
+        
+        const valor = cpfCnpjInput.value.replace(/\D/g, ''); // Remove não-dígitos
+        console.log('📋 Processando:', valor, '- Length:', valor.length);
+        
+        // Atualizar label e controlar Doméstica
+        if (valor.length === 11) {
+            // É CPF
+            console.log('👤 CPF detectado - 11 dígitos');
+            if (labelCpfCnpj) {
+                labelCpfCnpj.innerHTML = '<i class="bi bi-person me-1"></i>CPF <span class="text-danger">*</span>';
+            }
+            domesticaSelect.disabled = false;
+            console.log('✅ DOMÉSTICA HABILITADA para CPF');
+        } else if (valor.length === 14) {
+            // É CNPJ
+            console.log('🏢 CNPJ detectado - 14 dígitos');
+            if (labelCpfCnpj) {
+                labelCpfCnpj.innerHTML = '<i class="bi bi-building me-1"></i>CNPJ <span class="text-danger">*</span>';
+            }
+            domesticaSelect.disabled = true;
+            domesticaSelect.value = 'NÃO';
+            console.log('🏢 Doméstica desabilitada para CNPJ');
+        } else {
+            // Incompleto
+            console.log('⏳ Documento incompleto');
+            if (labelCpfCnpj) {
+                labelCpfCnpj.innerHTML = '<i class="bi bi-card-text me-1"></i>CPF/CNPJ <span class="text-danger">*</span>';
+            }
+            domesticaSelect.disabled = true;
+            domesticaSelect.value = 'NÃO';
+            console.log('❌ Doméstica desabilitada - incompleto');
+        }
+        
+        console.log('📊 Estado final: disabled =', domesticaSelect.disabled, 'valor:', domesticaSelect.value);
     }
+    
+    // CONFIGURAÇÃO INICIAL CPF/CNPJ E DOMÉSTICA
+    // Nota: Event listeners estão configurados na seção updateRequiredFields para evitar conflitos
+    console.log('✅ Funções CPF/CNPJ carregadas - event listeners configurados automaticamente');
     
     // =============================================================
     // RESTANTE DAS CONFIGURAÇÕES
     // =============================================================
     
-    // Aplicar máscara de CPF
+    // CORREÇÃO 07: Aplicar máscara de CPF melhorada
     document.querySelectorAll('.cpf-mask').forEach(function(input) {
-        input.addEventListener('input', function() {
+        // Formatar valores já preenchidos (dados existentes)
+        if (input.value && input.value.length > 0) {
+            formatCPF(input);
+            console.log('🔧 [CORREÇÃO 07] CPF formatado em campo preexistente:', input.name, '→', input.value);
+        }
+        
+        // Remover event listeners duplicados se existirem
+        if (input.hasAttribute('data-cpf-listener')) {
+            return; // Já tem listeners aplicados
+        }
+        
+        // Aplicar event listener para formatação em tempo real
+        input.addEventListener('input', function(e) {
             formatCPF(this);
         });
+        
+        // Aplicar event listener para formatação quando sai do campo
+        input.addEventListener('blur', function(e) {
+            if (this.value && this.value.length > 0) {
+                formatCPF(this);
+                console.log('🔧 [CORREÇÃO 07] CPF formatado no blur:', this.name, '→', this.value);
+            }
+        });
+        
+        // Aplicar event listener para formatação ao colar
+        input.addEventListener('paste', function(e) {
+            setTimeout(() => {
+                formatCPF(this);
+                console.log('🔧 [CORREÇÃO 07] CPF formatado após paste:', this.name, '→', this.value);
+            }, 10);
+        });
+        
+        // Marcar como processado
+        input.setAttribute('data-cpf-listener', 'true');
     });
     
     // Aplicar máscara de telefone
@@ -1656,18 +2039,49 @@ document.addEventListener('DOMContentLoaded', function() {
         });
     });
 
-    // Máscara para data MM/AAAA
+    // Máscara para data MM/AAAA - CORREÇÃO 05
     const dataInicioInput = document.getElementById('dataInicioServicos');
     if (dataInicioInput) {
-        dataInicioInput.addEventListener('input', function() {
-            let value = this.value.replace(/\D/g, ''); // Remove tudo que não é dígito
+        // Função para aplicar máscara MM/AAAA
+        function aplicarMascaraMMAAAA(input) {
+            let value = input.value.replace(/\D/g, ''); // Remove tudo que não é dígito
             
+            // Limita a 6 dígitos (MMAAAA)
+            value = value.substring(0, 6);
+            
+            // Aplica máscara MM/AAAA
             if (value.length >= 2) {
                 value = value.substring(0, 2) + '/' + value.substring(2, 6);
             }
             
-            this.value = value;
+            return value;
+        }
+        
+        // Event listeners para capturar todas as formas de entrada
+        dataInicioInput.addEventListener('input', function() {
+            this.value = aplicarMascaraMMAAAA(this);
+            console.log('🔍 [CORREÇÃO 05] Máscara aplicada:', this.value);
         });
+        
+        dataInicioInput.addEventListener('keyup', function() {
+            this.value = aplicarMascaraMMAAAA(this);
+        });
+        
+        dataInicioInput.addEventListener('paste', function(e) {
+            setTimeout(() => {
+                this.value = aplicarMascaraMMAAAA(this);
+            }, 10);
+        });
+        
+        // Validação adicional
+        dataInicioInput.addEventListener('blur', function() {
+            const value = this.value;
+            if (value && !value.match(/^(0[1-9]|1[0-2])\/\d{4}$/)) {
+                console.warn('⚠️ [CORREÇÃO 05] Formato inválido:', value);
+            }
+        });
+        
+        console.log('✅ [CORREÇÃO 05] Máscara MM/AAAA configurada');
     }
 
     // Configurar controle de representante legal (apenas um pode ser selecionado)
@@ -1706,6 +2120,120 @@ document.addEventListener('DOMContentLoaded', function() {
     } else {
         console.error('❌ Formulário não encontrado!');
     }
+
+    // =============================================================
+    // CORREÇÃO 09: Controle de Visibilidade dos Sócios
+    // =============================================================
+    console.log('🔧 [CORREÇÃO 09] Configurando visibilidade inicial dos sócios');
+    
+    // Função para mostrar sócios com dados
+    function mostrarSociosComDados() {
+        {% if client %}
+        const dadosCliente = {{ client|tojson }};
+        console.log('🔍 [CORREÇÃO 09] Verificando dados dos sócios...');
+        console.log('🔍 [CORREÇÃO 09] Dados completos do cliente:', dadosCliente);
+        
+        // Verificar sócios 2-5 e mostrar apenas os que têm dados
+        for (var i = 2; i <= 5; i++) {
+            var nomeKey = 'socio_' + i + '_nome';
+            var cpfKey = 'socio_' + i + '_cpf';
+            var participacaoKey = 'socio_' + i + '_participacao';
+            var nascimentoKey = 'socio_' + i + '_data_nascimento';
+            var adminKey = 'socio_' + i + '_administrador';
+            
+            var temNome = dadosCliente[nomeKey] && dadosCliente[nomeKey].trim() !== '';
+            var temCpf = dadosCliente[cpfKey] && dadosCliente[cpfKey].trim() !== '';
+            var temParticipacao = dadosCliente[participacaoKey] && dadosCliente[participacaoKey] !== '' && dadosCliente[participacaoKey] !== null;
+            var temNascimento = dadosCliente[nascimentoKey] && dadosCliente[nascimentoKey].trim() !== '';
+            var temAdmin = dadosCliente[adminKey] && dadosCliente[adminKey] !== '' && dadosCliente[adminKey] !== null;
+            
+            console.log(`🔍 [CORREÇÃO 09] Sócio ${i}:`, {
+                nome: temNome ? dadosCliente[nomeKey] : 'vazio',
+                cpf: temCpf ? dadosCliente[cpfKey] : 'vazio',
+                participacao: temParticipacao ? dadosCliente[participacaoKey] : 'vazio',
+                nascimento: temNascimento ? dadosCliente[nascimentoKey] : 'vazio',
+                admin: temAdmin ? dadosCliente[adminKey] : 'vazio'
+            });
+            
+            // Se tem pelo menos um campo preenchido, mostrar o sócio
+            if (temNome || temCpf || temParticipacao || temNascimento || temAdmin) {
+                var socioElement = document.getElementById('socio_' + i);
+                if (socioElement) {
+                    socioElement.style.display = 'block';
+                    console.log('✅ [CORREÇÃO 09] Sócio', i, 'mostrado (tem dados)');
+                    
+                    // Aplicar formatação CPF se necessário
+                    var cpfInput = socioElement.querySelector('.cpf-mask');
+                    if (cpfInput && cpfInput.value && cpfInput.value.length > 0) {
+                        formatCPF(cpfInput);
+                        console.log('🔧 [CORREÇÃO 09] CPF formatado no sócio', i);
+                    }
+                } else {
+                    console.warn('⚠️ [CORREÇÃO 09] Elemento socio_' + i + ' não encontrado');
+                }
+            } else {
+                console.log('📝 [CORREÇÃO 09] Sócio', i, 'mantido oculto (sem dados)');
+            }
+        }
+        {% else %}
+        console.log('📝 [CORREÇÃO 09] Novo cliente - apenas Sócio 1 visível');
+        {% endif %}
+    }
+    
+    // Função para mostrar contatos com dados
+    function mostrarContatosComDados() {
+        {% if client %}
+        const dadosCliente = {{ client|tojson }};
+        console.log('🔍 [CORREÇÃO 09] Verificando dados dos contatos...');
+        console.log('🔍 [CORREÇÃO 09] Dados completos do cliente (contatos):', dadosCliente);
+        
+        // Verificar contatos 2-5 e mostrar apenas os que têm dados
+        for (var i = 2; i <= 5; i++) {
+            var nomeKey = 'contato_' + i + '_nome';
+            var cargoKey = 'contato_' + i + '_cargo';
+            var telefoneKey = 'contato_' + i + '_telefone';
+            var emailKey = 'contato_' + i + '_email';
+            
+            var temNome = dadosCliente[nomeKey] && dadosCliente[nomeKey].trim() !== '';
+            var temCargo = dadosCliente[cargoKey] && dadosCliente[cargoKey].trim() !== '';
+            var temTelefone = dadosCliente[telefoneKey] && dadosCliente[telefoneKey].trim() !== '';
+            var temEmail = dadosCliente[emailKey] && dadosCliente[emailKey].trim() !== '';
+            
+            console.log(`🔍 [CORREÇÃO 09] Contato ${i}:`, {
+                nome: temNome ? dadosCliente[nomeKey] : 'vazio',
+                cargo: temCargo ? dadosCliente[cargoKey] : 'vazio',
+                telefone: temTelefone ? dadosCliente[telefoneKey] : 'vazio',
+                email: temEmail ? dadosCliente[emailKey] : 'vazio'
+            });
+            
+            // Se tem pelo menos um campo preenchido, mostrar o contato
+            if (temNome || temCargo || temTelefone || temEmail) {
+                var contatoElement = document.getElementById('contato_' + i);
+                if (contatoElement) {
+                    contatoElement.style.display = 'block';
+                    console.log('✅ [CORREÇÃO 09] Contato', i, 'mostrado (tem dados)');
+                    
+                    // Aplicar formatação telefone se necessário
+                    var phoneInput = contatoElement.querySelector('.phone-mask');
+                    if (phoneInput && phoneInput.value && phoneInput.value.length > 0) {
+                        formatPhone(phoneInput);
+                        console.log('🔧 [CORREÇÃO 09] Telefone formatado no contato', i);
+                    }
+                } else {
+                    console.warn('⚠️ [CORREÇÃO 09] Elemento contato_' + i + ' não encontrado');
+                }
+            } else {
+                console.log('📝 [CORREÇÃO 09] Contato', i, 'mantido oculto (sem dados)');
+            }
+        }
+        {% else %}
+        console.log('📝 [CORREÇÃO 09] Novo cliente - apenas Contato 1 visível');
+        {% endif %}
+    }
+    
+    // Executar após um pequeno delay para garantir que DOM esteja totalmente carregado
+    setTimeout(mostrarSociosComDados, 50);
+    setTimeout(mostrarContatosComDados, 60);
 
     // Carregar dados dos sócios e contatos se estiver editando
     {% if client %}
@@ -1830,6 +2358,12 @@ document.addEventListener('DOMContentLoaded', function() {
         });
     });
     console.log('✅ Inputs uppercase configurados');
+    
+    // CORREÇÃO 07: Reaplicar formatação CPF após carregamento completo
+    setTimeout(function() {
+        reaplicarFormatacaoCPF();
+        console.log('🔧 [CORREÇÃO 07] Formatação CPF reaplicada após carregamento completo');
+    }, 2000);
 });
 
 // Função para configurar controles dos sócios
@@ -1874,11 +2408,11 @@ let numeroContatos = 1;
 
 // FOCO NO PROBLEMA: QUADRO SOCIETÁRIO - VERSÃO ULTRA SIMPLES
 function carregarSocios(dadosCliente) {
-    alert('🚨 VERSÃO ULTRA SIMPLES - FOCO QUADRO SOCIETÁRIO');
+    console.log('� [CORREÇÃO 14] VERSÃO ULTRA SIMPLES - FOCO QUADRO SOCIETÁRIO');
     console.log('� CARREGANDO SÓCIOS - VERSÃO ULTRA SIMPLES');
     
     if (!dadosCliente) {
-        alert('❌ ERRO: Dados do cliente não fornecidos');
+        console.error('❌ ERRO: Dados do cliente não fornecidos');
         return;
     }
     
@@ -1949,7 +2483,13 @@ function carregarSocios(dadosCliente) {
         console.log(`✅ Preenchido sócio 1: ${nome1}`);
     }
     
-    alert('✅ QUADRO SOCIETÁRIO CARREGADO - 3 SÓCIOS!');
+    console.log('✅ [CORREÇÃO 14] QUADRO SOCIETÁRIO CARREGADO - 3 SÓCIOS!');
+    
+    // CORREÇÃO 07: Reaplicar formatação CPF após carregar sócios
+    setTimeout(function() {
+        reaplicarFormatacaoCPF();
+        console.log('🔧 [CORREÇÃO 07] Formatação CPF reaplicada após carregamento do quadro societário');
+    }, 100);
 }
 
 function preencherFormularioSocio(numero, dadosSocio) {
@@ -2034,8 +2574,8 @@ function criarCardSocio(numero, dadosSocio) {
     if (!dadosCliente) {
         console.log('❌ Dados do cliente não fornecidos');
 function carregarContatos(dadosCliente) {
-    alert('🚨 EXECUTANDO VERSÃO DEFINITIVA carregarContatos! 2025-08-24 08:30:00');
-    console.log('� EXECUTANDO VERSÃO DEFINITIVA carregarContatos! 2025-08-24 08:30:00');
+    console.log('� [CORREÇÃO 14] EXECUTANDO VERSÃO DEFINITIVA carregarContatos! 2025-08-24 08:30:00');
+    console.log('🔧 [CORREÇÃO 14] EXECUTANDO VERSÃO DEFINITIVA carregarContatos! 2025-08-24 08:30:00');
     
     if (!dadosCliente) {
         console.log('❌ Dados do cliente não fornecidos');
@@ -2298,7 +2838,43 @@ function confirmDelete(clientId, clientName) {
 
 // Funções para gerenciar contatos
 function adicionarContato() {
-    console.log(`🔧 ADICIONARCONTATO: Iniciando... numeroContatos atual: ${numeroContatos}`);
+    console.log(`🔧 [CORREÇÃO 09] CONTATOS: Iniciando... numeroContatos atual: ${numeroContatos}`);
+    
+    // CORREÇÃO 09: Primeiro verificar se há contatos estáticos ocultos (2-5)
+    var contatosEstaticosOcultos = [];
+    for (var i = 2; i <= 5; i++) {
+        var contatoEstatico = document.getElementById('contato_' + i);
+        if (contatoEstatico && contatoEstatico.style.display === 'none') {
+            contatosEstaticosOcultos.push(i);
+        }
+    }
+    
+    if (contatosEstaticosOcultos.length > 0) {
+        // Mostrar o primeiro contato oculto
+        var proximoContato = contatosEstaticosOcultos[0];
+        var contatoElement = document.getElementById('contato_' + proximoContato);
+        contatoElement.style.display = 'block';
+        console.log('✅ [CORREÇÃO 09] Contato', proximoContato, 'revelado (estava oculto)');
+        
+        // Aplicar máscara telefone ao contato revelado
+        var phoneInput = contatoElement.querySelector('.phone-mask');
+        if (phoneInput) {
+            if (phoneInput.value && phoneInput.value.length > 0) {
+                formatPhone(phoneInput);
+                console.log('🔧 [CORREÇÃO 09] Telefone formatado no contato revelado:', phoneInput.value);
+            }
+        }
+        
+        // Focar no primeiro campo do contato revelado
+        var firstInput = contatoElement.querySelector('input');
+        if (firstInput) firstInput.focus();
+        
+        return; // Sair da função - não criar contato dinâmico
+    }
+    
+    // Se chegou aqui, todos os contatos estáticos (2-5) já estão visíveis
+    // Proceder com criação de contato dinâmico (6+)
+    console.log('🔧 [CORREÇÃO 09] Todos contatos estáticos visíveis - criando dinâmico');
     
     // VERIFICAÇÃO CRÍTICA: Container existe?
     const container = document.getElementById('contatosContainer');
@@ -2308,14 +2884,14 @@ function adicionarContato() {
     }
     
     numeroContatos++;
-    console.log(`🔧 ADICIONARCONTATO: Incrementado para: ${numeroContatos}`);
-    console.log(`🔧 ADICIONARCONTATO: Container encontrado:`, !!container);
+    console.log(`🔧 [CORREÇÃO 09] CONTATOS: Incrementado para: ${numeroContatos}`);
+    console.log(`🔧 [CORREÇÃO 09] CONTATOS: Container encontrado:`, !!container);
     
     try {
         const novoContato = document.createElement('div');
         novoContato.className = 'card border-light mb-2 contato-card';
         novoContato.id = `contato_${numeroContatos}`;
-        console.log(`🔧 ADICIONARCONTATO: Criando card com ID: contato_${numeroContatos}`);
+        console.log(`🔧 [CORREÇÃO 09] CONTATOS: Criando card dinâmico com ID: contato_${numeroContatos}`);
     
     // Reutilizar a mesma variável novoContato
     novoContato.innerHTML = `
@@ -2365,12 +2941,12 @@ function adicionarContato() {
         });
     }
     
-    console.log(`✅ ADICIONARCONTATO: Card contato_${numeroContatos} criado e adicionado ao DOM`);
+    console.log(`✅ [CORREÇÃO 09] CONTATOS: Card dinâmico contato_${numeroContatos} criado e adicionado ao DOM`);
     
     // Verificar se o elemento foi realmente adicionado
     setTimeout(() => {
         const verificar = document.getElementById(`contato_${numeroContatos}`);
-        console.log(`🔍 ADICIONARCONTATO: Verificação após 100ms - Card existe? ${!!verificar}`);
+        console.log(`🔍 [CORREÇÃO 09] CONTATOS: Verificação após 100ms - Card existe? ${!!verificar}`);
     }, 100);
     
     } catch (error) {
@@ -2462,9 +3038,15 @@ function inicializarValidacaoCampos() {
     const conditionalFields = document.querySelectorAll('.conditional-required');
     
     function updateRequiredFields() {
-    const value = cpfCnpjInput.value.replace(/\D/g, '');
-    const isCPF = value.length === 11;
-    const isCNPJ = value.length === 14;
+        // CORREÇÃO: Verificar se o campo existe antes de usá-lo
+        if (!cpfCnpjInput) {
+            console.log('⚠️ Campo CPF/CNPJ ainda não disponível');
+            return;
+        }
+        
+        const value = cpfCnpjInput.value.replace(/\D/g, '');
+        const isCPF = value.length === 11;
+        const isCNPJ = value.length === 14;
         
         console.log('🔄 Atualizando campos obrigatórios:', {
             value: value,
@@ -2519,9 +3101,14 @@ function inicializarValidacaoCampos() {
     if (cpfCnpjInput) {
         updateRequiredFields();
         
-        // Adicionar evento para atualizar quando CPF/CNPJ mudar
-        cpfCnpjInput.addEventListener('input', updateRequiredFields);
-        console.log('✅ Event listener do CPF/CNPJ adicionado');
+        // CORREÇÃO: Combinar ambas as funcionalidades em um único event listener
+        cpfCnpjInput.addEventListener('input', function() {
+            // 1. Atualizar campos obrigatórios (função original)
+            updateRequiredFields();
+            // 2. Atualizar CPF/CNPJ e Doméstica (nova funcionalidade)
+            atualizarCpfCnpjEDomestica();
+        });
+        console.log('✅ Event listener combinado do CPF/CNPJ adicionado');
     } else {
         console.error('❌ Campo CPF/CNPJ não encontrado!');
     }
@@ -2761,13 +3348,12 @@ if (sociosContainer) {
     });
 }
 
-// NOVA FUNÇÃO SIMPLES PARA CONTATOS - SOBRESCREVER A ANTERIOR
+// CORREÇÃO 14: NOVA FUNÇÃO SIMPLES PARA CONTATOS - SEM ALERTAS BLOQUEANTES
 function carregarContatosSimples(dadosCliente) {
-    alert('🚨 FUNÇÃO SIMPLES CONTATOS ATIVADA!');
-    console.log('🔧 CARREGANDO CONTATOS - VERSÃO SIMPLES');
+    console.log('🔧 [CORREÇÃO 14] CARREGANDO CONTATOS - VERSÃO SIMPLES (SEM ALERTAS)');
     
     if (!dadosCliente) {
-        alert('❌ ERRO: Dados do cliente não fornecidos');
+        console.error('❌ ERRO: Dados do cliente não fornecidos');
         return;
     }
     
@@ -2826,7 +3412,7 @@ function carregarContatosSimples(dadosCliente) {
         console.log(`✅ Contato 1 preenchido: ${dadosCliente.contato_1_nome}`);
     }
     
-    alert('✅ CONTATOS SIMPLES CARREGADOS!');
+    console.log('✅ [CORREÇÃO 14] CONTATOS SIMPLES CARREGADOS!');
 }
 
 // Sobrescrever a função problemática
@@ -2834,7 +3420,7 @@ window.carregarContatos = carregarContatosSimples;
 
 // NOVA FUNÇÃO PARA SÓCIOS - FORÇA BRUTA
 function carregarSociosForcaBruta(dadosCliente) {
-    alert('🚨 FORÇA BRUTA - SEMPRE 3 SÓCIOS!');
+    console.log('� [CORREÇÃO 14] FORÇA BRUTA - SEMPRE 3 SÓCIOS!');
     console.log('⚡ Executando força bruta para sócios');
     
     // SEMPRE criar 2 sócios adicionais (total = 3)
