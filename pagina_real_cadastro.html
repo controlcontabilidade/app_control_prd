@@ -1,339 +1,1026 @@
-{% extends "base.html" %}
-{% block title %}{% if view_mode %}Visualizar Cliente{% elif client %}Editar Cliente{% else %}Novo Cliente{% endif %}{% endblock %}
-
-{% block head %}
-<script>
-console.log('🚨 DIAGNÓSTICO SOCIOS - CARREGAMENTO INICIADO');
-console.log('🕐 Timestamp:', new Date().toISOString());
-console.log('🌐 URL:', window.location.href);
-</script>
-<style>
-.socio-card {
-    background-color: #f8f9fa;
-    border: 1px solid #e9ecef;
-    transition: all 0.3s ease;
-}
-
-.socio-card:hover {
-    background-color: #e9ecef;
-    border-color: #dee2e6;
-}
-
-.socio-card .form-control-sm {
-    font-size: 0.875rem;
-}
-
-.socio-card .form-label.small {
-    font-size: 0.75rem;
-    font-weight: 600;
-    color: #6c757d;
-    margin-bottom: 2px;
-}
-
-#sociosContainer {
-    max-height: 400px;
-    overflow-y: auto;
-    border: 1px solid #dee2e6;
-    border-radius: 0.375rem;
-    padding: 0.5rem;
-    background-color: #ffffff;
-}
-
-.btn-outline-primary.btn-sm {
-    font-size: 0.75rem;
-    padding: 0.25rem 0.5rem;
-}
-
-.btn-outline-danger.btn-sm {
-    font-size: 0.75rem;
-    padding: 0.25rem 0.5rem;
-}
-
-/* Estilos para os botões de visualização de senha */
-.toggle-password-btn {
-    border-left: none;
-}
-
-.toggle-password-btn:hover {
-    background-color: #e9ecef;
-    border-color: #ced4da;
-}
-
-.toggle-password-btn:focus {
-    box-shadow: none;
-    border-color: #80bdff;
-}
-
-/* Estilos para modo de visualização */
-.view-mode input[readonly], 
-.view-mode select[readonly], 
-.view-mode textarea[readonly] {
-    background-color: #f8f9fa !important;
-    border-color: #e9ecef !important;
-    cursor: default !important;
-}
-
-.view-mode input[type="checkbox"]:disabled,
-.view-mode input[type="radio"]:disabled {
-    opacity: 0.6;
-    cursor: not-allowed;
-}
-
-.view-mode .btn:not(.view-mode-show) {
-    display: none !important;
-}
-
-.view-mode-banner {
-    background: linear-gradient(135deg, #17a2b8, #007bff);
-    color: white;
-    padding: 0.5rem 1rem;
-    border-radius: 0.375rem;
-    margin-bottom: 1rem;
-    font-weight: 500;
-}
-</style>
-{% endblock %}
-
-{% block scripts %}
-<script>
-console.log('🔍 DEBUG: view_mode =', {{ view_mode|tojson }});
-console.log('🔍 DEBUG: client =', {{ client is defined }});
-{% if view_mode %}
-console.log('✅ MODO VISUALIZAÇÃO ATIVO');
-{% else %}
-console.log('✏️ MODO EDIÇÃO/CRIAÇÃO ATIVO');
-{% endif %}
-
-// ===== FUNÇÃO INLINE SIMPLES PARA CPF/CNPJ =====
-function formatarCpfCnpjInline(input) {
-    console.log('🎯 FUNÇÃO INLINE CHAMADA:', input.value);
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="SIGEC - Sistema de Gestão de Empresas Control. Contabilidade Consultiva Especializada para o seu negócio.">
+    <meta name="keywords" content="sigec, sistema gestão, contabilidade, fiscal, departamento pessoal, consultoria, fortaleza, ceará">
+    <meta name="author" content="Control Contabilidade LTDA">
+    <title>Novo Cliente</title>
     
-    const valor = input.value.replace(/\D/g, '');
-    const domesticaSelect = document.getElementById('domestica');
-    const labelCpfCnpj = document.querySelector('label[for="cpfCnpj"]');
+    <!-- Favicon personalizado SIGEC -->
+    <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><rect width='100' height='100' rx='15' fill='%23f97316'/><text x='50' y='65' font-family='Arial,sans-serif' font-size='60' font-weight='900' text-anchor='middle' fill='white'>S</text></svg>">
     
-    console.log('📋 Valor limpo:', valor, 'Length:', valor.length);
-    
-    // Formatação
-    let valorFormatado = '';
-    if (valor.length <= 11) {
-        // CPF: 000.000.000-00
-        valorFormatado = valor.replace(/(\d{3})(\d{3})(\d{3})(\d{2})/, '$1.$2.$3-$4');
-    } else {
-        // CNPJ: 00.000.000/0000-00
-        valorFormatado = valor.replace(/(\d{2})(\d{3})(\d{3})(\d{4})(\d{2})/, '$1.$2.$3/$4-$5');
-    }
-    
-    input.value = valorFormatado;
-    console.log('✅ Valor formatado:', valorFormatado);
-    
-    // Atualizar label e Doméstica
-    if (valor.length === 11) {
-        console.log('👤 CPF - habilitando Doméstica');
-        if (labelCpfCnpj) labelCpfCnpj.innerHTML = '<i class="bi bi-person me-1"></i>CPF <span class="text-danger">*</span>';
-        if (domesticaSelect) domesticaSelect.disabled = false;
-    } else if (valor.length === 14) {
-        console.log('🏢 CNPJ - desabilitando Doméstica');
-        if (labelCpfCnpj) labelCpfCnpj.innerHTML = '<i class="bi bi-building me-1"></i>CNPJ <span class="text-danger">*</span>';
-        if (domesticaSelect) {
-            domesticaSelect.disabled = true;
-            domesticaSelect.value = 'NÃO';
-        }
-    } else {
-        console.log('⏳ Incompleto');
-        if (labelCpfCnpj) labelCpfCnpj.innerHTML = '<i class="bi bi-card-text me-1"></i>CPF/CNPJ <span class="text-danger">*</span>';
-        if (domesticaSelect) {
-            domesticaSelect.disabled = true;
-            domesticaSelect.value = 'NÃO';
-        }
-    }
-    
-    console.log('✅ Função inline concluída');
-}
-
-document.addEventListener('DOMContentLoaded', function() {
-    // ===== INICIALIZAÇÃO PRIORITÁRIA =====
-    console.log('🚀 DOM Carregado - Inicializando validações CPF/CNPJ PRIMEIRO');
-    
-    // ===== CONFIGURAÇÃO INICIAL DO CAMPO DOMÉSTICA =====
-    function configurarCampoDomesticaInicial() {
-        const cpfCnpjInput = document.getElementById('cpfCnpj');
-        const domesticaSelect = document.getElementById('domestica');
-        
-        console.log('🏠 Configurando campo Doméstica inicial...');
-        
-        if (cpfCnpjInput && domesticaSelect) {
-            // Se há valor inicial no CPF/CNPJ, processar
-            const valorInicial = cpfCnpjInput.value.replace(/\D/g, '');
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.0/font/bootstrap-icons.css" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            /* Control Contabilidade Brand Colors */
+            --control-primary: #1e3a8a;       /* Azul escuro profissional */
+            --control-primary-light: #3b82f6;  /* Azul médio */
+            --control-primary-dark: #1e40af;   /* Azul muito escuro */
+            --control-secondary: #f97316;      /* Laranja Control */
+            --control-secondary-light: #fb923c; /* Laranja claro */
+            --control-secondary-dark: #ea580c;  /* Laranja escuro */
             
-            if (valorInicial.length === 11) {
-                // CPF - habilitar Doméstica
-                console.log('👤 CPF inicial detectado - habilitando Doméstica');
-                domesticaSelect.disabled = false;
-            } else if (valorInicial.length === 14) {
-                // CNPJ - desabilitar Doméstica
-                console.log('🏢 CNPJ inicial detectado - desabilitando Doméstica');
-                domesticaSelect.disabled = true;
-                domesticaSelect.value = 'NÃO';
-            } else if (valorInicial.length === 0) {
-                // Novo cadastro - desabilitar até definir CPF/CNPJ
-                console.log('🆕 Novo cadastro - Doméstica desabilitada até definir CPF/CNPJ');
-                domesticaSelect.disabled = true;
-                domesticaSelect.value = 'NÃO';
+            /* Sistema de cores atualizado */
+            --primary-color: var(--control-primary);
+            --primary-hover: var(--control-primary-dark);
+            --primary-light: #dbeafe;
+            --secondary-color: var(--control-secondary);
+            --secondary-light: #fed7aa;
+            --success-color: #059669;
+            --success-light: #d1fae5;
+            --warning-color: var(--control-secondary);
+            --warning-light: var(--secondary-light);
+            --danger-color: #dc2626;
+            --danger-light: #fecaca;
+            --background: #f8fafc;
+            --background-alt: #f1f5f9;
+            --surface: #ffffff;
+            --surface-hover: #f8fafc;
+            --border: #e2e8f0;
+            --border-light: #f1f5f9;
+            --text-primary: #0f172a;
+            --text-secondary: #475569;
+            --text-muted: #94a3b8;
+            --shadow-sm: 0 1px 2px 0 rgb(0 0 0 / 0.05);
+            --shadow: 0 1px 3px 0 rgb(0 0 0 / 0.1), 0 1px 2px -1px rgb(0 0 0 / 0.1);
+            --shadow-lg: 0 10px 15px -3px rgb(0 0 0 / 0.1), 0 4px 6px -4px rgb(0 0 0 / 0.1);
+            --shadow-xl: 0 20px 25px -5px rgb(0 0 0 / 0.1), 0 8px 10px -6px rgb(0 0 0 / 0.1);
+            --radius: 8px;
+            --radius-lg: 12px;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: linear-gradient(135deg, #f8fafc 0%, #f1f5f9 100%);
+            color: var(--text-primary);
+            line-height: 1.6;
+            font-size: 14px;
+            min-height: 100vh;
+        }
+
+        /* Header/Navbar com identidade Control */
+        .navbar {
+            background: linear-gradient(135deg, var(--control-primary) 0%, var(--control-primary-dark) 100%);
+            box-shadow: var(--shadow-lg);
+            border: none;
+            padding: 1.2rem 0;
+            backdrop-filter: blur(10px);
+            position: relative;
+            z-index: 1000;
+            overflow: visible !important;
+        }
+
+        .navbar-brand {
+            font-weight: 700;
+            font-size: 1.5rem;
+            color: white !important;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        /* Logo Control personalizado */
+        .control-logo {
+            background: linear-gradient(135deg, var(--control-secondary) 0%, var(--control-secondary-dark) 100%);
+            color: white;
+            width: 40px;
+            height: 40px;
+            border-radius: 8px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: 900;
+            font-size: 18px;
+            box-shadow: var(--shadow);
+        }
+
+        /* Logo Control como imagem */
+        .control-logo-img {
+            height: 45px;
+            width: auto;
+            margin-right: 12px;
+            filter: brightness(1.1);
+            transition: all 0.3s ease;
+        }
+
+        .control-logo-img:hover {
+            filter: brightness(1.2) drop-shadow(0 2px 8px rgba(0,0,0,0.2));
+        }
+
+        /* Logo Control CSS - Nova versão fiel ao design original */
+        .control-logo-brand {
+            display: inline-flex;
+            align-items: center;
+            font-family: 'Arial Black', Arial, sans-serif;
+            height: 45px;
+            margin-right: 15px;
+            transition: all 0.3s ease;
+        }
+
+        .control-logo-brand:hover {
+            transform: translateY(-1px);
+        }
+
+        .control-circle-brand {
+            width: 40px;
+            height: 40px;
+            background: linear-gradient(135deg, #1e3c72 0%, #2a5298 100%);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin-right: 8px;
+            box-shadow: 0 3px 10px rgba(30, 60, 114, 0.4);
+            border: 2px solid rgba(255, 255, 255, 0.1);
+        }
+
+        .check-mark-brand {
+            color: #ff8c42;
+            font-size: 18px;
+            font-weight: bold;
+            line-height: 1;
+            text-shadow: 0 1px 2px rgba(0,0,0,0.2);
+        }
+
+        .text-part-brand {
+            display: flex;
+            flex-direction: column;
+            line-height: 1;
+        }
+
+        .control-text-brand {
+            font-size: 16px;
+            font-weight: 900;
+            color: white;
+            margin: 0;
+            letter-spacing: -0.3px;
+            text-shadow: 0 1px 3px rgba(0,0,0,0.3);
+        }
+
+        .contabilidade-text-brand {
+            font-size: 7px;
+            font-weight: 600;
+            color: rgba(255, 140, 66, 0.9);
+            letter-spacing: 1px;
+            margin: 0;
+            margin-top: -1px;
+            text-shadow: 0 1px 2px rgba(0,0,0,0.2);
+        }
+
+        /* Responsividade da logo */
+        @media (max-width: 768px) {
+            .control-logo-brand {
+                height: 40px;
+                margin-right: 10px;
+            }
+            
+            .control-circle-brand {
+                width: 35px;
+                height: 35px;
+                margin-right: 6px;
+            }
+            
+            .check-mark-brand {
+                font-size: 16px;
+            }
+            
+            .control-text-brand {
+                font-size: 14px;
+            }
+            
+            .contabilidade-text-brand {
+                font-size: 6px;
             }
         }
-    }
-    
-    // Executar configuração inicial imediatamente
-    configurarCampoDomesticaInicial();
-    
-    // Aguardar um pouco para garantir que o DOM está 100% pronto
-    setTimeout(function() {
-        console.log('🔧 Configurando CPF/CNPJ e Doméstica...');
-        const cpfCnpjInput = document.getElementById('cpfCnpj');
-        const domesticaSelect = document.getElementById('domestica');
-        
-        if (cpfCnpjInput && domesticaSelect) {
-            console.log('✅ Campos encontrados - configurando event listener');
-            
-            // Event listener combinado
-            cpfCnpjInput.addEventListener('input', function() {
-                console.log('📋 Input detectado:', this.value);
-                // Chamar ambas as funcionalidades
-                try {
-                    if (typeof atualizarCpfCnpjEDomestica === 'function') {
-                        atualizarCpfCnpjEDomestica();
-                    } else {
-                        console.log('⚠️ Função atualizarCpfCnpjEDomestica não definida ainda');
-                    }
-                } catch (e) {
-                    console.error('❌ Erro ao executar atualizarCpfCnpjEDomestica:', e);
-                }
-            });
-            
-            console.log('✅ CPF/CNPJ configurado com sucesso!');
-        } else {
-            console.error('❌ Campos CPF/CNPJ ou Doméstica não encontrados!');
+
+        .brand-text {
+            display: flex;
+            flex-direction: column;
+            line-height: 1.2;
         }
-    }, 100); // 100ms de delay
-    
-    // ===== RESTO DAS FUNCIONALIDADES =====
-    function atualizarCpfRepresentanteLegal() {
-        console.log('🔍 Atualizando CPF do Representante Legal...');
+
+        .brand-text .main {
+            font-size: 1.5rem;
+            font-weight: 800;
+        }
+
+        .brand-text .sub {
+            font-size: 0.75rem;
+            font-weight: 400;
+            opacity: 0.9;
+            margin-top: -2px;
+        }
         
-        // Procura o radio selecionado para representante legal
-        const radios = document.querySelectorAll('.representante-legal');
-        let cpf = '';
-        let socioSelecionado = '';
+        .nav-link {
+            color: rgba(255, 255, 255, 0.85) !important;
+            font-weight: 500;
+            font-size: 0.95rem;
+            transition: all 0.2s ease;
+            text-decoration: none;
+            padding: 0.5rem 1rem;
+            border-radius: var(--radius);
+        }
         
-        radios.forEach(function(radio) {
-            if (radio.checked) {
-                // O id do sócio está no value (ex: socio_1)
-                const socioId = radio.value;
-                socioSelecionado = socioId;
+        .nav-link:hover {
+            color: white !important;
+            background: rgba(255, 255, 255, 0.1);
+            transform: translateY(-1px);
+        }
+
+        /* Estilos do usuário */
+        .user-avatar {
+            width: 32px;
+            height: 32px;
+            background: rgba(255, 255, 255, 0.2);
+            border: 2px solid rgba(255, 255, 255, 0.3);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: 600;
+            font-size: 0.9rem;
+            color: white;
+        }
+        
+        .user-info {
+            text-align: left;
+        }
+        
+        .user-name {
+            color: white;
+            font-weight: 500;
+            display: block;
+            line-height: 1.2;
+        }
+        
+        .user-role {
+            font-size: 0.75rem;
+            color: rgba(255, 255, 255, 0.7);
+            line-height: 1.2;
+        }
+        
+        /* Estilos específicos para corrigir dropdown do administrador */
+        .dropdown .dropdown-toggle {
+            border: none !important;
+            background: transparent !important;
+            color: rgba(255, 255, 255, 0.85) !important;
+            padding: 0.5rem 1rem !important;
+        }
+        
+        .dropdown .dropdown-toggle:hover {
+            color: white !important;
+            background: rgba(255, 255, 255, 0.1) !important;
+        }
+        
+        .dropdown .dropdown-toggle:focus {
+            box-shadow: none !important;
+            outline: none !important;
+        }
+        
+        /* Dropdown específico do usuário/administrador */
+        .dropdown ul.dropdown-menu {
+            background: white !important;
+            border: 1px solid rgba(0,0,0,0.1) !important;
+            border-radius: var(--radius) !important;
+            padding: 0.5rem 0 !important;
+            margin: 0 !important;
+            box-shadow: 0 10px 25px rgba(0,0,0,0.15) !important;
+            min-width: 220px !important;
+            z-index: 999999 !important;
+            position: absolute !important;
+            top: calc(100% + 5px) !important;
+            right: 0 !important;
+            left: auto !important;
+            transform: none !important;
+        }
+        
+        .dropdown ul.dropdown-menu li {
+            list-style: none !important;
+            margin: 0 !important;
+            padding: 0 !important;
+        }
+        
+        .dropdown ul.dropdown-menu li a.dropdown-item {
+            display: flex !important;
+            align-items: center !important;
+            padding: 0.75rem 1.25rem !important;
+            color: var(--text-primary) !important;
+            text-decoration: none !important;
+            font-size: 0.9rem !important;
+            transition: all 0.2s ease !important;
+            border: none !important;
+            background: transparent !important;
+        }
+        
+        .dropdown ul.dropdown-menu li a.dropdown-item:hover {
+            background: var(--control-primary) !important;
+            color: white !important;
+        }
+        
+        .dropdown ul.dropdown-menu li a.dropdown-item i {
+            margin-right: 0.75rem !important;
+            font-size: 1rem !important;
+        }
+        
+        .dropdown ul.dropdown-menu li hr.dropdown-divider {
+            margin: 0.5rem 0 !important;
+            border-color: rgba(0,0,0,0.1) !important;
+        }
+        
+        /* Dropdown com prioridade máxima */
+        .dropdown {
+            z-index: 999999 !important;
+            position: relative !important;
+        }
+        
+        .dropdown-menu {
+            border: none !important;
+            box-shadow: var(--shadow-xl) !important;
+            border-radius: var(--radius) !important;
+            margin-top: 0.5rem !important;
+            z-index: 999999 !important;
+            position: absolute !important;
+            top: 100% !important;
+            right: 0 !important;
+            left: auto !important;
+            min-width: 200px !important;
+            max-height: none !important;
+            overflow: visible !important;
+            transform: none !important;
+            background: white !important;
+            display: none !important;
+        }
+        
+        .dropdown-menu.show {
+            display: block !important;
+            z-index: 999999 !important;
+        }
+        
+        /* Garante que dropdown do usuário apareça sempre na frente */
+        #userDropdown {
+            z-index: 999999 !important;
+            position: relative !important;
+        }
+        
+        .dropdown-menu-end {
+            z-index: 999999 !important;
+            right: 0 !important;
+            left: auto !important;
+        }
+        
+        /* Força a navbar a ter overflow visível */
+        .navbar {
+            overflow: visible !important;
+        }
+        
+        .navbar-nav {
+            overflow: visible !important;
+        }
+        
+        .nav-item {
+            overflow: visible !important;
+        }
+        
+        .dropdown-item {
+            padding: 0.75rem 1rem;
+            font-size: 0.9rem;
+            transition: all 0.2s ease;
+            color: var(--text-primary) !important;
+            text-decoration: none !important;
+            display: flex !important;
+            align-items: center !important;
+            white-space: nowrap !important;
+        }
+        
+        .dropdown-item:hover {
+            background: var(--control-primary) !important;
+            color: white !important;
+        }
+        
+        .dropdown-item i {
+            margin-right: 0.5rem !important;
+        }
+        
+        /* Garante que o container principal não corte o dropdown */
+        body {
+            overflow-x: hidden;
+            overflow-y: auto;
+        }
+        
+        .main-container {
+            overflow: visible !important;
+        }
+        
+        .container-responsive {
+            overflow: visible !important;
+        }
+
+        /* Container principal - largura máxima do monitor */
+        .main-container {
+            width: 100%;
+            max-width: 100vw;
+            margin: 0;
+            padding: 1rem 0.5rem;
+            min-height: calc(100vh - 140px);
+        }
+
+        /* Container responsivo para ocupar toda a largura disponível */
+        .container-responsive {
+            width: 100%;
+            max-width: 100%;
+            padding: 0 0.5rem;
+        }
+
+        /* Navbar também em largura total */
+        .navbar .container-fluid {
+            max-width: 100%;
+            padding: 0 1rem;
+        }
+
+        /* Footer em largura total */
+        footer .container-fluid {
+            max-width: 100%;
+            padding: 0 1rem;
+        }
+
+        /* Para telas muito pequenas, mantém um padding mínimo */
+        @media (max-width: 576px) {
+            .container-responsive {
+                padding: 0 0.25rem;
+            }
+            
+            .main-container {
+                padding: 0.5rem 0.25rem;
+            }
+        }
+
+        /* Para telas grandes, remove qualquer limitação de largura */
+        @media (min-width: 1200px) {
+            .main-container {
+                padding: 1rem 0.75rem;
+            }
+            
+            .container-responsive {
+                padding: 0 0.75rem;
+            }
+        }
+
+        /* Para telas ultra-largas, maximiza o aproveitamento */
+        @media (min-width: 1600px) {
+            .main-container {
+                padding: 1rem 1rem;
+            }
+            
+            .container-responsive {
+                padding: 0 1rem;
+            }
+        }
+
+        /* Cards */
+        .card {
+            border: 1px solid var(--border);
+            border-radius: var(--radius-lg);
+            box-shadow: var(--shadow);
+            background: var(--surface);
+            transition: all 0.3s ease;
+            overflow: hidden;
+        }
+
+        .card:hover {
+            box-shadow: var(--shadow-lg);
+            transform: translateY(-2px);
+        }
+
+        .card-header {
+            background: linear-gradient(135deg, var(--surface) 0%, var(--background-alt) 100%);
+            border-bottom: 1px solid var(--border);
+            border-radius: var(--radius-lg) var(--radius-lg) 0 0 !important;
+            padding: 1.5rem;
+        }
+
+        .card-body {
+            padding: 1.5rem;
+        }
+
+        /* Página header */
+        .page-header {
+            background: var(--surface);
+            border-radius: var(--radius-lg);
+            padding: 2rem;
+            margin-bottom: 2rem;
+            box-shadow: var(--shadow);
+            border: 1px solid var(--border);
+        }
+
+        .page-header h1 {
+            font-size: 2rem;
+            font-weight: 700;
+            color: var(--text-primary);
+            margin-bottom: 0.5rem;
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+        }
+
+        .page-header p {
+            color: var(--text-secondary);
+            font-size: 1rem;
+            margin: 0;
+        }
+
+        .card-header h5 {
+            color: var(--text-primary);
+            font-weight: 600;
+            margin: 0;
+        }
+
+        .card-body {
+            padding: 1.5rem;
+        }
+
+        /* Botões com identidade Control */
+        .btn {
+            border-radius: var(--radius);
+            font-weight: 500;
+            padding: 0.75rem 1.5rem;
+            transition: all 0.3s ease;
+            border: none;
+            font-size: 0.875rem;
+            display: inline-flex;
+            align-items: center;
+            gap: 0.5rem;
+            text-decoration: none;
+        }
+
+        .btn-primary {
+            background: linear-gradient(135deg, var(--control-primary) 0%, var(--control-primary-dark) 100%);
+            color: white;
+            box-shadow: var(--shadow-sm);
+        }
+
+        .btn-primary:hover {
+            background: linear-gradient(135deg, var(--control-primary-dark) 0%, #1e40af 100%);
+            transform: translateY(-2px);
+            box-shadow: var(--shadow-lg);
+            color: white;
+        }
+
+        .btn-success {
+            background: linear-gradient(135deg, var(--success-color) 0%, #047857 100%);
+            color: white;
+            box-shadow: var(--shadow-sm);
+        }
+
+        .btn-success:hover {
+            background: linear-gradient(135deg, #047857 0%, #065f46 100%);
+            transform: translateY(-2px);
+            box-shadow: var(--shadow-lg);
+            color: white;
+        }
+
+        .btn-secondary {
+            background: linear-gradient(135deg, var(--control-secondary) 0%, var(--control-secondary-dark) 100%);
+            color: white;
+            box-shadow: var(--shadow-sm);
+        }
+
+        .btn-secondary:hover {
+            background: linear-gradient(135deg, var(--control-secondary-dark) 0%, #c2410c 100%);
+            transform: translateY(-2px);
+            box-shadow: var(--shadow-lg);
+            color: white;
+        }
+
+        .btn-warning {
+            background: linear-gradient(135deg, var(--control-secondary) 0%, var(--control-secondary-dark) 100%);
+            color: white;
+            box-shadow: var(--shadow-sm);
+        }
+
+        .btn-warning:hover {
+            background: linear-gradient(135deg, var(--control-secondary-dark) 0%, #c2410c 100%);
+            transform: translateY(-2px);
+            box-shadow: var(--shadow-lg);
+            color: white;
+        }
+
+        .btn-danger {
+            background: linear-gradient(135deg, var(--danger-color) 0%, #b91c1c 100%);
+            color: white;
+            box-shadow: var(--shadow-sm);
+        }
+
+        .btn-danger:hover {
+            background: linear-gradient(135deg, #b91c1c 0%, #991b1b 100%);
+            transform: translateY(-2px);
+            box-shadow: var(--shadow-lg);
+            color: white;
+        }
+
+        .btn-sm {
+            padding: 0.5rem 1rem;
+            font-size: 0.8rem;
+        }
+
+        /* Form elements modernos */
+        .form-control, .form-select {
+            border: 1.5px solid var(--border);
+            border-radius: var(--radius);
+            padding: 0.875rem 1rem;
+            transition: all 0.3s ease;
+            background: var(--surface);
+            font-size: 0.875rem;
+        }
+
+        .form-control:focus, .form-select:focus {
+            border-color: var(--primary-color);
+            box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.1);
+            outline: none;
+            background: var(--surface);
+        }
+
+        .form-label {
+            font-weight: 600;
+            color: var(--text-primary);
+            margin-bottom: 0.5rem;
+            font-size: 0.875rem;
+        }
+
+        .form-text {
+            color: var(--text-muted);
+            font-size: 0.8rem;
+        }
+
+        /* Tables modernas */
+        .table {
+            background: var(--surface);
+            border-radius: var(--radius-lg);
+            overflow: hidden;
+            box-shadow: var(--shadow);
+            border: 1px solid var(--border);
+        }
+
+        .table thead th {
+            background: linear-gradient(135deg, var(--background-alt) 0%, var(--border-light) 100%);
+            border-bottom: 1px solid var(--border);
+            font-weight: 600;
+            color: var(--text-primary);
+            padding: 1.25rem 1rem;
+            font-size: 0.875rem;
+            text-transform: uppercase;
+            letter-spacing: 0.025em;
+        }
+
+        .table tbody td {
+            padding: 1.25rem 1rem;
+            border-bottom: 1px solid var(--border-light);
+            vertical-align: middle;
+            font-size: 0.875rem;
+        }
+
+        .table tbody tr {
+            transition: all 0.2s ease;
+        }
+
+        .table tbody tr:hover {
+            background: var(--surface-hover);
+            transform: translateX(2px);
+        }
+
+        .table tbody tr:last-child td {
+            border-bottom: none;
+        }
+
+        /* Alerts modernos */
+        .alert {
+            border-radius: var(--radius);
+            border: none;
+            padding: 1rem 1.5rem;
+            margin-bottom: 1.5rem;
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+            font-weight: 500;
+            box-shadow: var(--shadow-sm);
+            z-index: 1040;
+            position: relative;
+        }
+
+        .alert-success {
+            background: linear-gradient(135deg, var(--success-light) 0%, #dcfce7 100%);
+            color: var(--success-color);
+            border-left: 4px solid var(--success-color);
+        }
+
+        .alert-danger {
+            background: linear-gradient(135deg, var(--danger-light) 0%, #fee2e2 100%);
+            color: var(--danger-color);
+            border-left: 4px solid var(--danger-color);
+        }
+
+        .alert-warning {
+            background: linear-gradient(135deg, var(--warning-light) 0%, #fef3c7 100%);
+            color: var(--warning-color);
+            border-left: 4px solid var(--warning-color);
+        }
+
+        .alert-info {
+            background: linear-gradient(135deg, var(--primary-light) 0%, #dbeafe 100%);
+            color: var(--primary-color);
+            border-left: 4px solid var(--primary-color);
+        }
+
+        /* Badges com identidade Control */
+        .badge {
+            border-radius: var(--radius);
+            padding: 0.375rem 0.75rem;
+            font-size: 0.75rem;
+            font-weight: 600;
+            letter-spacing: 0.025em;
+            text-transform: uppercase;
+        }
+
+        .badge.bg-success {
+            background: linear-gradient(135deg, var(--success-color) 0%, #047857 100%) !important;
+            color: white;
+        }
+
+        .badge.bg-danger {
+            background: linear-gradient(135deg, var(--danger-color) 0%, #b91c1c 100%) !important;
+            color: white;
+        }
+
+        .badge.bg-warning {
+            background: linear-gradient(135deg, var(--control-secondary) 0%, var(--control-secondary-dark) 100%) !important;
+            color: white;
+        }
+
+        .badge.bg-light {
+            background: var(--background-alt) !important;
+            color: var(--text-secondary);
+            border: 1px solid var(--border);
+        }
+
+        .badge.bg-primary {
+            background: linear-gradient(135deg, var(--control-primary) 0%, var(--control-primary-dark) 100%) !important;
+            color: white;
+        }
+
+        .badge.bg-secondary {
+            background: linear-gradient(135deg, var(--control-secondary) 0%, var(--control-secondary-dark) 100%) !important;
+            color: white;
+        }
+
+        /* Loading e estados */
+        .loading {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.5rem;
+            color: var(--text-muted);
+        }
+
+        .spinner {
+            width: 1rem;
+            height: 1rem;
+            border: 2px solid var(--border);
+            border-top: 2px solid var(--primary-color);
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        /* Status indicators */
+        .status-indicator {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.5rem;
+            font-size: 0.875rem;
+            font-weight: 500;
+        }
+
+        .status-dot {
+            width: 8px;
+            height: 8px;
+            border-radius: 50%;
+            animation: pulse 2s infinite;
+        }
+
+        .status-dot.active {
+            background: var(--success-color);
+        }
+
+        .status-dot.inactive {
+            background: var(--text-muted);
+        }
+
+        @keyframes pulse {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.5; }
+        }
+
+        /* Container - Layout tela cheia responsivo */
+        .main-container {
+            width: 100%;
+            max-width: 100%;
+            margin: 0;
+            padding: 1rem 0.75rem;
+            min-height: calc(100vh - 140px);
+        }
+
+        /* Container responsivo para diferentes tamanhos */
+        .container-responsive {
+            width: 100%;
+            max-width: 100%;
+            padding: 0 0.75rem;
+        }
+
+        /* Media Queries para responsividade aprimorada */
+        @media (max-width: 768px) {
+            .main-container {
+                padding: 0.5rem 0.25rem;
+            }
+            
+            .container-responsive {
+                padding: 0 0.25rem;
+            }
+
+            .navbar-brand .brand-text .main {
+                font-size: 1.2rem;
+            }
+
+            .navbar-brand .brand-text .sub {
+                font-size: 0.6rem;
+            }
+
+            .page-header {
+                padding: 1.5rem;
+            }
+
+            .page-header h1 {
+                font-size: 1.5rem;
+            }
+
+            .card {
+                margin-bottom: 1rem;
+            }
+
+            .table-responsive {
+                font-size: 0.875rem;
+            }
+        }
+
+        @media (max-width: 576px) {
+            .container-responsive {
+                padding: 0 0.25rem;
+            }
+
+            .page-header {
+                padding: 1rem;
+            }
+
+            .navbar-brand .brand-text .sub {
+                display: none;
+            }
+
+            .btn {
+                padding: 0.5rem 1rem;
+                font-size: 0.8rem;
+            }
+        }
+
+        /* Page header */
+        .page-header {
+            margin-bottom: 2rem;
+            padding-bottom: 1rem;
+            border-bottom: 1px solid var(--border);
+        }
+
+        .page-header h1 {
+            font-size: 2rem;
+            font-weight: 700;
+            color: var(--text-primary);
+            margin: 0;
+        }
+
+        /* Responsive */
+        @media (max-width: 768px) {
+            .main-container {
+                padding: 1rem 0.5rem;
+            }
+            
+            .page-header h1 {
+                font-size: 1.5rem;
+            }
+        }
+    </style>
+</head>
+<body>
+    <nav class="navbar navbar-expand-lg">
+        <div class="container-fluid">
+            <a class="navbar-brand" href="/">
+                <div class="control-logo-brand">
+                    <div class="control-circle-brand">
+                        <span class="check-mark-brand">✓</span>
+                    </div>
+                    <div class="text-part-brand">
+                        <div class="control-text-brand">control</div>
+                        <div class="contabilidade-text-brand">CONTABILIDADE</div>
+                    </div>
+                </div>
+                <div class="brand-text">
+                    <span class="main">SIGEC</span>
+                    <span class="sub">Sistema de Gestão de Empresas Control</span>
+                </div>
+            </a>
+            
+            <div class="navbar-nav ms-auto d-flex flex-row gap-3 align-items-center">
+                <a class="nav-link" href="/">
+                    <i class="bi bi-house me-1"></i>Dashboard
+                </a>
+                <a class="nav-link" href="/client/new">
+                    <i class="bi bi-plus-circle me-1"></i>Novo Cliente
+                </a>
+                <a class="nav-link" href="/meetings">
+                    <i class="bi bi-file-earmark-text me-1"></i>Atas de Reunião
+                </a>
                 
-                // Busca o input de CPF do sócio (compatível com sócios dinâmicos)
-                const cpfInput = document.querySelector(`#${socioId}_cpf, [name='${socioId}_cpf']`);
-                if (cpfInput) {
-                    cpf = cpfInput.value;
-                    console.log(`✅ Representante Legal selecionado: ${socioId}`);
-                    console.log(`📋 CPF encontrado: ${cpf}`);
-                } else {
-                    console.log(`❌ Campo CPF não encontrado para: ${socioId}`);
-                }
-            }
-        });
-        
-        // Preenche o campo CPF do Representante Legal
-        const cpfRepLegal = document.getElementById('cpfRepLegal');
-        if (cpfRepLegal) {
-            cpfRepLegal.value = cpf;
-            console.log(`🎯 CPF do Representante Legal atualizado: '${cpf}'`);
+                <!-- Dropdown do usuário -->
+                <div class="dropdown">
+                    <button class="btn btn-link nav-link dropdown-toggle d-flex align-items-center" type="button" id="userDropdown" data-bs-toggle="dropdown">
+                        <div class="me-2 d-flex align-items-center">
+                            <div class="user-avatar me-2">
+                                A
+                            </div>
+                            <span class="user-info d-none d-lg-block">
+                                <small class="user-name">Administrador</small>
+                                <small class="user-role text-muted d-block">Administrador</small>
+                            </span>
+                        </div>
+                    </button>
+                    <ul class="dropdown-menu dropdown-menu-end">
+                        
+                        <li><a class="dropdown-item" href="/users">
+                            <i class="bi bi-people me-2"></i>Gerenciar Usuários
+                        </a></li>
+                        <li><a class="dropdown-item" href="/import">
+                            <i class="bi bi-upload me-2"></i>Importar Clientes
+                        </a></li>
+                        <li><hr class="dropdown-divider"></li>
+                        
+                        <li><a class="dropdown-item" href="/system-selection">
+                            <i class="bi bi-grid-3x3-gap me-2"></i>Trocar Sistema
+                        </a></li>
+                        <li><hr class="dropdown-divider"></li>
+                        <li><a class="dropdown-item" href="/logout">
+                            <i class="bi bi-box-arrow-right me-2"></i>Sair
+                        </a></li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Conteúdo principal da página -->
+    <div class="main-container">
+        <div class="container-responsive">
             
-            if (!socioSelecionado) {
-                console.log('⚠️ Nenhum Representante Legal selecionado - Campo limpo');
-            }
-        } else {
-            console.error('❌ Campo CPF do Representante Legal não encontrado!');
-        }
-        
-        console.log('✅ Atualização do CPF do Representante Legal concluída');
-    }
+                
+                    
+                        <div class="alert alert-success alert-dismissible fade show" role="alert">
+                            <i class="bi bi-check-circle-fill me-2"></i>
+                            Bem-vindo(a), Administrador!
+                            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+                        </div>
+                    
+                
+            
 
-    // Atualiza ao selecionar representante legal
-    document.addEventListener('change', function(e) {
-        if (e.target.classList.contains('representante-legal')) {
-            atualizarCpfRepresentanteLegal();
-        }
-    });
-    // Atualiza ao digitar CPF do sócio
-    document.addEventListener('input', function(e) {
-        if (e.target && e.target.id && e.target.id.endsWith('_cpf')) {
-            atualizarCpfRepresentanteLegal();
-        }
-    });
-    // Atualiza ao carregar a página
-    atualizarCpfRepresentanteLegal();
-    
-    {% if view_mode %}
-    // Aplicar readonly para todos os campos no modo visualização
-    document.querySelectorAll('input, select, textarea').forEach(function(field) {
-        if (field.type !== 'hidden') {
-            field.readOnly = true;
-            field.disabled = false; // Manter habilitado para scroll e seleção de texto
-        }
-    });
-    
-    // Desabilitar checkboxes e radios
-    document.querySelectorAll('input[type="checkbox"], input[type="radio"]').forEach(function(field) {
-        field.disabled = true;
-    });
-    
-    // Remover event listeners de botões dinâmicos
-    document.querySelectorAll('button').forEach(function(btn) {
-        if (!btn.classList.contains('view-mode-show')) {
-            btn.style.display = 'none';
-        }
-    });
-    {% endif %}
-});
-</script>
-{% endblock %}
-
-{% block content %}
+            
 <div class="container-fluid py-4">
     <div class="row justify-content-center">
         <div class="col-12">
-            {% if view_mode %}
-            <!-- Banner de modo visualização -->
-            <div class="view-mode-banner d-flex justify-content-between align-items-center">
-                <div>
-                    <i class="bi bi-eye me-2"></i>
-                    <strong>Modo Visualização</strong> - Dados somente para leitura
-                </div>
-                <div>
-                    <a href="{{ url_for('edit_client', client_id=client.id) }}" 
-                       class="btn btn-light btn-sm view-mode-show">
-                        <i class="bi bi-pencil me-1"></i>Editar
-                    </a>
-                </div>
-            </div>
-            {% endif %}
+            
             <!-- Formulário Principal -->
-            {% if view_mode %}
-            <!-- Formulário em modo visualização (readonly) -->
-            <form class="needs-validation view-mode" novalidate>
-            {% else %}
+            
             <!-- Formulário em modo edição/criação -->
-            <form method="POST" action="{{ url_for('save_client') }}" class="needs-validation" novalidate>
-            {% endif %}
+            <form method="POST" action="/client" class="needs-validation" novalidate>
+            
                 <!-- Campo hidden para ID do cliente -->
-                {% if client %}
-                <input type="hidden" name="id" value="{{ client.id }}">
-                {% if client._row_number %}
-                <input type="hidden" name="row_number" value="{{ client._row_number }}">
-                {% endif %}
-                {% endif %}
+                
                 <!-- Bloco 1: Informações da Pessoa Física / Jurídica -->
                 <div class="card mb-4">
                     <div class="card-header bg-primary text-white">
@@ -351,8 +1038,8 @@ document.addEventListener('DOMContentLoaded', function() {
                                     <span class="text-danger required-field">*</span>
                                 </label>
                                 <input type="text" class="form-control upper-input" id="nomeEmpresa" name="nomeEmpresa" 
-                                       value="{{ client.nomeEmpresa if client else '' }}" required
-                                       {% if view_mode %}readonly{% endif %}>
+                                       value="" required
+                                       >
                                 <div class="invalid-feedback">
                                     Por favor, informe o nome da empresa.
                                 </div>
@@ -363,7 +1050,7 @@ document.addEventListener('DOMContentLoaded', function() {
                                     <span class="text-danger conditional-required">*</span>
                                 </label>
                                 <input type="text" class="form-control upper-input" id="razaoSocialReceita" name="razaoSocialReceita"
-                                       value="{{ client.razaoSocialReceita if client else '' }}">
+                                       value="">
                                 <div class="invalid-feedback">
                                     Por favor, informe a razão social.
                                 </div>
@@ -378,7 +1065,7 @@ document.addEventListener('DOMContentLoaded', function() {
                                     <span class="text-danger conditional-required">*</span>
                                 </label>
                                 <input type="text" class="form-control upper-input" id="nomeFantasiaReceita" name="nomeFantasiaReceita"
-                                       value="{{ client.nomeFantasiaReceita if client else '' }}">
+                                       value="">
                                 <div class="invalid-feedback">
                                     Por favor, informe o nome fantasia.
                                 </div>
@@ -389,11 +1076,8 @@ document.addEventListener('DOMContentLoaded', function() {
                                     <span class="text-danger required-field">*</span>
                                 </label>
                                 <input type="text" class="form-control upper-input" id="cpfCnpj" name="cpfCnpj"
-                                       value="{{ client.cpfCnpj if client else '' }}" 
-                                       placeholder="" required
-                                       oninput="formatarCpfCnpjInline(this)"
-                                       onblur="formatarCpfCnpjInline(this)"
-                                       onchange="formatarCpfCnpjInline(this)">
+                                       value="" 
+                                       placeholder="" required>
                                 <div class="invalid-feedback">
                                     Por favor, informe o CPF ou CNPJ.
                                 </div>
@@ -409,33 +1093,33 @@ document.addEventListener('DOMContentLoaded', function() {
                                 </label>
                                 <select class="form-select" id="estado" name="estado" required>
                                     <option value="">Selecione o estado</option>
-                                    <option value="AC" {% if client and client.estado == 'AC' %}selected{% endif %}>ACRE</option>
-                                    <option value="AL" {% if client and client.estado == 'AL' %}selected{% endif %}>ALAGOAS</option>
-                                    <option value="AP" {% if client and client.estado == 'AP' %}selected{% endif %}>AMAPÁ</option>
-                                    <option value="AM" {% if client and client.estado == 'AM' %}selected{% endif %}>AMAZONAS</option>
-                                    <option value="BA" {% if client and client.estado == 'BA' %}selected{% endif %}>BAHIA</option>
-                                    <option value="CE" {% if client and client.estado == 'CE' %}selected{% endif %}>CEARÁ</option>
-                                    <option value="DF" {% if client and client.estado == 'DF' %}selected{% endif %}>DISTRITO FEDERAL</option>
-                                    <option value="ES" {% if client and client.estado == 'ES' %}selected{% endif %}>ESPÍRITO SANTO</option>
-                                    <option value="GO" {% if client and client.estado == 'GO' %}selected{% endif %}>GOIÁS</option>
-                                    <option value="MA" {% if client and client.estado == 'MA' %}selected{% endif %}>MARANHÃO</option>
-                                    <option value="MT" {% if client and client.estado == 'MT' %}selected{% endif %}>MATO GROSSO</option>
-                                    <option value="MS" {% if client and client.estado == 'MS' %}selected{% endif %}>MATO GROSSO DO SUL</option>
-                                    <option value="MG" {% if client and client.estado == 'MG' %}selected{% endif %}>MINAS GERAIS</option>
-                                    <option value="PA" {% if client and client.estado == 'PA' %}selected{% endif %}>PARÁ</option>
-                                    <option value="PB" {% if client and client.estado == 'PB' %}selected{% endif %}>PARAÍBA</option>
-                                    <option value="PR" {% if client and client.estado == 'PR' %}selected{% endif %}>PARANÁ</option>
-                                    <option value="PE" {% if client and client.estado == 'PE' %}selected{% endif %}>PERNAMBUCO</option>
-                                    <option value="PI" {% if client and client.estado == 'PI' %}selected{% endif %}>PIAUÍ</option>
-                                    <option value="RJ" {% if client and client.estado == 'RJ' %}selected{% endif %}>RIO DE JANEIRO</option>
-                                    <option value="RN" {% if client and client.estado == 'RN' %}selected{% endif %}>RIO GRANDE DO NORTE</option>
-                                    <option value="RS" {% if client and client.estado == 'RS' %}selected{% endif %}>RIO GRANDE DO SUL</option>
-                                    <option value="RO" {% if client and client.estado == 'RO' %}selected{% endif %}>RONDÔNIA</option>
-                                    <option value="RR" {% if client and client.estado == 'RR' %}selected{% endif %}>RORAIMA</option>
-                                    <option value="SC" {% if client and client.estado == 'SC' %}selected{% endif %}>SANTA CATARINA</option>
-                                    <option value="SP" {% if client and client.estado == 'SP' %}selected{% endif %}>SÃO PAULO</option>
-                                    <option value="SE" {% if client and client.estado == 'SE' %}selected{% endif %}>SERGIPE</option>
-                                    <option value="TO" {% if client and client.estado == 'TO' %}selected{% endif %}>TOCANTINS</option>
+                                    <option value="AC" >ACRE</option>
+                                    <option value="AL" >ALAGOAS</option>
+                                    <option value="AP" >AMAPÁ</option>
+                                    <option value="AM" >AMAZONAS</option>
+                                    <option value="BA" >BAHIA</option>
+                                    <option value="CE" >CEARÁ</option>
+                                    <option value="DF" >DISTRITO FEDERAL</option>
+                                    <option value="ES" >ESPÍRITO SANTO</option>
+                                    <option value="GO" >GOIÁS</option>
+                                    <option value="MA" >MARANHÃO</option>
+                                    <option value="MT" >MATO GROSSO</option>
+                                    <option value="MS" >MATO GROSSO DO SUL</option>
+                                    <option value="MG" >MINAS GERAIS</option>
+                                    <option value="PA" >PARÁ</option>
+                                    <option value="PB" >PARAÍBA</option>
+                                    <option value="PR" >PARANÁ</option>
+                                    <option value="PE" >PERNAMBUCO</option>
+                                    <option value="PI" >PIAUÍ</option>
+                                    <option value="RJ" >RIO DE JANEIRO</option>
+                                    <option value="RN" >RIO GRANDE DO NORTE</option>
+                                    <option value="RS" >RIO GRANDE DO SUL</option>
+                                    <option value="RO" >RONDÔNIA</option>
+                                    <option value="RR" >RORAIMA</option>
+                                    <option value="SC" >SANTA CATARINA</option>
+                                    <option value="SP" >SÃO PAULO</option>
+                                    <option value="SE" >SERGIPE</option>
+                                    <option value="TO" >TOCANTINS</option>
                                 </select>
                                 <div class="invalid-feedback">
                                     Por favor, selecione o estado.
@@ -447,7 +1131,7 @@ document.addEventListener('DOMContentLoaded', function() {
                                     <span class="text-danger required-field">*</span>
                                 </label>
                                 <input type="text" class="form-control upper-input" id="cidade" name="cidade"
-                                       value="{{ client.cidade if client else '' }}" required>
+                                       value="" required>
                                 <div class="invalid-feedback">
                                     Por favor, informe a cidade.
                                 </div>
@@ -458,7 +1142,7 @@ document.addEventListener('DOMContentLoaded', function() {
                                     <span class="text-danger conditional-required">*</span>
                                 </label>
                                 <input type="text" class="form-control upper-input" id="inscEst" name="inscEst"
-                                       value="{{ client.inscEst if client else '' }}">
+                                       value="">
                                 <div class="invalid-feedback">
                                     Por favor, informe a inscrição estadual.
                                 </div>
@@ -469,7 +1153,7 @@ document.addEventListener('DOMContentLoaded', function() {
                                     <span class="text-danger conditional-required">*</span>
                                 </label>
                                 <input type="text" class="form-control upper-input" id="inscMun" name="inscMun"
-                                       value="{{ client.inscMun if client else '' }}">
+                                       value="">
                                 <div class="invalid-feedback">
                                     Por favor, informe a inscrição municipal.
                                 </div>
@@ -486,9 +1170,11 @@ document.addEventListener('DOMContentLoaded', function() {
                                 <div class="input-group">
                                     <select class="form-select" id="segmento" name="segmento">
                                         <option value="">Selecione o segmento</option>
-                                        {% for segmento in segmentos %}
-                                        <option value="{{ segmento }}" {% if client and client.segmento == segmento %}selected{% endif %}>{{ segmento }}</option>
-                                        {% endfor %}
+                                        
+                                        <option value="COMERCIO" >COMERCIO</option>
+                                        
+                                        <option value="SERVIÇO" >SERVIÇO</option>
+                                        
                                     </select>
                                     <button class="btn btn-outline-secondary" type="button" onclick="window.open('/segmentos', '_blank')" title="Cadastrar novos segmentos">
                                         <i class="bi bi-plus-circle"></i>
@@ -506,9 +1192,35 @@ document.addEventListener('DOMContentLoaded', function() {
                                 <div class="input-group">
                                     <select class="form-select" id="atividade" name="atividade">
                                         <option value="">Selecione a atividade principal</option>
-                                        {% for atividade in atividades %}
-                                        <option value="{{ atividade }}" {% if client and client.atividade == atividade %}selected{% endif %}>{{ atividade }}</option>
-                                        {% endfor %}
+                                        
+                                        <option value="FARMÁCIA" >FARMÁCIA</option>
+                                        
+                                        <option value="LOCAÇÃO" >LOCAÇÃO</option>
+                                        
+                                        <option value="TRANSPORTADORA" >TRANSPORTADORA</option>
+                                        
+                                        <option value="COMBUSTÍVEL" >COMBUSTÍVEL</option>
+                                        
+                                        <option value="CLINICA" >CLINICA</option>
+                                        
+                                        <option value="VARIEDADES" >VARIEDADES</option>
+                                        
+                                        <option value="ASSOCIAÇÃO" >ASSOCIAÇÃO</option>
+                                        
+                                        <option value="RESTAURANTE" >RESTAURANTE</option>
+                                        
+                                        <option value="ENTREGAS" >ENTREGAS</option>
+                                        
+                                        <option value="ADMINISTRATIVO" >ADMINISTRATIVO</option>
+                                        
+                                        <option value="MÉDICO" >MÉDICO</option>
+                                        
+                                        <option value="HOSPITALAR" >HOSPITALAR</option>
+                                        
+                                        <option value="GRÁFICA" >GRÁFICA</option>
+                                        
+                                        <option value="MANIPULAÇÃO" >MANIPULAÇÃO</option>
+                                        
                                     </select>
                                     <button class="btn btn-outline-secondary" type="button" onclick="window.open('/atividades', '_blank')" title="Cadastrar novas atividades">
                                         <i class="bi bi-plus-circle"></i>
@@ -525,9 +1237,9 @@ document.addEventListener('DOMContentLoaded', function() {
                                 </label>
                                 <select class="form-select" id="regimeEstadual" name="regimeEstadual">
                                     <option value="">Selecione o regime estadual</option>
-                                    <option value="SIMPLES" {% if client and client.regimeEstadual == 'SIMPLES' %}selected{% endif %}>SIMPLES NACIONAL</option>
-                                    <option value="NORMAL" {% if client and client.regimeEstadual == 'NORMAL' %}selected{% endif %}>REGIME NORMAL</option>
-                                    <option value="REGIME_ESPECIAL" {% if client and client.regimeEstadual == 'REGIME_ESPECIAL' %}selected{% endif %}>REGIME ESPECIAL</option>
+                                    <option value="SIMPLES" >SIMPLES NACIONAL</option>
+                                    <option value="NORMAL" >REGIME NORMAL</option>
+                                    <option value="REGIME_ESPECIAL" >REGIME ESPECIAL</option>
                                 </select>
                                 <div class="invalid-feedback">
                                     Por favor, selecione o regime estadual.
@@ -540,11 +1252,11 @@ document.addEventListener('DOMContentLoaded', function() {
                                 </label>
                                 <select class="form-select" id="regimeFederal" name="regimeFederal">
                                     <option value="">Selecione o regime federal</option>
-                                    <option value="MEI" {% if client and client.regimeFederal == 'MEI' %}selected{% endif %}>MEI</option>
-                                    <option value="SIMPLES_NACIONAL" {% if client and client.regimeFederal == 'SIMPLES_NACIONAL' or client.regimeFederal == 'SIMPLES' %}selected{% endif %}>SIMPLES NACIONAL</option>
-                                    <option value="LUCRO_PRESUMIDO" {% if client and client.regimeFederal == 'LUCRO_PRESUMIDO' %}selected{% endif %}>LUCRO PRESUMIDO</option>
-                                    <option value="LUCRO_REAL" {% if client and client.regimeFederal == 'LUCRO_REAL' %}selected{% endif %}>LUCRO REAL</option>
-                                    <option value="REGIME_ESPECIAL" {% if client and client.regimeFederal == 'REGIME_ESPECIAL' %}selected{% endif %}>REGIME ESPECIAL</option>
+                                    <option value="MEI" >MEI</option>
+                                    <option value="SIMPLES_NACIONAL" >SIMPLES NACIONAL</option>
+                                    <option value="LUCRO_PRESUMIDO" >LUCRO PRESUMIDO</option>
+                                    <option value="LUCRO_REAL" >LUCRO REAL</option>
+                                    <option value="REGIME_ESPECIAL" >REGIME ESPECIAL</option>
                                 </select>
                                 <div class="invalid-feedback">
                                     Por favor, selecione o regime federal.
@@ -569,7 +1281,7 @@ document.addEventListener('DOMContentLoaded', function() {
                             <div class="col-md-3 mb-3">
                                 <div class="form-check">
                                     <input class="form-check-input" type="checkbox" id="bpoFinanceiro" name="bpoFinanceiro" 
-                                           {% if client and client.bpoFinanceiro %}checked{% endif %}>
+                                           >
                                     <label class="form-check-label" for="bpoFinanceiro">
                                         <i class="bi bi-graph-up me-1 text-info"></i>
                                         <strong>BPO Financeiro</strong>
@@ -580,7 +1292,7 @@ document.addEventListener('DOMContentLoaded', function() {
                             <div class="col-md-3 mb-3">
                                 <div class="form-check">
                                     <input class="form-check-input" type="checkbox" id="ct" name="ct" 
-                                           {% if client and client.ct %}checked{% endif %}>
+                                           >
                                     <label class="form-check-label" for="ct">
                                         <i class="bi bi-calculator me-1" style="color: var(--control-primary);"></i>
                                         <strong>Departamento Contábil (CT)</strong>
@@ -591,7 +1303,7 @@ document.addEventListener('DOMContentLoaded', function() {
                             <div class="col-md-3 mb-3">
                                 <div class="form-check">
                                     <input class="form-check-input" type="checkbox" id="fs" name="fs" 
-                                           {% if client and client.fs %}checked{% endif %}>
+                                           >
                                     <label class="form-check-label" for="fs">
                                         <i class="bi bi-file-text me-1" style="color: var(--control-secondary);"></i>
                                         <strong>Departamento Fiscal (FS)</strong>
@@ -602,7 +1314,7 @@ document.addEventListener('DOMContentLoaded', function() {
                             <div class="col-md-3 mb-3">
                                 <div class="form-check">
                                     <input class="form-check-input" type="checkbox" id="dp" name="dp" 
-                                           {% if client and client.dp %}checked{% endif %}>
+                                           >
                                     <label class="form-check-label" for="dp">
                                         <i class="bi bi-people me-1 text-success"></i>
                                         <strong>Departamento Pessoal (DP)</strong>
@@ -619,9 +1331,9 @@ document.addEventListener('DOMContentLoaded', function() {
                                     <i class="bi bi-house me-1"></i>
                                     Doméstica
                                 </label>
-                                <select class="form-select" id="domestica" name="domestica">
-                                    <option value="NÃO" {% if not client or not client.domestica or client.domestica == 'NÃO' %}selected{% endif %}>NÃO</option>
-                                    <option value="SIM" {% if client and client.domestica == 'SIM' %}selected{% endif %}>SIM</option>
+                                <select class="form-select" id="domestica" name="domestica" disabled>
+                                    <option value="NÃO" selected>NÃO</option>
+                                    <option value="SIM" >SIM</option>
                                 </select>
                             </div>
                             
@@ -632,7 +1344,7 @@ document.addEventListener('DOMContentLoaded', function() {
                                     Data de Início dos Serviços
                                 </label>
                                 <input type="text" class="form-control" id="dataInicioServicos" name="dataInicioServicos" 
-                                       value="{{ client.dataInicioServicos if client else '' }}"
+                                       value=""
                                        placeholder="MM/AAAA" pattern="^(0[1-9]|1[0-2])\/\d{4}$" maxlength="7"
                                        title="Formato: MM/AAAA (Ex: 08/2025)"
                                        data-bs-toggle="tooltip" data-bs-placement="top" 
@@ -653,10 +1365,10 @@ document.addEventListener('DOMContentLoaded', function() {
                                 </label>
                                 <select class="form-select" id="perfilCliente" name="perfilCliente" required>
                                     <option value="">Selecione um perfil</option>
-                                    <option value="A" {% if client and client.perfilCliente == 'A' %}selected{% endif %}>A</option>
-                                    <option value="B" {% if client and client.perfilCliente == 'B' %}selected{% endif %}>B</option>
-                                    <option value="C" {% if client and client.perfilCliente == 'C' %}selected{% endif %}>C</option>
-                                    <option value="D" {% if client and client.perfilCliente == 'D' %}selected{% endif %}>D</option>
+                                    <option value="A" >A</option>
+                                    <option value="B" >B</option>
+                                    <option value="C" >C</option>
+                                    <option value="D" >D</option>
                                 </select>
                                 <div class="invalid-feedback">
                                     Por favor, selecione o perfil do cliente.
@@ -671,17 +1383,33 @@ document.addEventListener('DOMContentLoaded', function() {
                                 </label>
                                 <select class="form-select" id="sistemaUtilizado" name="sistemaUtilizado">
                                     <option value="">Selecione o sistema</option>
-                                    {% if sistemas %}
-                                        {% for sistema in sistemas %}
-                                        <option value="{{ sistema }}" {% if client and client.sistemaUtilizado == sistema %}selected{% endif %}>{{ sistema }}</option>
-                                        {% endfor %}
-                                    {% else %}
-                                        <option value="FORTES" {% if client and client.sistemaUtilizado == 'FORTES' %}selected{% endif %}>FORTES</option>
-                                        <option value="DOMÍNIO" {% if client and client.sistemaUtilizado == 'DOMÍNIO' %}selected{% endif %}>DOMÍNIO</option>
-                                        <option value="SAGE" {% if client and client.sistemaUtilizado == 'SAGE' %}selected{% endif %}>SAGE</option>
-                                        <option value="ALTERDATA" {% if client and client.sistemaUtilizado == 'ALTERDATA' %}selected{% endif %}>ALTERDATA</option>
-                                        <option value="OUTROS" {% if client and client.sistemaUtilizado == 'OUTROS' %}selected{% endif %}>OUTROS</option>
-                                    {% endif %}
+                                    
+                                        
+                                        <option value="FORTES" >FORTES</option>
+                                        
+                                        <option value="DOMÍNIO" >DOMÍNIO</option>
+                                        
+                                        <option value="SAGE" >SAGE</option>
+                                        
+                                        <option value="ALTERDATA" >ALTERDATA</option>
+                                        
+                                        <option value="ECONET" >ECONET</option>
+                                        
+                                        <option value="SISPAG" >SISPAG</option>
+                                        
+                                        <option value="FOLHAMATIC" >FOLHAMATIC</option>
+                                        
+                                        <option value="PROSOFT" >PROSOFT</option>
+                                        
+                                        <option value="SISTEMA PRÓPRIO" >SISTEMA PRÓPRIO</option>
+                                        
+                                        <option value="PLANILHAS EXCEL" >PLANILHAS EXCEL</option>
+                                        
+                                        <option value="SISTEMA ONLINE" >SISTEMA ONLINE</option>
+                                        
+                                        <option value="OUTROS" >OUTROS</option>
+                                        
+                                    
                                 </select>
                             </div>
 
@@ -693,8 +1421,8 @@ document.addEventListener('DOMContentLoaded', function() {
                                 </label>
                                 <select class="form-select" id="geraArquivoSped" name="geraArquivoSped">
                                     <option value="">Selecionar SIM/NÃO</option>
-                                    <option value="SIM" {% if client and client.geraArquivoSped == 'SIM' %}selected{% endif %}>SIM</option>
-                                    <option value="NÃO" {% if client and client.geraArquivoSped == 'NÃO' %}selected{% endif %}>NÃO</option>
+                                    <option value="SIM" >SIM</option>
+                                    <option value="NÃO" >NÃO</option>
                                 </select>
                             </div>
                         </div>
@@ -707,7 +1435,7 @@ document.addEventListener('DOMContentLoaded', function() {
                                     # Cód. Domínio
                                 </label>
                                 <input type="text" class="form-control numbers-only" id="codDominio" name="codDominio" 
-                                       value="{{ client.codDominio if client else '' }}"
+                                       value=""
                                        placeholder="Código Domínio" pattern="[0-9]*" title="Apenas números">
                             </div>
 
@@ -717,7 +1445,7 @@ document.addEventListener('DOMContentLoaded', function() {
                                     # Cód. Fortes CT
                                 </label>
                                 <input type="text" class="form-control numbers-only" id="codFortesCt" name="codFortesCt" 
-                                       value="{{ client.codFortesCt if client else '' }}"
+                                       value=""
                                        placeholder="Código CT" pattern="[0-9]*" title="Apenas números">
                             </div>
 
@@ -727,7 +1455,7 @@ document.addEventListener('DOMContentLoaded', function() {
                                     # Cód. Fortes FS
                                 </label>
                                 <input type="text" class="form-control numbers-only" id="codFortesFs" name="codFortesFs" 
-                                       value="{{ client.codFortesFs if client else '' }}"
+                                       value=""
                                        placeholder="Código FS" pattern="[0-9]*" title="Apenas números">
                             </div>
 
@@ -737,7 +1465,7 @@ document.addEventListener('DOMContentLoaded', function() {
                                     # Cód. Fortes PS
                                 </label>
                                 <input type="text" class="form-control numbers-only" id="codFortesPs" name="codFortesPs" 
-                                       value="{{ client.codFortesPs if client else '' }}"
+                                       value=""
                                        placeholder="Código PS" pattern="[0-9]*" title="Apenas números">
                             </div>
                         </div>
@@ -889,7 +1617,7 @@ document.addEventListener('DOMContentLoaded', function() {
                                                     <label class="form-label small mb-1">Nome do Sócio</label>
                                                     <input type="text" class="form-control form-control-sm upper-input" 
                                                            name="socio_1_nome" id="socio_1_nome"
-                                                           value="{{ client.socio_1_nome if client else '' }}"
+                                                           value=""
                                                            onkeyup="this.value=this.value.toUpperCase()"
                                                            placeholder="Nome completo do sócio">
                                                 </div>
@@ -897,20 +1625,20 @@ document.addEventListener('DOMContentLoaded', function() {
                                                     <label class="form-label small mb-1">CPF</label>
                                                     <input type="text" class="form-control form-control-sm cpf-mask" 
                                                            name="socio_1_cpf" id="socio_1_cpf"
-                                                           value="{{ client.socio_1_cpf if client else '' }}"
+                                                           value=""
                                                            placeholder="000.000.000-00">
                                                 </div>
                                                 <div class="col-md-2 mb-2">
                                                     <label class="form-label small mb-1">Data de Nascimento</label>
                                                     <input type="date" class="form-control form-control-sm" 
                                                            name="socio_1_data_nascimento" id="socio_1_data_nascimento"
-                                                           value="{{ client.socio_1_data_nascimento if client else '' }}">
+                                                           value="">
                                                 </div>
                                                 <div class="col-md-2 mb-2">
                                                     <label class="form-label small mb-1">% de Quotas</label>
                                                     <input type="number" class="form-control form-control-sm" 
                                                            name="socio_1_participacao" id="socio_1_participacao"
-                                                           value="{{ client.socio_1_participacao if client else '' }}"
+                                                           value=""
                                                            placeholder="50.00" step="0.01" min="0" max="100">
                                                 </div>
                                                 <div class="col-md-3 mb-2">
@@ -920,7 +1648,7 @@ document.addEventListener('DOMContentLoaded', function() {
                                                                 <input class="form-check-input representante-legal" type="radio" 
                                                                        name="representante_legal" value="socio_1" 
                                                                        id="rep_legal_1"
-                                                                       {% if client and client.socio_1_resp_legal %}checked{% endif %}>
+                                                                       >
                                                                 <label class="form-check-label small" for="rep_legal_1">
                                                                     Representante Legal
                                                                 </label>
@@ -931,7 +1659,7 @@ document.addEventListener('DOMContentLoaded', function() {
                                                                 <input class="form-check-input socio-admin" type="checkbox" 
                                                                        name="socio_1_administrador" value="1" 
                                                                        id="admin_1"
-                                                                       {% if client and client.socio_1_administrador %}checked{% endif %}>
+                                                                       >
                                                                 <label class="form-check-label small" for="admin_1">
                                                                     Sócio Administrador
                                                                 </label>
@@ -956,7 +1684,7 @@ document.addEventListener('DOMContentLoaded', function() {
                                                     <label class="form-label small mb-1">Nome do Sócio</label>
                                                     <input type="text" class="form-control form-control-sm" 
                                                            name="socio_2_nome" id="socio_2_nome"
-                                                           value="{{ client.socio_2_nome if client else '' }}"
+                                                           value=""
                                                            onkeyup="this.value=this.value.toUpperCase()"
                                                            placeholder="Nome completo do sócio">
                                                 </div>
@@ -964,20 +1692,20 @@ document.addEventListener('DOMContentLoaded', function() {
                                                     <label class="form-label small mb-1">CPF</label>
                                                     <input type="text" class="form-control form-control-sm cpf-mask" 
                                                            name="socio_2_cpf" id="socio_2_cpf"
-                                                           value="{{ client.socio_2_cpf if client else '' }}"
+                                                           value=""
                                                            placeholder="000.000.000-00">
                                                 </div>
                                                 <div class="col-md-2 mb-2">
                                                     <label class="form-label small mb-1">Data de Nascimento</label>
                                                     <input type="date" class="form-control form-control-sm" 
                                                            name="socio_2_data_nascimento" id="socio_2_data_nascimento"
-                                                           value="{{ client.socio_2_data_nascimento if client else '' }}">
+                                                           value="">
                                                 </div>
                                                 <div class="col-md-2 mb-2">
                                                     <label class="form-label small mb-1">% de Quotas</label>
                                                     <input type="number" class="form-control form-control-sm" 
                                                            name="socio_2_participacao" id="socio_2_participacao"
-                                                           value="{{ client.socio_2_participacao if client else '' }}"
+                                                           value=""
                                                            placeholder="50.00" step="0.01" min="0" max="100">
                                                 </div>
                                                 <div class="col-md-3 mb-2">
@@ -987,7 +1715,7 @@ document.addEventListener('DOMContentLoaded', function() {
                                                                 <input class="form-check-input representante-legal" type="radio" 
                                                                        name="representante_legal" value="socio_2" 
                                                                        id="rep_legal_2"
-                                                                       {% if client and client.representante_legal == 'socio_2' %}checked{% endif %}>
+                                                                       >
                                                                 <label class="form-check-label small" for="rep_legal_2">
                                                                     Representante Legal
                                                                 </label>
@@ -998,7 +1726,7 @@ document.addEventListener('DOMContentLoaded', function() {
                                                                 <input class="form-check-input socio-admin" type="checkbox" 
                                                                        name="socio_2_administrador" value="1" 
                                                                        id="admin_2"
-                                                                       {% if client and client.socio_2_administrador %}checked{% endif %}>
+                                                                       >
                                                                 <label class="form-check-label small" for="admin_2">
                                                                     Sócio Administrador
                                                                 </label>
@@ -1023,7 +1751,7 @@ document.addEventListener('DOMContentLoaded', function() {
                                                     <label class="form-label small mb-1">Nome do Sócio</label>
                                                     <input type="text" class="form-control form-control-sm" 
                                                            name="socio_3_nome" id="socio_3_nome"
-                                                           value="{{ client.socio_3_nome if client else '' }}"
+                                                           value=""
                                                            onkeyup="this.value=this.value.toUpperCase()"
                                                            placeholder="Nome completo do sócio">
                                                 </div>
@@ -1031,20 +1759,20 @@ document.addEventListener('DOMContentLoaded', function() {
                                                     <label class="form-label small mb-1">CPF</label>
                                                     <input type="text" class="form-control form-control-sm cpf-mask" 
                                                            name="socio_3_cpf" id="socio_3_cpf"
-                                                           value="{{ client.socio_3_cpf if client else '' }}"
+                                                           value=""
                                                            placeholder="000.000.000-00">
                                                 </div>
                                                 <div class="col-md-2 mb-2">
                                                     <label class="form-label small mb-1">Data de Nascimento</label>
                                                     <input type="date" class="form-control form-control-sm" 
                                                            name="socio_3_data_nascimento" id="socio_3_data_nascimento"
-                                                           value="{{ client.socio_3_data_nascimento if client else '' }}">
+                                                           value="">
                                                 </div>
                                                 <div class="col-md-2 mb-2">
                                                     <label class="form-label small mb-1">% de Quotas</label>
                                                     <input type="number" class="form-control form-control-sm" 
                                                            name="socio_3_participacao" id="socio_3_participacao"
-                                                           value="{{ client.socio_3_participacao if client else '' }}"
+                                                           value=""
                                                            placeholder="50.00" step="0.01" min="0" max="100">
                                                 </div>
                                                 <div class="col-md-3 mb-2">
@@ -1054,7 +1782,7 @@ document.addEventListener('DOMContentLoaded', function() {
                                                                 <input class="form-check-input representante-legal" type="radio" 
                                                                        name="representante_legal" value="socio_3" 
                                                                        id="rep_legal_3"
-                                                                       {% if client and client.representante_legal == 'socio_3' %}checked{% endif %}>
+                                                                       >
                                                                 <label class="form-check-label small" for="rep_legal_3">
                                                                     Representante Legal
                                                                 </label>
@@ -1065,7 +1793,7 @@ document.addEventListener('DOMContentLoaded', function() {
                                                                 <input class="form-check-input socio-admin" type="checkbox" 
                                                                        name="socio_3_administrador" value="1" 
                                                                        id="admin_3"
-                                                                       {% if client and client.socio_3_administrador %}checked{% endif %}>
+                                                                       >
                                                                 <label class="form-check-label small" for="admin_3">
                                                                     Sócio Administrador
                                                                 </label>
@@ -1090,7 +1818,7 @@ document.addEventListener('DOMContentLoaded', function() {
                                                     <label class="form-label small mb-1">Nome do Sócio</label>
                                                     <input type="text" class="form-control form-control-sm" 
                                                            name="socio_4_nome" id="socio_4_nome"
-                                                           value="{{ client.socio_4_nome if client else '' }}"
+                                                           value=""
                                                            onkeyup="this.value=this.value.toUpperCase()"
                                                            placeholder="Nome completo do sócio">
                                                 </div>
@@ -1098,20 +1826,20 @@ document.addEventListener('DOMContentLoaded', function() {
                                                     <label class="form-label small mb-1">CPF</label>
                                                     <input type="text" class="form-control form-control-sm cpf-mask" 
                                                            name="socio_4_cpf" id="socio_4_cpf"
-                                                           value="{{ client.socio_4_cpf if client else '' }}"
+                                                           value=""
                                                            placeholder="000.000.000-00">
                                                 </div>
                                                 <div class="col-md-2 mb-2">
                                                     <label class="form-label small mb-1">Data de Nascimento</label>
                                                     <input type="date" class="form-control form-control-sm" 
                                                            name="socio_4_data_nascimento" id="socio_4_data_nascimento"
-                                                           value="{{ client.socio_4_data_nascimento if client else '' }}">
+                                                           value="">
                                                 </div>
                                                 <div class="col-md-2 mb-2">
                                                     <label class="form-label small mb-1">% de Quotas</label>
                                                     <input type="number" class="form-control form-control-sm" 
                                                            name="socio_4_participacao" id="socio_4_participacao"
-                                                           value="{{ client.socio_4_participacao if client else '' }}"
+                                                           value=""
                                                            placeholder="50.00" step="0.01" min="0" max="100">
                                                 </div>
                                                 <div class="col-md-3 mb-2">
@@ -1121,7 +1849,7 @@ document.addEventListener('DOMContentLoaded', function() {
                                                                 <input class="form-check-input representante-legal" type="radio" 
                                                                        name="representante_legal" value="socio_4" 
                                                                        id="rep_legal_4"
-                                                                       {% if client and client.representante_legal == 'socio_4' %}checked{% endif %}>
+                                                                       >
                                                                 <label class="form-check-label small" for="rep_legal_4">
                                                                     Representante Legal
                                                                 </label>
@@ -1132,7 +1860,7 @@ document.addEventListener('DOMContentLoaded', function() {
                                                                 <input class="form-check-input socio-admin" type="checkbox" 
                                                                        name="socio_4_administrador" value="1" 
                                                                        id="admin_4"
-                                                                       {% if client and client.socio_4_administrador %}checked{% endif %}>
+                                                                       >
                                                                 <label class="form-check-label small" for="admin_4">
                                                                     Sócio Administrador
                                                                 </label>
@@ -1157,7 +1885,7 @@ document.addEventListener('DOMContentLoaded', function() {
                                                     <label class="form-label small mb-1">Nome do Sócio</label>
                                                     <input type="text" class="form-control form-control-sm" 
                                                            name="socio_5_nome" id="socio_5_nome"
-                                                           value="{{ client.socio_5_nome if client else '' }}"
+                                                           value=""
                                                            onkeyup="this.value=this.value.toUpperCase()"
                                                            placeholder="Nome completo do sócio">
                                                 </div>
@@ -1165,20 +1893,20 @@ document.addEventListener('DOMContentLoaded', function() {
                                                     <label class="form-label small mb-1">CPF</label>
                                                     <input type="text" class="form-control form-control-sm cpf-mask" 
                                                            name="socio_5_cpf" id="socio_5_cpf"
-                                                           value="{{ client.socio_5_cpf if client else '' }}"
+                                                           value=""
                                                            placeholder="000.000.000-00">
                                                 </div>
                                                 <div class="col-md-2 mb-2">
                                                     <label class="form-label small mb-1">Data de Nascimento</label>
                                                     <input type="date" class="form-control form-control-sm" 
                                                            name="socio_5_data_nascimento" id="socio_5_data_nascimento"
-                                                           value="{{ client.socio_5_data_nascimento if client else '' }}">
+                                                           value="">
                                                 </div>
                                                 <div class="col-md-2 mb-2">
                                                     <label class="form-label small mb-1">% de Quotas</label>
                                                     <input type="number" class="form-control form-control-sm" 
                                                            name="socio_5_participacao" id="socio_5_participacao"
-                                                           value="{{ client.socio_5_participacao if client else '' }}"
+                                                           value=""
                                                            placeholder="50.00" step="0.01" min="0" max="100">
                                                 </div>
                                                 <div class="col-md-3 mb-2">
@@ -1188,7 +1916,7 @@ document.addEventListener('DOMContentLoaded', function() {
                                                                 <input class="form-check-input representante-legal" type="radio" 
                                                                        name="representante_legal" value="socio_5" 
                                                                        id="rep_legal_5"
-                                                                       {% if client and client.representante_legal == 'socio_5' %}checked{% endif %}>
+                                                                       >
                                                                 <label class="form-check-label small" for="rep_legal_5">
                                                                     Representante Legal
                                                                 </label>
@@ -1199,7 +1927,7 @@ document.addEventListener('DOMContentLoaded', function() {
                                                                 <input class="form-check-input socio-admin" type="checkbox" 
                                                                        name="socio_5_administrador" value="1" 
                                                                        id="admin_5"
-                                                                       {% if client and client.socio_5_administrador %}checked{% endif %}>
+                                                                       >
                                                                 <label class="form-check-label small" for="admin_5">
                                                                     Sócio Administrador
                                                                 </label>
@@ -1248,28 +1976,28 @@ document.addEventListener('DOMContentLoaded', function() {
                                                     <label class="form-label small mb-1">Nome</label>
                                                     <input type="text" class="form-control form-control-sm" 
                                                            name="contato_1_nome" id="contato_1_nome"
-                                                           value="{{ client.contato_1_nome if client and client.contato_1_nome else '' }}"
+                                                           value=""
                                                            placeholder="Nome completo do contato">
                                                 </div>
                                                 <div class="col-md-3 mb-2">
                                                     <label class="form-label small mb-1">Cargo</label>
                                                     <input type="text" class="form-control form-control-sm" 
                                                            name="contato_1_cargo" id="contato_1_cargo"
-                                                           value="{{ client.contato_1_cargo if client and client.contato_1_cargo else '' }}"
+                                                           value=""
                                                            placeholder="Ex: Gerente, Diretor, Sócio">
                                                 </div>
                                                 <div class="col-md-3 mb-2">
                                                     <label class="form-label small mb-1">Telefone</label>
                                                     <input type="tel" class="form-control form-control-sm phone-mask" 
                                                            name="contato_1_telefone" id="contato_1_telefone"
-                                                           value="{{ client.contato_1_telefone if client and client.contato_1_telefone else '' }}"
+                                                           value=""
                                                            placeholder="(85) 99999-9999">
                                                 </div>
                                                 <div class="col-md-3 mb-2">
                                                     <label class="form-label small mb-1">E-mail</label>
                                                     <input type="email" class="form-control form-control-sm" 
                                                            name="contato_1_email" id="contato_1_email"
-                                                           value="{{ client.contato_1_email if client and client.contato_1_email else '' }}"
+                                                           value=""
                                                            placeholder="contato@empresa.com">
                                                 </div>
                                             </div>
@@ -1289,28 +2017,28 @@ document.addEventListener('DOMContentLoaded', function() {
                                                     <label class="form-label small mb-1">Nome</label>
                                                     <input type="text" class="form-control form-control-sm" 
                                                            name="contato_2_nome" id="contato_2_nome"
-                                                           value="{{ client.contato_2_nome if client and client.contato_2_nome else '' }}"
+                                                           value=""
                                                            placeholder="Nome completo do contato">
                                                 </div>
                                                 <div class="col-md-3 mb-2">
                                                     <label class="form-label small mb-1">Cargo</label>
                                                     <input type="text" class="form-control form-control-sm" 
                                                            name="contato_2_cargo" id="contato_2_cargo"
-                                                           value="{{ client.contato_2_cargo if client and client.contato_2_cargo else '' }}"
+                                                           value=""
                                                            placeholder="Ex: Gerente, Diretor, Sócio">
                                                 </div>
                                                 <div class="col-md-3 mb-2">
                                                     <label class="form-label small mb-1">Telefone</label>
                                                     <input type="tel" class="form-control form-control-sm phone-mask" 
                                                            name="contato_2_telefone" id="contato_2_telefone"
-                                                           value="{{ client.contato_2_telefone if client and client.contato_2_telefone else '' }}"
+                                                           value=""
                                                            placeholder="(85) 99999-9999">
                                                 </div>
                                                 <div class="col-md-3 mb-2">
                                                     <label class="form-label small mb-1">E-mail</label>
                                                     <input type="email" class="form-control form-control-sm" 
                                                            name="contato_2_email" id="contato_2_email"
-                                                           value="{{ client.contato_2_email if client and client.contato_2_email else '' }}"
+                                                           value=""
                                                            placeholder="contato@empresa.com">
                                                 </div>
                                             </div>
@@ -1330,28 +2058,28 @@ document.addEventListener('DOMContentLoaded', function() {
                                                     <label class="form-label small mb-1">Nome</label>
                                                     <input type="text" class="form-control form-control-sm" 
                                                            name="contato_3_nome" id="contato_3_nome"
-                                                           value="{{ client.contato_3_nome if client and client.contato_3_nome else '' }}"
+                                                           value=""
                                                            placeholder="Nome completo do contato">
                                                 </div>
                                                 <div class="col-md-3 mb-2">
                                                     <label class="form-label small mb-1">Cargo</label>
                                                     <input type="text" class="form-control form-control-sm" 
                                                            name="contato_3_cargo" id="contato_3_cargo"
-                                                           value="{{ client.contato_3_cargo if client and client.contato_3_cargo else '' }}"
+                                                           value=""
                                                            placeholder="Ex: Gerente, Diretor, Sócio">
                                                 </div>
                                                 <div class="col-md-3 mb-2">
                                                     <label class="form-label small mb-1">Telefone</label>
                                                     <input type="tel" class="form-control form-control-sm phone-mask" 
                                                            name="contato_3_telefone" id="contato_3_telefone"
-                                                           value="{{ client.contato_3_telefone if client and client.contato_3_telefone else '' }}"
+                                                           value=""
                                                            placeholder="(85) 99999-9999">
                                                 </div>
                                                 <div class="col-md-3 mb-2">
                                                     <label class="form-label small mb-1">E-mail</label>
                                                     <input type="email" class="form-control form-control-sm" 
                                                            name="contato_3_email" id="contato_3_email"
-                                                           value="{{ client.contato_3_email if client and client.contato_3_email else '' }}"
+                                                           value=""
                                                            placeholder="contato@empresa.com">
                                                 </div>
                                             </div>
@@ -1371,28 +2099,28 @@ document.addEventListener('DOMContentLoaded', function() {
                                                     <label class="form-label small mb-1">Nome</label>
                                                     <input type="text" class="form-control form-control-sm" 
                                                            name="contato_4_nome" id="contato_4_nome"
-                                                           value="{{ client.contato_4_nome if client and client.contato_4_nome else '' }}"
+                                                           value=""
                                                            placeholder="Nome completo do contato">
                                                 </div>
                                                 <div class="col-md-3 mb-2">
                                                     <label class="form-label small mb-1">Cargo</label>
                                                     <input type="text" class="form-control form-control-sm" 
                                                            name="contato_4_cargo" id="contato_4_cargo"
-                                                           value="{{ client.contato_4_cargo if client and client.contato_4_cargo else '' }}"
+                                                           value=""
                                                            placeholder="Ex: Gerente, Diretor, Sócio">
                                                 </div>
                                                 <div class="col-md-3 mb-2">
                                                     <label class="form-label small mb-1">Telefone</label>
                                                     <input type="tel" class="form-control form-control-sm phone-mask" 
                                                            name="contato_4_telefone" id="contato_4_telefone"
-                                                           value="{{ client.contato_4_telefone if client and client.contato_4_telefone else '' }}"
+                                                           value=""
                                                            placeholder="(85) 99999-9999">
                                                 </div>
                                                 <div class="col-md-3 mb-2">
                                                     <label class="form-label small mb-1">E-mail</label>
                                                     <input type="email" class="form-control form-control-sm" 
                                                            name="contato_4_email" id="contato_4_email"
-                                                           value="{{ client.contato_4_email if client and client.contato_4_email else '' }}"
+                                                           value=""
                                                            placeholder="contato@empresa.com">
                                                 </div>
                                             </div>
@@ -1412,28 +2140,28 @@ document.addEventListener('DOMContentLoaded', function() {
                                                     <label class="form-label small mb-1">Nome</label>
                                                     <input type="text" class="form-control form-control-sm" 
                                                            name="contato_5_nome" id="contato_5_nome"
-                                                           value="{{ client.contato_5_nome if client and client.contato_5_nome else '' }}"
+                                                           value=""
                                                            placeholder="Nome completo do contato">
                                                 </div>
                                                 <div class="col-md-3 mb-2">
                                                     <label class="form-label small mb-1">Cargo</label>
                                                     <input type="text" class="form-control form-control-sm" 
                                                            name="contato_5_cargo" id="contato_5_cargo"
-                                                           value="{{ client.contato_5_cargo if client and client.contato_5_cargo else '' }}"
+                                                           value=""
                                                            placeholder="Ex: Gerente, Diretor, Sócio">
                                                 </div>
                                                 <div class="col-md-3 mb-2">
                                                     <label class="form-label small mb-1">Telefone</label>
                                                     <input type="tel" class="form-control form-control-sm phone-mask" 
                                                            name="contato_5_telefone" id="contato_5_telefone"
-                                                           value="{{ client.contato_5_telefone if client and client.contato_5_telefone else '' }}"
+                                                           value=""
                                                            placeholder="(85) 99999-9999">
                                                 </div>
                                                 <div class="col-md-3 mb-2">
                                                     <label class="form-label small mb-1">E-mail</label>
                                                     <input type="email" class="form-control form-control-sm" 
                                                            name="contato_5_email" id="contato_5_email"
-                                                           value="{{ client.contato_5_email if client and client.contato_5_email else '' }}"
+                                                           value=""
                                                            placeholder="contato@empresa.com">
                                                 </div>
                                             </div>
@@ -1459,28 +2187,28 @@ document.addEventListener('DOMContentLoaded', function() {
                                 <label for="cnpjAcessoSn" class="form-label small">CNPJ Acesso Simples Nacional</label>
                                 <input type="text" class="form-control form-control-sm cnpj-mask" 
                                        id="cnpjAcessoSn" name="cnpjAcessoSn" 
-                                       value="{{ client.cnpjAcessoSn if client else '' }}" 
+                                       value="" 
                                        placeholder="00.000.000/0001-00">
                             </div>
                             <div class="col-md-3 mb-2">
                                 <label for="cpfRepLegal" class="form-label small">CPF do Representante Legal</label>
                                 <input type="text" class="form-control form-control-sm cpf-mask" 
                                        id="cpfRepLegal" name="cpfRepLegal" 
-                                       value="{{ client.cpfRepLegal if client else '' }}" 
+                                       value="" 
                                        placeholder="000.000.000-00">
                             </div>
                             <div class="col-md-3 mb-2">
                                 <label for="codigoAcessoSn" class="form-label small">Código de Acesso Simples Nacional</label>
                                 <input type="text" class="form-control form-control-sm" 
                                        id="codigoAcessoSn" name="codigoAcessoSn" 
-                                       value="{{ client.codigoAcessoSn if client else '' }}" 
+                                       value="" 
                                        placeholder="Código de Acesso">
                             </div>
                             <div class="col-md-3 mb-2">
                                 <label for="senhaIss" class="form-label small">Senha ISS</label>
                                 <input type="text" class="form-control form-control-sm" 
                                        id="senhaIss" name="senhaIss" 
-                                       value="{{ client.senhaIss if client else '' }}" 
+                                       value="" 
                                        placeholder="Senha ISS">
                             </div>
                         </div>
@@ -1491,28 +2219,28 @@ document.addEventListener('DOMContentLoaded', function() {
                                 <label for="senhaSefin" class="form-label small">Senha SEFIN</label>
                                 <input type="text" class="form-control form-control-sm" 
                                        id="senhaSefin" name="senhaSefin" 
-                                       value="{{ client.senhaSefin if client else '' }}" 
+                                       value="" 
                                        placeholder="Senha SEFIN">
                             </div>
                             <div class="col-md-3 mb-2">
                                 <label for="senhaSeuma" class="form-label small">Senha SEUMA</label>
                                 <input type="text" class="form-control form-control-sm" 
                                        id="senhaSeuma" name="senhaSeuma" 
-                                       value="{{ client.senhaSeuma if client else '' }}" 
+                                       value="" 
                                        placeholder="Senha SEUMA">
                             </div>
                             <div class="col-md-3 mb-2">
                                 <label for="acessoEmpWeb" class="form-label small">Acesso EmpWeb</label>
                                 <input type="text" class="form-control form-control-sm" 
                                        id="acessoEmpWeb" name="acessoEmpWeb" 
-                                       value="{{ client.acessoEmpWeb if client else '' }}" 
+                                       value="" 
                                        placeholder="Login EmpWeb">
                             </div>
                             <div class="col-md-3 mb-2">
                                 <label for="senhaEmpWeb" class="form-label small">Senha EmpWeb</label>
                                 <input type="text" class="form-control form-control-sm" 
                                        id="senhaEmpWeb" name="senhaEmpWeb" 
-                                       value="{{ client.senhaEmpWeb if client else '' }}" 
+                                       value="" 
                                        placeholder="Senha EmpWeb">
                             </div>
                         </div>
@@ -1523,28 +2251,28 @@ document.addEventListener('DOMContentLoaded', function() {
                                 <label for="anvisaEmpresa" class="form-label small">Login ANVISA Empresa</label>
                                 <input type="text" class="form-control form-control-sm" 
                                        id="anvisaEmpresa" name="anvisaEmpresa" 
-                                       value="{{ client.anvisaEmpresa if client else '' }}" 
+                                       value="" 
                                        placeholder="Login ANVISA Empresa">
                             </div>
                             <div class="col-md-3 mb-2">
                                 <label for="senhaAnvisaEmpresa" class="form-label small">Senha ANVISA Empresa</label>
                                 <input type="text" class="form-control form-control-sm" 
                                        id="senhaAnvisaEmpresa" name="senhaAnvisaEmpresa" 
-                                       value="{{ client.senhaAnvisaEmpresa if client else '' }}" 
+                                       value="" 
                                        placeholder="Senha ANVISA Empresa">
                             </div>
                             <div class="col-md-3 mb-2">
                                 <label for="anvisaGestor" class="form-label small">Login ANVISA Gestor</label>
                                 <input type="text" class="form-control form-control-sm" 
                                        id="anvisaGestor" name="anvisaGestor" 
-                                       value="{{ client.anvisaGestor if client else '' }}" 
+                                       value="" 
                                        placeholder="Login ANVISA Gestor">
                             </div>
                             <div class="col-md-3 mb-2">
                                 <label for="senhaAnvisaGestor" class="form-label small">Senha ANVISA Gestor</label>
                                 <input type="text" class="form-control form-control-sm" 
                                        id="senhaAnvisaGestor" name="senhaAnvisaGestor" 
-                                       value="{{ client.senhaAnvisaGestor if client else '' }}" 
+                                       value="" 
                                        placeholder="Senha ANVISA Gestor">
                             </div>
                         </div>
@@ -1555,14 +2283,14 @@ document.addEventListener('DOMContentLoaded', function() {
                                 <label for="acessoCrf" class="form-label small">Acesso CRF</label>
                                 <input type="text" class="form-control form-control-sm" 
                                        id="acessoCrf" name="acessoCrf" 
-                                       value="{{ client.acessoCrf if client else '' }}" 
+                                       value="" 
                                        placeholder="CRF do Responsável">
                             </div>
                             <div class="col-md-3 mb-2">
                                 <label for="senhaFapInss" class="form-label small">Senha FAP/INSS</label>
                                 <input type="text" class="form-control form-control-sm" 
                                        id="senhaFapInss" name="senhaFapInss" 
-                                       value="{{ client.senhaFapInss if client else '' }}" 
+                                       value="" 
                                        placeholder="Senha FAP/INSS">
                             </div>
                         </div>
@@ -1585,14 +2313,14 @@ document.addEventListener('DOMContentLoaded', function() {
                                     <input class="form-check-input" type="checkbox" 
                                            id="procReceita" name="procReceita" 
                                            onchange="toggleProcuracaoData('procReceita', 'dataProcReceita')"
-                                           {% if client and client.procReceita %}checked{% endif %}>
+                                           >
                                     <label class="form-check-label small" for="procReceita">
                                         <strong>Proc. Receita</strong>
                                     </label>
                                 </div>
                                 <input type="text" class="form-control form-control-sm date-mask" 
                                        id="dataProcReceita" name="dataProcReceita" 
-                                       value="{{ client.dataProcReceita if client else '' }}" 
+                                       value="" 
                                        placeholder="DD/MM/AAAA">
                             </div>
 
@@ -1602,14 +2330,14 @@ document.addEventListener('DOMContentLoaded', function() {
                                     <input class="form-check-input" type="checkbox" 
                                            id="procDte" name="procDte" 
                                            onchange="toggleProcuracaoData('procDte', 'dataProcDte')"
-                                           {% if client and client.procDte %}checked{% endif %}>
+                                           >
                                     <label class="form-check-label small" for="procDte">
                                         <strong>Proc. DTe</strong>
                                     </label>
                                 </div>
                                 <input type="text" class="form-control form-control-sm date-mask" 
                                        id="dataProcDte" name="dataProcDte" 
-                                       value="{{ client.dataProcDte if client else '' }}" 
+                                       value="" 
                                        placeholder="DD/MM/AAAA">
                             </div>
 
@@ -1619,14 +2347,14 @@ document.addEventListener('DOMContentLoaded', function() {
                                     <input class="form-check-input" type="checkbox" 
                                            id="procCaixa" name="procCaixa" 
                                            onchange="toggleProcuracaoData('procCaixa', 'dataProcCaixa')"
-                                           {% if client and client.procCaixa %}checked{% endif %}>
+                                           >
                                     <label class="form-check-label small" for="procCaixa">
                                         <strong>Proc. Caixa</strong>
                                     </label>
                                 </div>
                                 <input type="text" class="form-control form-control-sm date-mask" 
                                        id="dataProcCaixa" name="dataProcCaixa" 
-                                       value="{{ client.dataProcCaixa if client else '' }}" 
+                                       value="" 
                                        placeholder="DD/MM/AAAA">
                             </div>
 
@@ -1636,14 +2364,14 @@ document.addEventListener('DOMContentLoaded', function() {
                                     <input class="form-check-input" type="checkbox" 
                                            id="procEmpWeb" name="procEmpWeb" 
                                            onchange="toggleProcuracaoData('procEmpWeb', 'dataProcEmpWeb')"
-                                           {% if client and client.procEmpWeb %}checked{% endif %}>
+                                           >
                                     <label class="form-check-label small" for="procEmpWeb">
                                         <strong>Proc. Emp. Web</strong>
                                     </label>
                                 </div>
                                 <input type="text" class="form-control form-control-sm date-mask" 
                                        id="dataProcEmpWeb" name="dataProcEmpWeb" 
-                                       value="{{ client.dataProcEmpWeb if client else '' }}" 
+                                       value="" 
                                        placeholder="DD/MM/AAAA">
                             </div>
 
@@ -1653,14 +2381,14 @@ document.addEventListener('DOMContentLoaded', function() {
                                     <input class="form-check-input" type="checkbox" 
                                            id="procDet" name="procDet" 
                                            onchange="toggleProcuracaoData('procDet', 'dataProcDet')"
-                                           {% if client and client.procDet %}checked{% endif %}>
+                                           >
                                     <label class="form-check-label small" for="procDet">
                                         <strong>Proc. DET</strong>
                                     </label>
                                 </div>
                                 <input type="text" class="form-control form-control-sm date-mask" 
                                        id="dataProcDet" name="dataProcDet" 
-                                       value="{{ client.dataProcDet if client else '' }}" 
+                                       value="" 
                                        placeholder="DD/MM/AAAA">
                             </div>
                         </div>
@@ -1682,7 +2410,7 @@ document.addEventListener('DOMContentLoaded', function() {
                                     <i class="fas fa-sticky-note me-2"></i>OBSERVAÇÕES GERAIS
                                 </label>
                                 <textarea class="form-control" id="observacoes" name="observacoes" rows="4" 
-                                          placeholder="Digite aqui observações gerais sobre o cliente...">{{ client.observacoes if client else '' }}</textarea>
+                                          placeholder="Digite aqui observações gerais sobre o cliente..."></textarea>
                                 <div class="form-text">
                                     <i class="fas fa-info-circle me-1"></i>
                                     Este campo será exibido no "Ver Detalhes" do cliente para consulta rápida
@@ -1695,15 +2423,15 @@ document.addEventListener('DOMContentLoaded', function() {
                             <div class="col-md-6 mb-3">
                                 <label for="statusCliente" class="form-label">STATUS DO CLIENTE</label>
                                 <select class="form-select" id="statusCliente" name="statusCliente">
-                                    <option value="ativo" {{ 'selected' if client and client.statusCliente == 'ativo' else '' }}>Ativo</option>
-                                    <option value="inativo" {{ 'selected' if client and client.statusCliente == 'inativo' else '' }}>Inativo</option>
+                                    <option value="ativo" >Ativo</option>
+                                    <option value="inativo" >Inativo</option>
                                 </select>
                             </div>
                             <!-- Data da última atualização -->
                             <div class="col-md-6 mb-3">
                                 <label for="ultimaAtualizacao" class="form-label">Última atualização</label>
                                 <input type="datetime-local" class="form-control" id="ultimaAtualizacao" name="ultimaAtualizacao" 
-                                       value="{{ client.ultimaAtualizacao[:19] if client and client.ultimaAtualizacao else '' }}" readonly>
+                                       value="" readonly>
                                 <div class="form-text">Atualizado automaticamente</div>
                             </div>
                         </div>
@@ -1711,78 +2439,32 @@ document.addEventListener('DOMContentLoaded', function() {
                 </div>
 
                 <!-- Botões de ação -->
-                {% if not view_mode %}
+                
                 <div class="card">
                     <div class="card-body">
                         <div class="d-flex justify-content-between align-items-center">
                             <div>
                                 <button type="submit" class="btn btn-primary me-3">
                                     <i class="bi bi-check-lg me-1"></i>
-                                    {% if client %}Atualizar Cliente{% else %}Salvar Cliente{% endif %}
+                                    Salvar Cliente
                                 </button>
                                 <a href="/" class="btn btn-secondary">
                                     <i class="bi bi-x-lg me-1"></i>
                                     Cancelar
                                 </a>
                             </div>
-                            {% if client %}
-                            <button type="button" class="btn btn-outline-danger" 
-                                    onclick="confirmDelete('{{ client.id }}', '{{ client.nomeEmpresa }}')">
-                                <i class="bi bi-trash me-1"></i>
-                                Excluir Cliente
-                            </button>
-                            {% endif %}
+                            
                         </div>
                     </div>
                 </div>
-                {% else %}
-                <!-- Botões de visualização -->
-                <div class="card">
-                    <div class="card-body text-center">
-                        <a href="{{ url_for('edit_client', client_id=client.id) }}" class="btn btn-primary me-3">
-                            <i class="bi bi-pencil me-1"></i>
-                            Editar Cliente
-                        </a>
-                        <a href="/" class="btn btn-secondary">
-                            <i class="bi bi-arrow-left me-1"></i>
-                            Voltar
-                        </a>
-                    </div>
-                </div>
-                {% endif %}
+                
             </form>
         </div>
     </div>
 </div>
 
 <!-- Modal de confirmação de exclusão -->
-{% if client %}
-<div class="modal fade" id="deleteModal" tabindex="-1">
-    <div class="modal-dialog">
-        <div class="modal-content">
-            <div class="modal-header">
-                <h5 class="modal-title">
-                    <i class="bi bi-exclamation-triangle text-warning me-2"></i>
-                    Confirmar Exclusão
-                </h5>
-                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
-            </div>
-            <div class="modal-body">
-                <p>Tem certeza que deseja excluir o cliente <strong id="clientName">{{ client.nomeEmpresa }}</strong>?</p>
-                <p class="text-muted">Esta ação não pode ser desfeita.</p>
-            </div>
-            <div class="modal-footer">
-                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
-                <form id="deleteForm" method="POST" action="/client/{{ client.id }}/delete" style="display: inline;">
-                    <button type="submit" class="btn btn-danger">
-                        <i class="bi bi-trash me-1"></i>Excluir
-                    </button>
-                </form>
-            </div>
-        </div>
-    </div>
-</div>
-{% endif %}
+
 
 <script>
 // =============================================================================
@@ -2004,9 +2686,20 @@ document.addEventListener('DOMContentLoaded', function() {
         console.log('📊 Estado final: disabled =', domesticaSelect.disabled, 'valor:', domesticaSelect.value);
     }
     
-    // CONFIGURAÇÃO INICIAL CPF/CNPJ E DOMÉSTICA
-    // Nota: Event listeners estão configurados na seção updateRequiredFields para evitar conflitos
-    console.log('✅ Funções CPF/CNPJ carregadas - event listeners configurados automaticamente');
+    // Configurar eventos
+    const cpfCnpjInput = document.getElementById('cpfCnpj');
+    if (cpfCnpjInput) {
+        cpfCnpjInput.addEventListener('input', atualizarCpfCnpjEDomestica);
+        cpfCnpjInput.addEventListener('change', atualizarCpfCnpjEDomestica);
+        cpfCnpjInput.addEventListener('blur', atualizarCpfCnpjEDomestica);
+        
+        // Estado inicial
+        atualizarCpfCnpjEDomestica();
+        
+        console.log('✅ Eventos configurados com sucesso!');
+    } else {
+        console.error('❌ Campo CPF/CNPJ não encontrado!');
+    }
     
     // =============================================================
     // RESTANTE DAS CONFIGURAÇÕES
@@ -2160,107 +2853,16 @@ document.addEventListener('DOMContentLoaded', function() {
     
     // Função para mostrar sócios com dados
     function mostrarSociosComDados() {
-        {% if client %}
-        const dadosCliente = {{ client|tojson }};
-        console.log('🔍 [CORREÇÃO 09] Verificando dados dos sócios...');
-        console.log('🔍 [CORREÇÃO 09] Dados completos do cliente:', dadosCliente);
         
-        // Verificar sócios 2-5 e mostrar apenas os que têm dados
-        for (var i = 2; i <= 5; i++) {
-            var nomeKey = 'socio_' + i + '_nome';
-            var cpfKey = 'socio_' + i + '_cpf';
-            var participacaoKey = 'socio_' + i + '_participacao';
-            var nascimentoKey = 'socio_' + i + '_data_nascimento';
-            var adminKey = 'socio_' + i + '_administrador';
-            
-            var temNome = dadosCliente[nomeKey] && dadosCliente[nomeKey].trim() !== '';
-            var temCpf = dadosCliente[cpfKey] && dadosCliente[cpfKey].trim() !== '';
-            var temParticipacao = dadosCliente[participacaoKey] && dadosCliente[participacaoKey] !== '' && dadosCliente[participacaoKey] !== null;
-            var temNascimento = dadosCliente[nascimentoKey] && dadosCliente[nascimentoKey].trim() !== '';
-            var temAdmin = dadosCliente[adminKey] && dadosCliente[adminKey] !== '' && dadosCliente[adminKey] !== null;
-            
-            console.log(`🔍 [CORREÇÃO 09] Sócio ${i}:`, {
-                nome: temNome ? dadosCliente[nomeKey] : 'vazio',
-                cpf: temCpf ? dadosCliente[cpfKey] : 'vazio',
-                participacao: temParticipacao ? dadosCliente[participacaoKey] : 'vazio',
-                nascimento: temNascimento ? dadosCliente[nascimentoKey] : 'vazio',
-                admin: temAdmin ? dadosCliente[adminKey] : 'vazio'
-            });
-            
-            // Se tem pelo menos um campo preenchido, mostrar o sócio
-            if (temNome || temCpf || temParticipacao || temNascimento || temAdmin) {
-                var socioElement = document.getElementById('socio_' + i);
-                if (socioElement) {
-                    socioElement.style.display = 'block';
-                    console.log('✅ [CORREÇÃO 09] Sócio', i, 'mostrado (tem dados)');
-                    
-                    // Aplicar formatação CPF se necessário
-                    var cpfInput = socioElement.querySelector('.cpf-mask');
-                    if (cpfInput && cpfInput.value && cpfInput.value.length > 0) {
-                        formatCPF(cpfInput);
-                        console.log('🔧 [CORREÇÃO 09] CPF formatado no sócio', i);
-                    }
-                } else {
-                    console.warn('⚠️ [CORREÇÃO 09] Elemento socio_' + i + ' não encontrado');
-                }
-            } else {
-                console.log('📝 [CORREÇÃO 09] Sócio', i, 'mantido oculto (sem dados)');
-            }
-        }
-        {% else %}
         console.log('📝 [CORREÇÃO 09] Novo cliente - apenas Sócio 1 visível');
-        {% endif %}
+        
     }
     
     // Função para mostrar contatos com dados
     function mostrarContatosComDados() {
-        {% if client %}
-        const dadosCliente = {{ client|tojson }};
-        console.log('🔍 [CORREÇÃO 09] Verificando dados dos contatos...');
-        console.log('🔍 [CORREÇÃO 09] Dados completos do cliente (contatos):', dadosCliente);
         
-        // Verificar contatos 2-5 e mostrar apenas os que têm dados
-        for (var i = 2; i <= 5; i++) {
-            var nomeKey = 'contato_' + i + '_nome';
-            var cargoKey = 'contato_' + i + '_cargo';
-            var telefoneKey = 'contato_' + i + '_telefone';
-            var emailKey = 'contato_' + i + '_email';
-            
-            var temNome = dadosCliente[nomeKey] && dadosCliente[nomeKey].trim() !== '';
-            var temCargo = dadosCliente[cargoKey] && dadosCliente[cargoKey].trim() !== '';
-            var temTelefone = dadosCliente[telefoneKey] && dadosCliente[telefoneKey].trim() !== '';
-            var temEmail = dadosCliente[emailKey] && dadosCliente[emailKey].trim() !== '';
-            
-            console.log(`🔍 [CORREÇÃO 09] Contato ${i}:`, {
-                nome: temNome ? dadosCliente[nomeKey] : 'vazio',
-                cargo: temCargo ? dadosCliente[cargoKey] : 'vazio',
-                telefone: temTelefone ? dadosCliente[telefoneKey] : 'vazio',
-                email: temEmail ? dadosCliente[emailKey] : 'vazio'
-            });
-            
-            // Se tem pelo menos um campo preenchido, mostrar o contato
-            if (temNome || temCargo || temTelefone || temEmail) {
-                var contatoElement = document.getElementById('contato_' + i);
-                if (contatoElement) {
-                    contatoElement.style.display = 'block';
-                    console.log('✅ [CORREÇÃO 09] Contato', i, 'mostrado (tem dados)');
-                    
-                    // Aplicar formatação telefone se necessário
-                    var phoneInput = contatoElement.querySelector('.phone-mask');
-                    if (phoneInput && phoneInput.value && phoneInput.value.length > 0) {
-                        formatPhone(phoneInput);
-                        console.log('🔧 [CORREÇÃO 09] Telefone formatado no contato', i);
-                    }
-                } else {
-                    console.warn('⚠️ [CORREÇÃO 09] Elemento contato_' + i + ' não encontrado');
-                }
-            } else {
-                console.log('📝 [CORREÇÃO 09] Contato', i, 'mantido oculto (sem dados)');
-            }
-        }
-        {% else %}
         console.log('📝 [CORREÇÃO 09] Novo cliente - apenas Contato 1 visível');
-        {% endif %}
+        
     }
     
     // Executar após um pequeno delay para garantir que DOM esteja totalmente carregado
@@ -2268,120 +2870,7 @@ document.addEventListener('DOMContentLoaded', function() {
     setTimeout(mostrarContatosComDados, 60);
 
     // Carregar dados dos sócios e contatos se estiver editando
-    {% if client %}
-    console.log('🚀 CORREÇÃO 03 - CARREGANDO SÓCIOS EXISTENTES');
-    const dadosCliente = {{ client|tojson }};
-    console.log('🔍 DADOS DO CLIENTE RECEBIDOS:', dadosCliente);
-    console.log('🔍 SOCIO_1_NOME:', dadosCliente.socio_1_nome);
-    console.log('🔍 SOCIO_2_NOME:', dadosCliente.socio_2_nome);
-    console.log('🔍 SOCIO_3_NOME:', dadosCliente.socio_3_nome);
-    console.log('� CHAMANDO FUNÇÃO CORRIGIDA carregarSociosCorrigido...');
-    // CORREÇÃO 03: Carregar TODOS os sócios automaticamente (2 a 10)
-    setTimeout(function() {
-        console.log('🔧 CORREÇÃO 03 - CARREGANDO TODOS OS SÓCIOS AUTOMATICAMENTE...');
-        
-        const container = document.getElementById('sociosContainer');
-        if (!container) {
-            console.error('❌ sociosContainer não encontrado');
-            return;
-        }
-        
-        // Loop para carregar sócios de 2 a 10
-        for (let i = 2; i <= 10; i++) {
-            const nomeField = `socio_${i}_nome`;
-            const cpfField = `socio_${i}_cpf`;
-            const nascimentoField = `socio_${i}_data_nascimento`;
-            const participacaoField = `socio_${i}_participacao`;
-            const administradorField = `socio_${i}_administrador`;
-            
-            if (dadosCliente[nomeField] && dadosCliente[nomeField].trim()) {
-                console.log(`➕ Criando card para sócio ${i}:`, dadosCliente[nomeField]);
-                
-                const cardSocio = document.createElement('div');
-                cardSocio.className = 'card border-light mb-2 socio-card';
-                cardSocio.id = `socio_${i}`;
-                
-                // Verificar se é representante legal
-                const isRepLegal = dadosCliente.representante_legal === `socio_${i}`;
-                const isAdmin = dadosCliente[administradorField];
-                
-                cardSocio.innerHTML = `
-                    <div class="card-body py-3">
-                        <div class="d-flex justify-content-between align-items-center mb-2">
-                            <span class="badge bg-primary">Sócio ${i}</span>
-                            <button type="button" class="btn btn-sm btn-outline-danger" 
-                                    onclick="this.closest('.socio-card').remove()">❌</button>
-                        </div>
-                        <div class="row align-items-center">
-                            <div class="col-md-3 mb-2">
-                                <label class="form-label small mb-1">Nome do Sócio</label>
-                                <input type="text" class="form-control form-control-sm" 
-                                       name="socio_${i}_nome" 
-                                       value="${dadosCliente[nomeField]}"
-                                       onkeyup="this.value=this.value.toUpperCase()"
-                                       placeholder="Nome completo do sócio">
-                            </div>
-                            <div class="col-md-2 mb-2">
-                                <label class="form-label small mb-1">CPF</label>
-                                <input type="text" class="form-control form-control-sm cpf-mask" 
-                                       name="socio_${i}_cpf" 
-                                       value="${dadosCliente[cpfField] || ''}"
-                                       placeholder="000.000.000-00">
-                            </div>
-                            <div class="col-md-2 mb-2">
-                                <label class="form-label small mb-1">Data de Nascimento</label>
-                                <input type="date" class="form-control form-control-sm" 
-                                       name="socio_${i}_data_nascimento"
-                                       value="${dadosCliente[nascimentoField] || ''}">
-                            </div>
-                            <div class="col-md-2 mb-2">
-                                <label class="form-label small mb-1">% de Quotas</label>
-                                <input type="number" class="form-control form-control-sm" 
-                                       name="socio_${i}_participacao" 
-                                       value="${dadosCliente[participacaoField] || ''}"
-                                       placeholder="50.00" step="0.01" min="0" max="100">
-                            </div>
-                            <div class="col-md-3 mb-2">
-                                <div class="row">
-                                    <div class="col-6">
-                                        <div class="form-check">
-                                            <input class="form-check-input representante-legal" type="radio" 
-                                                   name="representante_legal" value="socio_${i}" 
-                                                   id="rep_legal_${i}"
-                                                   ${isRepLegal ? 'checked' : ''}>
-                                            <label class="form-check-label small" for="rep_legal_${i}">
-                                                Representante Legal
-                                            </label>
-                                        </div>
-                                    </div>
-                                    <div class="col-6">
-                                        <div class="form-check">
-                                            <input class="form-check-input socio-admin" type="checkbox" 
-                                                   name="socio_${i}_administrador" value="1" 
-                                                   id="admin_${i}"
-                                                   ${isAdmin ? 'checked' : ''}>
-                                            <label class="form-check-label small" for="admin_${i}">
-                                                Sócio Administrador
-                                            </label>
-                                        </div>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                `;
-                
-                container.appendChild(cardSocio);
-                console.log(`✅ Sócio ${i} adicionado com todos os campos:`, dadosCliente[nomeField]);
-            }
-        }
-        
-        console.log('🎉 CORREÇÃO 03 CONCLUÍDA - TODOS OS SÓCIOS CARREGADOS!');
-        
-    }, 1000); // Delay para garantir que tudo carregou
-    console.log('🔍 EXECUTANDO carregarContatos...');
-    carregarContatos(dadosCliente);
-    {% endif %}
+    
 
     // Forçar caixa alta nos inputs
     document.querySelectorAll('.upper-input').forEach(function(input) {
@@ -3070,15 +3559,9 @@ function inicializarValidacaoCampos() {
     const conditionalFields = document.querySelectorAll('.conditional-required');
     
     function updateRequiredFields() {
-        // CORREÇÃO: Verificar se o campo existe antes de usá-lo
-        if (!cpfCnpjInput) {
-            console.log('⚠️ Campo CPF/CNPJ ainda não disponível');
-            return;
-        }
-        
-        const value = cpfCnpjInput.value.replace(/\D/g, '');
-        const isCPF = value.length === 11;
-        const isCNPJ = value.length === 14;
+    const value = cpfCnpjInput.value.replace(/\D/g, '');
+    const isCPF = value.length === 11;
+    const isCNPJ = value.length === 14;
         
         console.log('🔄 Atualizando campos obrigatórios:', {
             value: value,
@@ -3133,14 +3616,9 @@ function inicializarValidacaoCampos() {
     if (cpfCnpjInput) {
         updateRequiredFields();
         
-        // CORREÇÃO: Combinar ambas as funcionalidades em um único event listener
-        cpfCnpjInput.addEventListener('input', function() {
-            // 1. Atualizar campos obrigatórios (função original)
-            updateRequiredFields();
-            // 2. Atualizar CPF/CNPJ e Doméstica (nova funcionalidade)
-            atualizarCpfCnpjEDomestica();
-        });
-        console.log('✅ Event listener combinado do CPF/CNPJ adicionado');
+        // Adicionar evento para atualizar quando CPF/CNPJ mudar
+        cpfCnpjInput.addEventListener('input', updateRequiredFields);
+        console.log('✅ Event listener do CPF/CNPJ adicionado');
     } else {
         console.error('❌ Campo CPF/CNPJ não encontrado!');
     }
@@ -3746,4 +4224,76 @@ window.adicionarSocio = () => {
 };
 
 </script>
-{% endblock %}
+
+        </div>
+    </div>
+
+    <!-- Rodapé Simples -->
+    <footer class="mt-5" style="background: #6c757d; color: white; padding: 1rem 0;">
+        <div class="container-fluid">
+            <div class="row align-items-center">
+                <div class="col-md-6">
+                    <small>© 2024 Sistema de Gestão. Todos os direitos reservados.</small>
+                </div>
+                <div class="col-md-6 text-end">
+                    <small>Sistema de Gestão v2.0</small>
+                </div>
+            </div>
+        </div>
+    </footer>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            // Auto-dismiss alerts após 3 segundos
+            function autoDismissAlerts() {
+                setTimeout(function() {
+                    var alerts = document.querySelectorAll('.alert');
+                    alerts.forEach(function(alert) {
+                        if (alert.classList.contains('show')) {
+                            var bsAlert = new bootstrap.Alert(alert);
+                            bsAlert.close();
+                        }
+                    });
+                }, 3000);
+            }
+            
+            // Configuração específica para o dropdown do usuário
+            var userDropdown = document.getElementById('userDropdown');
+            if (userDropdown) {
+                // Esconde alertas quando dropdown do usuário é aberto
+                userDropdown.addEventListener('click', function() {
+                    var alerts = document.querySelectorAll('.alert');
+                    alerts.forEach(function(alert) {
+                        if (alert.classList.contains('show')) {
+                            var bsAlert = new bootstrap.Alert(alert);
+                            bsAlert.close();
+                        }
+                    });
+                });
+                
+                // Força posicionamento correto do dropdown
+                userDropdown.addEventListener('shown.bs.dropdown', function() {
+                    var dropdownMenu = userDropdown.nextElementSibling;
+                    if (dropdownMenu && dropdownMenu.classList.contains('dropdown-menu')) {
+                        dropdownMenu.style.position = 'absolute';
+                        dropdownMenu.style.zIndex = '999999';
+                        dropdownMenu.style.top = '100%';
+                        dropdownMenu.style.right = '0';
+                        dropdownMenu.style.left = 'auto';
+                        dropdownMenu.style.transform = 'none';
+                        dropdownMenu.style.minWidth = '200px';
+                        
+                        // Debug: log para verificar se está sendo aplicado
+                        console.log('Dropdown configurado:', dropdownMenu);
+                    }
+                });
+            }
+            
+            // Inicia auto-dismiss
+            autoDismissAlerts();
+        });
+    </script>
+</body>
+</html>
