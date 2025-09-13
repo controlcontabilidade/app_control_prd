@@ -1181,10 +1181,10 @@ class GoogleSheetsServiceAccountService:
             client.get('dataInicioServicos', ''),             # 17. DATA INÍCIO DOS SERVIÇOS (POSIÇÃO CORRETA)
             
             # Códigos dos Sistemas (Bloco 2) - POSIÇÕES CORRETAS
-            f"'{str(client.get('codFortesCt', ''))}" if client.get('codFortesCt') else '',  # 18. CÓDIGO FORTES CT - removido zfill
-            f"'{str(client.get('codFortesFs', ''))}" if client.get('codFortesFs') else '',  # 19. CÓDIGO FORTES FS - removido zfill
-            f"'{str(client.get('codFortesPs', ''))}" if client.get('codFortesPs') else '',  # 20. CÓDIGO FORTES PS - removido zfill
-            f"'{str(client.get('codDominio', ''))}" if client.get('codDominio') else '',    # 21. CÓDIGO DOMÍNIO - removido zfill
+            f"'{str(client.get('codigoFortesCT', ''))}" if client.get('codigoFortesCT') else '',  # 18. CÓDIGO FORTES CT - corrigido mapeamento
+            f"'{str(client.get('codigoFortesFS', ''))}" if client.get('codigoFortesFS') else '',  # 19. CÓDIGO FORTES FS - corrigido mapeamento
+            f"'{str(client.get('codigoFortesPS', ''))}" if client.get('codigoFortesPS') else '',  # 20. CÓDIGO FORTES PS - corrigido mapeamento
+            f"'{str(client.get('codigoDominio', ''))}" if client.get('codigoDominio') else '',    # 21. CÓDIGO DOMÍNIO - corrigido mapeamento
             client.get('sistemaUtilizado', ''),               # 22. SISTEMA UTILIZADO (POSIÇÃO CORRETA)
             
             # Bloco 3: Quadro Societário - POSIÇÕES CORRETAS

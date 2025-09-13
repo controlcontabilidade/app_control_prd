@@ -44,6 +44,7 @@ testing_*.py
 *_testing.py
 debug_*.py
 *_debug.py
+teste_
 
 # Diretórios de teste
 tests/

@@ -108,46 +108,100 @@ console.log('✏️ MODO EDIÇÃO/CRIAÇÃO ATIVO');
 function formatarCpfCnpjInline(input) {
     console.log('🎯 FUNÇÃO INLINE CHAMADA:', input.value);
     
+    // Remove todos os caracteres não numéricos
     const valor = input.value.replace(/\D/g, '');
     const domesticaSelect = document.getElementById('domestica');
     const labelCpfCnpj = document.querySelector('label[for="cpfCnpj"]');
     
     console.log('📋 Valor limpo:', valor, 'Length:', valor.length);
     
-    // Formatação
+    // Formatação progressiva
     let valorFormatado = '';
-    if (valor.length <= 11) {
-        // CPF: 000.000.000-00
-        valorFormatado = valor.replace(/(\d{3})(\d{3})(\d{3})(\d{2})/, '$1.$2.$3-$4');
+    
+    if (valor.length === 0) {
+        // Campo vazio - resetar para estado inicial
+        valorFormatado = '';
+        if (labelCpfCnpj) {
+            labelCpfCnpj.innerHTML = '<i class="bi bi-card-text me-1"></i>CPF/CNPJ <span class="text-danger required-field">*</span>';
+        }
+        if (domesticaSelect) {
+            domesticaSelect.disabled = true;
+            domesticaSelect.value = 'NÃO';
+        }
+        input.placeholder = '';
+    } else if (valor.length <= 11) {
+        // Formatação para CPF: 000.000.000-00
+        if (valor.length <= 3) {
+            valorFormatado = valor;
+        } else if (valor.length <= 6) {
+            valorFormatado = valor.replace(/(\d{3})(\d+)/, '$1.$2');
+        } else if (valor.length <= 9) {
+            valorFormatado = valor.replace(/(\d{3})(\d{3})(\d+)/, '$1.$2.$3');
+        } else {
+            valorFormatado = valor.replace(/(\d{3})(\d{3})(\d{3})(\d+)/, '$1.$2.$3-$4');
+        }
+        
+        // Se tem 11 dígitos, é um CPF completo
+        if (valor.length === 11) {
+            console.log('👤 CPF completo - habilitando Doméstica');
+            if (labelCpfCnpj) {
+                labelCpfCnpj.innerHTML = '<i class="bi bi-person me-1"></i>CPF <span class="text-danger required-field">*</span>';
+            }
+            if (domesticaSelect) {
+                domesticaSelect.disabled = false;
+            }
+            input.placeholder = '000.000.000-00';
+        } else {
+            // CPF incompleto
+            if (labelCpfCnpj) {
+                labelCpfCnpj.innerHTML = '<i class="bi bi-person me-1"></i>CPF <span class="text-danger required-field">*</span>';
+            }
+            if (domesticaSelect) {
+                domesticaSelect.disabled = true;
+                domesticaSelect.value = 'NÃO';
+            }
+            input.placeholder = '000.000.000-00';
+        }
     } else {
-        // CNPJ: 00.000.000/0000-00
-        valorFormatado = valor.replace(/(\d{2})(\d{3})(\d{3})(\d{4})(\d{2})/, '$1.$2.$3/$4-$5');
+        // Formatação para CNPJ: 00.000.000/0000-00
+        if (valor.length <= 2) {
+            valorFormatado = valor;
+        } else if (valor.length <= 5) {
+            valorFormatado = valor.replace(/(\d{2})(\d+)/, '$1.$2');
+        } else if (valor.length <= 8) {
+            valorFormatado = valor.replace(/(\d{2})(\d{3})(\d+)/, '$1.$2.$3');
+        } else if (valor.length <= 12) {
+            valorFormatado = valor.replace(/(\d{2})(\d{3})(\d{3})(\d+)/, '$1.$2.$3/$4');
+        } else {
+            valorFormatado = valor.replace(/(\d{2})(\d{3})(\d{3})(\d{4})(\d+)/, '$1.$2.$3/$4-$5');
+        }
+        
+        // Se tem 14 dígitos, é um CNPJ completo
+        if (valor.length === 14) {
+            console.log('🏢 CNPJ completo - desabilitando Doméstica');
+            if (labelCpfCnpj) {
+                labelCpfCnpj.innerHTML = '<i class="bi bi-building me-1"></i>CNPJ <span class="text-danger required-field">*</span>';
+            }
+            if (domesticaSelect) {
+                domesticaSelect.disabled = true;
+                domesticaSelect.value = 'NÃO';
+            }
+            input.placeholder = '00.000.000/0000-00';
+        } else {
+            // CNPJ incompleto
+            if (labelCpfCnpj) {
+                labelCpfCnpj.innerHTML = '<i class="bi bi-building me-1"></i>CNPJ <span class="text-danger required-field">*</span>';
+            }
+            if (domesticaSelect) {
+                domesticaSelect.disabled = true;
+                domesticaSelect.value = 'NÃO';
+            }
+            input.placeholder = '00.000.000/0000-00';
+        }
     }
     
     input.value = valorFormatado;
     console.log('✅ Valor formatado:', valorFormatado);
-    
-    // Atualizar label e Doméstica
-    if (valor.length === 11) {
-        console.log('👤 CPF - habilitando Doméstica');
-        if (labelCpfCnpj) labelCpfCnpj.innerHTML = '<i class="bi bi-person me-1"></i>CPF <span class="text-danger">*</span>';
-        if (domesticaSelect) domesticaSelect.disabled = false;
-    } else if (valor.length === 14) {
-        console.log('🏢 CNPJ - desabilitando Doméstica');
-        if (labelCpfCnpj) labelCpfCnpj.innerHTML = '<i class="bi bi-building me-1"></i>CNPJ <span class="text-danger">*</span>';
-        if (domesticaSelect) {
-            domesticaSelect.disabled = true;
-            domesticaSelect.value = 'NÃO';
-        }
-    } else {
-        console.log('⏳ Incompleto');
-        if (labelCpfCnpj) labelCpfCnpj.innerHTML = '<i class="bi bi-card-text me-1"></i>CPF/CNPJ <span class="text-danger">*</span>';
-        if (domesticaSelect) {
-            domesticaSelect.disabled = true;
-            domesticaSelect.value = 'NÃO';
-        }
-    }
-    
     console.log('✅ Função inline concluída');
 }
 
@@ -163,21 +217,13 @@ document.addEventListener('DOMContentLoaded', function() {
         console.log('🏠 Configurando campo Doméstica inicial...');
         
         if (cpfCnpjInput && domesticaSelect) {
-            // Se há valor inicial no CPF/CNPJ, processar
-            const valorInicial = cpfCnpjInput.value.replace(/\D/g, '');
-            
-            if (valorInicial.length === 11) {
-                // CPF - habilitar Doméstica
-                console.log('👤 CPF inicial detectado - habilitando Doméstica');
-                domesticaSelect.disabled = false;
-            } else if (valorInicial.length === 14) {
-                // CNPJ - desabilitar Doméstica
-                console.log('🏢 CNPJ inicial detectado - desabilitando Doméstica');
-                domesticaSelect.disabled = true;
-                domesticaSelect.value = 'NÃO';
-            } else if (valorInicial.length === 0) {
-                // Novo cadastro - desabilitar até definir CPF/CNPJ
-                console.log('🆕 Novo cadastro - Doméstica desabilitada até definir CPF/CNPJ');
+            // Se há valor inicial no CPF/CNPJ, processar com a função principal
+            if (cpfCnpjInput.value) {
+                console.log('� Valor inicial encontrado, aplicando formatação...');
+                formatarCpfCnpjInline(cpfCnpjInput);
+            } else {
+                // Novo cadastro - configurar estado inicial
+                console.log('🆕 Novo cadastro - configurando estado inicial');
                 domesticaSelect.disabled = true;
                 domesticaSelect.value = 'NÃO';
             }
@@ -304,6 +350,19 @@ document.addEventListener('DOMContentLoaded', function() {
 <div class="container-fluid py-4">
     <div class="row justify-content-center">
         <div class="col-12">
+            <!-- Mensagens Flash -->
+            {% with messages = get_flashed_messages(with_categories=true) %}
+                {% if messages %}
+                    {% for category, message in messages %}
+                        <div class="alert alert-{{ 'danger' if category == 'error' else category }} alert-dismissible fade show" role="alert">
+                            <i class="bi bi-{{ 'exclamation-triangle' if category == 'error' else 'check-circle' if category == 'success' else 'info-circle' }} me-2"></i>
+                            {{ message }}
+                            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                        </div>
+                    {% endfor %}
+                {% endif %}
+            {% endwith %}
+            
             {% if view_mode %}
             <!-- Banner de modo visualização -->
             <div class="view-mode-banner d-flex justify-content-between align-items-center">
@@ -487,7 +546,10 @@ document.addEventListener('DOMContentLoaded', function() {
                                     <select class="form-select" id="segmento" name="segmento">
                                         <option value="">Selecione o segmento</option>
                                         {% for segmento in segmentos %}
-                                        <option value="{{ segmento }}" {% if client and client.segmento == segmento %}selected{% endif %}>{{ segmento }}</option>
+                                        <option value="{{ segmento.nome if segmento.nome else segmento }}" 
+                                                {% if client and client.segmento == (segmento.nome if segmento.nome else segmento) %}selected{% endif %}>
+                                            {{ segmento.nome if segmento.nome else segmento }}
+                                        </option>
                                         {% endfor %}
                                     </select>
                                     <button class="btn btn-outline-secondary" type="button" onclick="window.open('/segmentos', '_blank')" title="Cadastrar novos segmentos">
@@ -507,7 +569,10 @@ document.addEventListener('DOMContentLoaded', function() {
                                     <select class="form-select" id="atividade" name="atividade">
                                         <option value="">Selecione a atividade principal</option>
                                         {% for atividade in atividades %}
-                                        <option value="{{ atividade }}" {% if client and client.atividade == atividade %}selected{% endif %}>{{ atividade }}</option>
+                                        <option value="{{ atividade.nome if atividade.nome else atividade }}" 
+                                                {% if client and client.atividade == (atividade.nome if atividade.nome else atividade) %}selected{% endif %}>
+                                            {{ atividade.nome if atividade.nome else atividade }}
+                                        </option>
                                         {% endfor %}
                                     </select>
                                     <button class="btn btn-outline-secondary" type="button" onclick="window.open('/atividades', '_blank')" title="Cadastrar novas atividades">
@@ -673,7 +738,7 @@ document.addEventListener('DOMContentLoaded', function() {
                                     <option value="">Selecione o sistema</option>
                                     {% if sistemas %}
                                         {% for sistema in sistemas %}
-                                        <option value="{{ sistema }}" {% if client and client.sistemaUtilizado == sistema %}selected{% endif %}>{{ sistema }}</option>
+                                        <option value="{{ sistema.nome if sistema.nome else sistema }}" {% if client and client.sistemaUtilizado == (sistema.nome if sistema.nome else sistema) %}selected{% endif %}>{{ sistema.nome if sistema.nome else sistema }}</option>
                                         {% endfor %}
                                     {% else %}
                                         <option value="FORTES" {% if client and client.sistemaUtilizado == 'FORTES' %}selected{% endif %}>FORTES</option>
@@ -872,6 +937,13 @@ document.addEventListener('DOMContentLoaded', function() {
                                                 }
                                                 
                                                 console.log('✅ [CORREÇÃO 09] Sócio dinâmico', num, 'adicionado com TODOS os campos e máscaras!');
+                                                
+                                                // CORREÇÃO 07: Forçar reaplicação da formatação CPF após adicionar sócio
+                                                setTimeout(function() {
+                                                    reaplicarFormatacaoCPF();
+                                                    console.log('🔧 [CORREÇÃO 07] Formatação CPF reaplicada após adicionar sócio', num);
+                                                }, 50);
+                                                
                                                 var input = div.querySelector('input');
                                                 if (input) input.focus();
                                             ">
@@ -890,7 +962,6 @@ document.addEventListener('DOMContentLoaded', function() {
                                                     <input type="text" class="form-control form-control-sm upper-input" 
                                                            name="socio_1_nome" id="socio_1_nome"
                                                            value="{{ client.socio_1_nome if client else '' }}"
-                                                           onkeyup="this.value=this.value.toUpperCase()"
                                                            placeholder="Nome completo do sócio">
                                                 </div>
                                                 <div class="col-md-2 mb-2">
@@ -1810,20 +1881,24 @@ function formatCPF(input) {
     
     // Aplicar formatação apenas se tiver dígitos
     if (value.length > 0) {
-        // Limitar a 11 dígitos
+        // Limitar a 11 dígitos (CPF)
         if (value.length > 11) {
             value = value.substring(0, 11);
         }
         
-        // Aplicar formatação progressiva
-        if (value.length >= 4) {
-            value = value.replace(/^(\d{3})(\d)/, '$1.$2');
-        }
-        if (value.length >= 8) {
-            value = value.replace(/^(\d{3}\.\d{3})(\d)/, '$1.$2');
-        }
-        if (value.length >= 12) {
-            value = value.replace(/^(\d{3}\.\d{3}\.\d{3})(\d)/, '$1-$2');
+        // Aplicar formatação progressiva CPF: 000.000.000-00
+        if (value.length <= 3) {
+            // 1-3 dígitos: sem formatação
+            value = value;
+        } else if (value.length <= 6) {
+            // 4-6 dígitos: 123.4 ou 123.456
+            value = value.replace(/^(\d{3})(\d+)/, '$1.$2');
+        } else if (value.length <= 9) {
+            // 7-9 dígitos: 123.456.7 ou 123.456.789
+            value = value.replace(/^(\d{3})(\d{3})(\d+)/, '$1.$2.$3');
+        } else {
+            // 10-11 dígitos: 123.456.789-0 ou 123.456.789-01
+            value = value.replace(/^(\d{3})(\d{3})(\d{3})(\d+)/, '$1.$2.$3-$4');
         }
     }
     
@@ -2134,6 +2209,14 @@ document.addEventListener('DOMContentLoaded', function() {
     if (form) {
         form.addEventListener('submit', function(e) {
             console.log('📝 Submit do formulário interceptado');
+            console.log('🔍 URL de ação:', form.action);
+            console.log('🔍 Método:', form.method);
+            
+            // Verificar se é edição ou criação
+            const idField = document.querySelector('input[name="id"]');
+            const clientId = idField ? idField.value : '';
+            console.log('🔍 ID do cliente:', clientId || 'NOVO CLIENTE');
+            console.log('🔍 Tipo de operação:', clientId ? 'EDIÇÃO' : 'CRIAÇÃO');
             
             // Sempre adicionar classe para mostrar validação visual
             form.classList.add('was-validated');
@@ -3155,72 +3238,116 @@ function validarFormulario(form) {
     const estadoSelect = document.getElementById('estado');
     const cidadeSelect = document.getElementById('cidade');
     
+    // Verificar se é edição de cliente existente
+    const clientIdInput = form.querySelector('input[name="id"]');
+    const isEditing = clientIdInput && clientIdInput.value;
+    
+    console.log(`🔍 Modo: ${isEditing ? 'Editando cliente existente' : 'Novo cliente'}`);
+    
     let erros = [];
     
-    // Validar Nome da Empresa (sempre obrigatório)
-    if (!nomeEmpresaInput.value.trim()) {
-        erros.push('Nome da Empresa é obrigatório');
-        nomeEmpresaInput.classList.add('is-invalid');
-        nomeEmpresaInput.classList.remove('is-valid');
-    } else {
-        nomeEmpresaInput.classList.remove('is-invalid');
-        nomeEmpresaInput.classList.add('is-valid');
-    }
-    
-    // Validar CPF/CNPJ (sempre obrigatório)
-    const cpfCnpjValue = cpfCnpjInput.value.replace(/\D/g, '');
-    if (!cpfCnpjValue || (cpfCnpjValue.length !== 11 && cpfCnpjValue.length !== 14)) {
-        erros.push('CPF/CNPJ é obrigatório e deve estar completo');
-        cpfCnpjInput.classList.add('is-invalid');
-        cpfCnpjInput.classList.remove('is-valid');
-    } else {
-        cpfCnpjInput.classList.remove('is-invalid');
-        cpfCnpjInput.classList.add('is-valid');
-    }
-    
-    // Validar Estado (sempre obrigatório)
-    if (!estadoSelect.value) {
-        erros.push('Estado é obrigatório');
-        estadoSelect.classList.add('is-invalid');
-        estadoSelect.classList.remove('is-valid');
-    } else {
-        estadoSelect.classList.remove('is-invalid');
-        estadoSelect.classList.add('is-valid');
-    }
-    
-    // Validar Cidade (sempre obrigatório)
-    if (!cidadeSelect.value) {
-        erros.push('Cidade é obrigatória');
-        cidadeSelect.classList.add('is-invalid');
-        cidadeSelect.classList.remove('is-valid');
-    } else {
-        cidadeSelect.classList.remove('is-invalid');
-        cidadeSelect.classList.add('is-valid');
-    }
-    
-    // Validações condicionais para CNPJ
-    const isCNPJ = cpfCnpjValue.length === 14;
-    if (isCNPJ) {
-        const camposObrigatoriosCNPJ = [
-            {id: 'razaoSocialReceita', nome: 'Razão Social'},
-            {id: 'nomeFantasiaReceita', nome: 'Nome Fantasia'},
-            {id: 'inscEst', nome: 'Inscrição Estadual'},
-            {id: 'inscMun', nome: 'Inscrição Municipal'},
-            {id: 'segmento', nome: 'Segmento'},
-            {id: 'atividade', nome: 'Atividade'},
-            {id: 'regimeEstadual', nome: 'Regime Estadual'},
-            {id: 'regimeFederal', nome: 'Regime Federal'}
-        ];
+    // Para cliente existente, apenas validações básicas
+    if (isEditing) {
+        // Permitir edição parcial - apenas validar se campos obrigatórios estão preenchidos quando presentes
+        if (nomeEmpresaInput && nomeEmpresaInput.value && !nomeEmpresaInput.value.trim()) {
+            erros.push('Nome da Empresa não pode estar vazio se preenchido');
+            nomeEmpresaInput.classList.add('is-invalid');
+        } else if (nomeEmpresaInput) {
+            nomeEmpresaInput.classList.remove('is-invalid');
+        }
         
-        camposObrigatoriosCNPJ.forEach(campo => {
-            const input = document.getElementById(campo.id);
-            if (input && !input.value.trim()) {
-                erros.push(`${campo.nome} é obrigatório para CNPJ`);
-                input.classList.add('is-invalid');
-            } else if (input) {
-                input.classList.remove('is-invalid');
+        // Validação relaxada para CPF/CNPJ em edição
+        if (cpfCnpjInput && cpfCnpjInput.value) {
+            const cpfCnpjValue = cpfCnpjInput.value.replace(/\D/g, '');
+            if (cpfCnpjValue.length !== 11 && cpfCnpjValue.length !== 14) {
+                erros.push('CPF/CNPJ deve ter formato válido se preenchido');
+                cpfCnpjInput.classList.add('is-invalid');
+            } else {
+                cpfCnpjInput.classList.remove('is-invalid');
             }
-        });
+        }
+        
+        console.log('✅ Validação relaxada para edição - permitindo salvar');
+        
+        // Para edição, retornar verdadeiro se não há erros críticos
+        if (erros.length === 0) {
+            console.log('✅ Formulário validado com sucesso (modo edição)');
+            return true;
+        } else {
+            console.log('❌ Erros em modo edição:', erros);
+            // Mostrar alerta com os erros
+            const mensagem = 'Por favor, corrija os seguintes erros:\n\n' + erros.join('\n');
+            alert(mensagem);
+            return false;
+        }
+        
+    } else {
+        // Validações rigorosas para novo cliente
+        // Validar Nome da Empresa (sempre obrigatório)
+        if (!nomeEmpresaInput.value.trim()) {
+            erros.push('Nome da Empresa é obrigatório');
+            nomeEmpresaInput.classList.add('is-invalid');
+            nomeEmpresaInput.classList.remove('is-valid');
+        } else {
+            nomeEmpresaInput.classList.remove('is-invalid');
+            nomeEmpresaInput.classList.add('is-valid');
+        }
+        
+        // Validar CPF/CNPJ (sempre obrigatório)
+        const cpfCnpjValue = cpfCnpjInput.value.replace(/\D/g, '');
+        if (!cpfCnpjValue || (cpfCnpjValue.length !== 11 && cpfCnpjValue.length !== 14)) {
+            erros.push('CPF/CNPJ é obrigatório e deve estar completo');
+            cpfCnpjInput.classList.add('is-invalid');
+            cpfCnpjInput.classList.remove('is-valid');
+        } else {
+            cpfCnpjInput.classList.remove('is-invalid');
+            cpfCnpjInput.classList.add('is-valid');
+        }
+        
+        // Validar Estado (sempre obrigatório)
+        if (!estadoSelect.value) {
+            erros.push('Estado é obrigatório');
+            estadoSelect.classList.add('is-invalid');
+            estadoSelect.classList.remove('is-valid');
+        } else {
+            estadoSelect.classList.remove('is-invalid');
+            estadoSelect.classList.add('is-valid');
+        }
+        
+        // Validar Cidade (sempre obrigatório)
+        if (!cidadeSelect.value) {
+            erros.push('Cidade é obrigatória');
+            cidadeSelect.classList.add('is-invalid');
+            cidadeSelect.classList.remove('is-valid');
+        } else {
+            cidadeSelect.classList.remove('is-invalid');
+            cidadeSelect.classList.add('is-valid');
+        }
+        
+        // Validações condicionais para CNPJ
+        const isCNPJ = cpfCnpjValue.length === 14;
+        if (isCNPJ) {
+            const camposObrigatoriosCNPJ = [
+                {id: 'razaoSocialReceita', nome: 'Razão Social'},
+                {id: 'nomeFantasiaReceita', nome: 'Nome Fantasia'},
+                {id: 'inscEst', nome: 'Inscrição Estadual'},
+                {id: 'inscMun', nome: 'Inscrição Municipal'},
+                {id: 'segmento', nome: 'Segmento'},
+                {id: 'atividade', nome: 'Atividade'},
+                {id: 'regimeEstadual', nome: 'Regime Estadual'},
+                {id: 'regimeFederal', nome: 'Regime Federal'}
+            ];
+            
+            camposObrigatoriosCNPJ.forEach(campo => {
+                const input = document.getElementById(campo.id);
+                if (input && !input.value.trim()) {
+                    erros.push(`${campo.nome} é obrigatório para CNPJ`);
+                    input.classList.add('is-invalid');
+                } else if (input) {
+                    input.classList.remove('is-invalid');
+                }
+            });
+        }
     }
     
     if (erros.length > 0) {

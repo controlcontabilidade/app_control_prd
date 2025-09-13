@@ -247,7 +247,16 @@ class UserService:
                 for i, header in enumerate(headers):
                     if i < len(user_row) and header.lower() != 'senha_hash':
                         user_data[header.lower()] = user_row[i]
-                user_list.append(user_data)
+                
+                # Filtrar usuários vazios ou inválidos
+                # Verificar se tem campos essenciais preenchidos
+                if (user_data.get('nome', '').strip() and 
+                    user_data.get('email', '').strip() and 
+                    user_data.get('usuario', '').strip() and
+                    user_data.get('nome', '').lower() not in ['nome', 'id'] and  # Evitar header rows
+                    user_data.get('email', '').lower() not in ['email', 'e-mail']):  # Evitar header rows
+                    
+                    user_list.append(user_data)
             
             return user_list
             
