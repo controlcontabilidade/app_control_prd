@@ -640,6 +640,7 @@ document.addEventListener('DOMContentLoaded', function() {
                                 </label>
                                 <select class="form-select" id="regimeEstadual" name="regimeEstadual">
                                     <option value="">Selecione o regime estadual</option>
+                                    <option value="ISENTO" {% if client and client.regimeEstadual == 'ISENTO' %}selected{% endif %}>ISENTO</option>
                                     <option value="SIMPLES" {% if client and client.regimeEstadual == 'SIMPLES' %}selected{% endif %}>SIMPLES NACIONAL</option>
                                     <option value="NORMAL" {% if client and client.regimeEstadual == 'NORMAL' %}selected{% endif %}>REGIME NORMAL</option>
                                     <option value="REGIME_ESPECIAL" {% if client and client.regimeEstadual == 'REGIME_ESPECIAL' %}selected{% endif %}>REGIME ESPECIAL</option>
@@ -784,20 +785,25 @@ document.addEventListener('DOMContentLoaded', function() {
                                     <i class="bi bi-pc-display me-1"></i>
                                     Sistema Utilizado
                                 </label>
-                                <select class="form-select" id="sistemaUtilizado" name="sistemaUtilizado">
-                                    <option value="">Selecione o sistema</option>
-                                    {% if sistemas %}
-                                        {% for sistema in sistemas %}
-                                        <option value="{{ sistema.nome if sistema.nome else sistema }}" {% if client and client.sistemaUtilizado == (sistema.nome if sistema.nome else sistema) %}selected{% endif %}>{{ sistema.nome if sistema.nome else sistema }}</option>
-                                        {% endfor %}
-                                    {% else %}
-                                        <option value="FORTES" {% if client and client.sistemaUtilizado == 'FORTES' %}selected{% endif %}>FORTES</option>
-                                        <option value="DOMÍNIO" {% if client and client.sistemaUtilizado == 'DOMÍNIO' %}selected{% endif %}>DOMÍNIO</option>
-                                        <option value="SAGE" {% if client and client.sistemaUtilizado == 'SAGE' %}selected{% endif %}>SAGE</option>
-                                        <option value="ALTERDATA" {% if client and client.sistemaUtilizado == 'ALTERDATA' %}selected{% endif %}>ALTERDATA</option>
-                                        <option value="OUTROS" {% if client and client.sistemaUtilizado == 'OUTROS' %}selected{% endif %}>OUTROS</option>
-                                    {% endif %}
-                                </select>
+                                <div class="input-group">
+                                    <select class="form-select" id="sistemaUtilizado" name="sistemaUtilizado">
+                                        <option value="">Selecione o sistema</option>
+                                        {% if sistemas %}
+                                            {% for sistema in sistemas %}
+                                            <option value="{{ sistema.nome if sistema.nome else sistema }}" {% if client and client.sistemaUtilizado == (sistema.nome if sistema.nome else sistema) %}selected{% endif %}>{{ sistema.nome if sistema.nome else sistema }}</option>
+                                            {% endfor %}
+                                        {% else %}
+                                            <option value="FORTES" {% if client and client.sistemaUtilizado == 'FORTES' %}selected{% endif %}>FORTES</option>
+                                            <option value="DOMÍNIO" {% if client and client.sistemaUtilizado == 'DOMÍNIO' %}selected{% endif %}>DOMÍNIO</option>
+                                            <option value="SAGE" {% if client and client.sistemaUtilizado == 'SAGE' %}selected{% endif %}>SAGE</option>
+                                            <option value="ALTERDATA" {% if client and client.sistemaUtilizado == 'ALTERDATA' %}selected{% endif %}>ALTERDATA</option>
+                                            <option value="OUTROS" {% if client and client.sistemaUtilizado == 'OUTROS' %}selected{% endif %}>OUTROS</option>
+                                        {% endif %}
+                                    </select>
+                                    <button class="btn btn-outline-secondary" type="button" onclick="window.open('/sistemas', '_blank')" title="Cadastrar novos sistemas">
+                                        <i class="bi bi-plus-circle"></i>
+                                    </button>
+                                </div>
                             </div>
 
                             <!-- Gera arquivo do Sped -->

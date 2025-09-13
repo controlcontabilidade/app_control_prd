@@ -1,0 +1,199 @@
+{% extends "base.html" %}
+
+{% block title %}Gerenciar Sistemas - SIGEC{% endblock %}
+
+{% block content %}
+<div class="page-header">
+    <div class="row align-items-center">
+        <div class="col-md-8">
+            <h1>
+                <i class="bi bi-pc-display" style="color: var(--control-primary);"></i>
+                Gerenciar Sistemas Utilizados
+            </h1>
+            <p class="mb-0">Cadastre e gerencie os sistemas utilizados pelos clientes</p>
+        </div>
+        <div class="col-md-4 text-end">
+            <button class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#novoSistemaModal">
+                <i class="bi bi-plus-circle"></i>
+                Novo Sistema
+            </button>
+            <a href="/" class="btn btn-secondary">
+                <i class="bi bi-arrow-left"></i>
+                Voltar
+            </a>
+        </div>
+    </div>
+</div>
+
+<div class="card">
+    <div class="card-header">
+        <h5 class="mb-0">
+            <i class="bi bi-list-ul"></i>
+            Lista de Sistemas
+        </h5>
+    </div>
+    <div class="card-body">
+        {% if sistemas %}
+        <div class="table-responsive">
+            <table class="table table-striped table-hover">
+                <thead class="table-dark">
+                    <tr>
+                        <th>ID</th>
+                        <th>Nome do Sistema</th>
+                        <th class="text-center">Ações</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for sistema in sistemas %}
+                    <tr>
+                        <td>{{ sistema.id }}</td>
+                        <td>{{ sistema.nome }}</td>
+                        <td class="text-center">
+                            <button class="btn btn-sm btn-outline-primary" 
+                                    data-bs-toggle="modal" 
+                                    data-bs-target="#editarSistemaModal"
+                                    onclick="editarSistema({{ sistema.id }}, '{{ sistema.nome }}')">
+                                <i class="bi bi-pencil"></i>
+                                Editar
+                            </button>
+                            <button class="btn btn-sm btn-outline-danger" 
+                                    data-bs-toggle="modal" 
+                                    data-bs-target="#excluirSistemaModal"
+                                    onclick="confirmarExclusao({{ sistema.id }}, '{{ sistema.nome }}')">
+                                <i class="bi bi-trash"></i>
+                                Excluir
+                            </button>
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+        {% else %}
+        <div class="text-center py-4">
+            <i class="bi bi-pc-display" style="font-size: 3rem; color: #ccc;"></i>
+            <h4 class="text-muted">Nenhum sistema cadastrado</h4>
+            <p class="text-muted">Clique em "Novo Sistema" para começar</p>
+        </div>
+        {% endif %}
+    </div>
+</div>
+
+<!-- Modal Novo Sistema -->
+<div class="modal fade" id="novoSistemaModal" tabindex="-1" aria-labelledby="novoSistemaModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="novoSistemaModalLabel">
+                    <i class="bi bi-plus-circle"></i>
+                    Novo Sistema
+                </h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <form method="POST" action="{{ url_for('create_sistema') }}">
+                <div class="modal-body">
+                    <div class="mb-3">
+                        <label for="nome" class="form-label">Nome do Sistema *</label>
+                        <input type="text" class="form-control" id="nome" name="nome" required 
+                               placeholder="Ex: FORTES, DOMÍNIO, SAGE..." maxlength="50">
+                        <div class="form-text">Nome do sistema utilizado pelo cliente</div>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
+                    <button type="submit" class="btn btn-primary">
+                        <i class="bi bi-save"></i>
+                        Salvar Sistema
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<!-- Modal Editar Sistema -->
+<div class="modal fade" id="editarSistemaModal" tabindex="-1" aria-labelledby="editarSistemaModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="editarSistemaModalLabel">
+                    <i class="bi bi-pencil"></i>
+                    Editar Sistema
+                </h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <form method="POST" id="formEditarSistema">
+                <div class="modal-body">
+                    <div class="mb-3">
+                        <label for="nomeEdit" class="form-label">Nome do Sistema *</label>
+                        <input type="text" class="form-control" id="nomeEdit" name="nome" required 
+                               maxlength="50">
+                        <div class="form-text">Nome do sistema utilizado pelo cliente</div>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
+                    <button type="submit" class="btn btn-primary">
+                        <i class="bi bi-save"></i>
+                        Atualizar Sistema
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<!-- Modal Excluir Sistema -->
+<div class="modal fade" id="excluirSistemaModal" tabindex="-1" aria-labelledby="excluirSistemaModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="excluirSistemaModalLabel">
+                    <i class="bi bi-trash"></i>
+                    Confirmar Exclusão
+                </h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <div class="alert alert-warning">
+                    <i class="bi bi-exclamation-triangle"></i>
+                    <strong>Atenção!</strong> Esta ação não pode ser desfeita.
+                </div>
+                <p>Tem certeza que deseja excluir o sistema <strong id="sistemaParaExcluir"></strong>?</p>
+                <p class="text-muted">Este sistema será removido permanentemente da lista.</p>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
+                <form method="POST" id="formExcluirSistema" style="display: inline;">
+                    <button type="submit" class="btn btn-danger">
+                        <i class="bi bi-trash"></i>
+                        Excluir Sistema
+                    </button>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+function editarSistema(id, nome) {
+    document.getElementById('nomeEdit').value = nome;
+    document.getElementById('formEditarSistema').action = '/sistemas/edit/' + id;
+}
+
+function confirmarExclusao(id, nome) {
+    document.getElementById('sistemaParaExcluir').textContent = nome;
+    document.getElementById('formExcluirSistema').action = '/sistemas/delete/' + id;
+}
+
+// Auto-uppercase no nome
+document.getElementById('nome').addEventListener('input', function() {
+    this.value = this.value.toUpperCase();
+});
+
+document.getElementById('nomeEdit').addEventListener('input', function() {
+    this.value = this.value.toUpperCase();
+});
+</script>
+
+{% endblock %}
