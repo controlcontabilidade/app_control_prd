@@ -747,7 +747,17 @@ def get_atividades_list():
 
 def get_sistemas_list():
     """Retorna lista de sistemas utilizados disponíveis"""
-    # Lista estática de sistemas mais utilizados
+    try:
+        # Tentar carregar sistemas do arquivo JSON local
+        sistemas_file = os.path.join('data', 'sistemas.json')
+        if os.path.exists(sistemas_file):
+            with open(sistemas_file, 'r', encoding='utf-8') as f:
+                sistemas_data = json.load(f)
+                return sistemas_data.get('sistemas', [])
+    except Exception as e:
+        print(f"❌ Erro ao carregar sistemas do arquivo: {e}")
+    
+    # Lista estática de sistemas mais utilizados (fallback)
     return [
         {"id": 1, "nome": "FORTES"},
         {"id": 2, "nome": "DOMÍNIO"},
@@ -762,6 +772,25 @@ def get_sistemas_list():
         {"id": 11, "nome": "SISTEMA ONLINE"},
         {"id": 12, "nome": "OUTROS"}
     ]
+
+def save_sistemas_list(sistemas):
+    """Salva lista de sistemas no arquivo JSON local"""
+    try:
+        sistemas_file = os.path.join('data', 'sistemas.json')
+        os.makedirs(os.path.dirname(sistemas_file), exist_ok=True)
+        
+        data = {
+            'sistemas': sistemas,
+            'last_updated': datetime.now().isoformat()
+        }
+        
+        with open(sistemas_file, 'w', encoding='utf-8') as f:
+            json.dump(data, f, ensure_ascii=False, indent=2)
+        
+        return True
+    except Exception as e:
+        print(f"❌ Erro ao salvar sistemas: {e}")
+        return False
 
 # === ROTAS PARA CADASTRO DE SEGMENTOS E ATIVIDADES ===
 @app.route('/segmentos')
@@ -1098,6 +1127,129 @@ def api_get_atividade(atividade_id):
     except Exception as e:
         print(f"❌ Erro na API de atividade: {e}")
         return jsonify({'error': str(e)}), 500
+
+# === ROTAS PARA CADASTRO DE SISTEMAS ===
+@app.route('/sistemas')
+@login_required
+def manage_sistemas():
+    """Página para gerenciar sistemas utilizados"""
+    try:
+        sistemas = get_sistemas_list()
+        return render_template('manage_sistemas.html', sistemas=sistemas)
+    except Exception as e:
+        print(f"❌ Erro ao carregar sistemas: {e}")
+        flash('Erro ao carregar sistemas', 'error')
+        return redirect(url_for('index'))
+
+@app.route('/sistemas/create', methods=['POST'])
+@login_required
+def create_sistema():
+    """Criar novo sistema"""
+    try:
+        nome = request.form.get('nome', '').strip().upper()
+        
+        if not nome:
+            flash('Nome do sistema é obrigatório', 'error')
+            return redirect(url_for('manage_sistemas'))
+        
+        sistemas = get_sistemas_list()
+        
+        # Verificar se já existe
+        for sistema in sistemas:
+            if sistema['nome'].upper() == nome:
+                flash('Sistema já existe', 'error')
+                return redirect(url_for('manage_sistemas'))
+        
+        # Gerar novo ID
+        novo_id = max([s['id'] for s in sistemas], default=0) + 1
+        
+        # Adicionar novo sistema
+        novo_sistema = {
+            'id': novo_id,
+            'nome': nome
+        }
+        sistemas.append(novo_sistema)
+        
+        if save_sistemas_list(sistemas):
+            flash('Sistema cadastrado com sucesso!', 'success')
+        else:
+            flash('Erro ao salvar sistema', 'error')
+        
+        return redirect(url_for('manage_sistemas'))
+    except Exception as e:
+        print(f"❌ Erro ao criar sistema: {e}")
+        flash('Erro ao criar sistema', 'error')
+        return redirect(url_for('manage_sistemas'))
+
+@app.route('/sistemas/edit/<int:sistema_id>', methods=['POST'])
+@login_required
+def edit_sistema(sistema_id):
+    """Editar sistema existente"""
+    try:
+        nome = request.form.get('nome', '').strip().upper()
+        
+        if not nome:
+            flash('Nome do sistema é obrigatório', 'error')
+            return redirect(url_for('manage_sistemas'))
+        
+        sistemas = get_sistemas_list()
+        sistema_encontrado = False
+        
+        for sistema in sistemas:
+            if sistema['id'] == sistema_id:
+                # Verificar se outro sistema já tem esse nome
+                for outro_sistema in sistemas:
+                    if outro_sistema['id'] != sistema_id and outro_sistema['nome'].upper() == nome:
+                        flash('Já existe outro sistema com este nome', 'error')
+                        return redirect(url_for('manage_sistemas'))
+                
+                sistema['nome'] = nome
+                sistema_encontrado = True
+                break
+        
+        if not sistema_encontrado:
+            flash('Sistema não encontrado', 'error')
+            return redirect(url_for('manage_sistemas'))
+        
+        if save_sistemas_list(sistemas):
+            flash('Sistema atualizado com sucesso!', 'success')
+        else:
+            flash('Erro ao atualizar sistema', 'error')
+        
+        return redirect(url_for('manage_sistemas'))
+    except Exception as e:
+        print(f"❌ Erro ao editar sistema: {e}")
+        flash('Erro ao editar sistema', 'error')
+        return redirect(url_for('manage_sistemas'))
+
+@app.route('/sistemas/delete/<int:sistema_id>', methods=['POST'])
+@login_required
+def delete_sistema(sistema_id):
+    """Excluir sistema"""
+    try:
+        sistemas = get_sistemas_list()
+        sistema_encontrado = False
+        
+        for i, sistema in enumerate(sistemas):
+            if sistema['id'] == sistema_id:
+                sistemas.pop(i)
+                sistema_encontrado = True
+                break
+        
+        if not sistema_encontrado:
+            flash('Sistema não encontrado', 'error')
+            return redirect(url_for('manage_sistemas'))
+        
+        if save_sistemas_list(sistemas):
+            flash('Sistema excluído com sucesso!', 'success')
+        else:
+            flash('Erro ao excluir sistema', 'error')
+        
+        return redirect(url_for('manage_sistemas'))
+    except Exception as e:
+        print(f"❌ Erro ao excluir sistema: {e}")
+        flash('Erro ao excluir sistema', 'error')
+        return redirect(url_for('manage_sistemas'))
 
 @app.route('/users')
 @admin_required
