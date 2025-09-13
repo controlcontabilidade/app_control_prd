@@ -3624,5 +3624,61 @@ function carregarContatosSimples(dadosCliente) {
     console.log('✅ [CORREÇÃO 14] CONTATOS SIMPLES CARREGADOS!');
 }
 
+// ===== CARREGAMENTO FORÇADO E DIRETO (MODO EDIÇÃO) =====
+{% if client %}
+console.log('🚀 CARREGAMENTO FORÇADO - CLIENTE DETECTADO');
+const clienteData = {{ client|tojson }};
+console.log('📋 Dados do cliente:', clienteData);
+
+// Delay maior para garantir que tudo carregou
+setTimeout(function() {
+    console.log('🔄 EXECUTANDO CARREGAMENTO FORÇADO...');
+    
+    // Verificar se sócio 2 tem dados
+    if (clienteData.socio_2_nome) {
+        console.log('✅ Sócio 2 detectado:', clienteData.socio_2_nome);
+        const socio2Element = document.getElementById('socio_2');
+        if (socio2Element) {
+            socio2Element.style.display = 'block';
+            const nome2Input = socio2Element.querySelector('input[name="socio_2_nome"]');
+            if (nome2Input) {
+                nome2Input.value = clienteData.socio_2_nome;
+                console.log('✅ Sócio 2 carregado:', clienteData.socio_2_nome);
+            }
+        }
+    }
+    
+    // Verificar se contato 2 tem dados
+    if (clienteData.contato_2_nome) {
+        console.log('✅ Contato 2 detectado:', clienteData.contato_2_nome);
+        const contato2Element = document.getElementById('contato_2');
+        if (contato2Element) {
+            contato2Element.style.display = 'block';
+            const nomeContato2Input = contato2Element.querySelector('input[name="contato_2_nome"]');
+            if (nomeContato2Input) {
+                nomeContato2Input.value = clienteData.contato_2_nome;
+                console.log('✅ Contato 2 carregado:', clienteData.contato_2_nome);
+            }
+        }
+    }
+    
+    // Verificar se contato 3 tem dados
+    if (clienteData.contato_3_nome) {
+        console.log('✅ Contato 3 detectado:', clienteData.contato_3_nome);
+        const contato3Element = document.getElementById('contato_3');
+        if (contato3Element) {
+            contato3Element.style.display = 'block';
+            const nomeContato3Input = contato3Element.querySelector('input[name="contato_3_nome"]');
+            if (nomeContato3Input) {
+                nomeContato3Input.value = clienteData.contato_3_nome;
+                console.log('✅ Contato 3 carregado:', clienteData.contato_3_nome);
+            }
+        }
+    }
+    
+    console.log('🏁 CARREGAMENTO FORÇADO CONCLUÍDO');
+}, 2000);
+{% endif %}
+
 </script>
 {% endblock %}

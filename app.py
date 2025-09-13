@@ -1654,22 +1654,29 @@ def calculate_dashboard_stats_optimized(clients):
             if client.get('bpoFinanceiro'):
                 stats['bpo'] += 1
             
-            # Categorização simplificada (menos processamento de string)
-            regime = client.get('regimeFederal', '')
-            if regime:
-                regime_upper = regime.upper()
-                if 'MEI' in regime_upper:
-                    stats['mei'] += 1
-                elif 'SIMPLES' in regime_upper:
-                    stats['simples_nacional'] += 1
-                elif 'PRESUMIDO' in regime_upper:
-                    stats['lucro_presumido'] += 1
-                elif 'REAL' in regime_upper:
-                    stats['lucro_real'] += 1
-                else:
-                    stats['empresas'] += 1
+            # ===== CORREÇÃO 19: CONTAGEM DOMÉSTICAS/EMPRESAS =====
+            # Verificar campo doméstica primeiro
+            domestica = str(client.get('domestica', '')).upper().strip()
+            
+            if domestica == 'SIM':
+                # É doméstica
+                stats['domesticas'] += 1
             else:
+                # NÃO é doméstica (domestica == 'NÃO' ou vazio) - contar como empresa
                 stats['empresas'] += 1
+                
+                # Categorização adicional por regime federal (para empresas)
+                regime = client.get('regimeFederal', '')
+                if regime:
+                    regime_upper = regime.upper()
+                    if 'MEI' in regime_upper:
+                        stats['mei'] += 1
+                    elif 'SIMPLES' in regime_upper:
+                        stats['simples_nacional'] += 1
+                    elif 'PRESUMIDO' in regime_upper:
+                        stats['lucro_presumido'] += 1
+                    elif 'REAL' in regime_upper:
+                        stats['lucro_real'] += 1
         
         # Limpeza de memória após cada lote
         if os.environ.get('FLASK_ENV') == 'production':
@@ -1951,7 +1958,7 @@ def index():
         try:
             # Calcular estatísticas reais mantendo otimização de memória
             stats = calculate_dashboard_stats_optimized(clients)
-            print(f"📈 Estatísticas calculadas: {stats['total_clientes']} total, {stats['mei']} MEI, {stats['simples_nacional']} SN, {stats['lucro_presumido']} LP, {stats['lucro_real']} LR")
+            print(f"📈 Estatísticas calculadas: {stats['total_clientes']} total, {stats['empresas']} empresas, {stats['domesticas']} domésticas, {stats['mei']} MEI, {stats['simples_nacional']} SN, {stats['lucro_presumido']} LP, {stats['lucro_real']} LR")
         except Exception as stats_error:
             print(f"⚠️ Erro ao calcular stats: {stats_error}")
             stats = {
