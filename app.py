@@ -2,6 +2,7 @@
 from flask import Flask, render_template, request, jsonify, redirect, url_for, flash, session
 import json
 import os
+import re  # Para processamento de strings e CPF
 import gc  # Para otimização de memória
 from datetime import datetime
 from functools import wraps
@@ -92,6 +93,25 @@ def only_numbers_filter(value):
 
 # Filtro customizado para formatação de datas
 @app.template_filter('format_date')
+# === FUNÇÕES AUXILIARES ===
+
+@app.template_filter('format_cpf')
+def format_cpf_filter(value):
+    """Formata CPF para exibição com máscara"""
+    if not value:
+        return ''
+    
+    # Remove tudo que não é dígito
+    cpf_clean = re.sub(r'\D', '', str(value))
+    
+    # Se não tem pelo menos 11 dígitos, retorna como está
+    if len(cpf_clean) < 11:
+        return value
+    
+    # Pega apenas os 11 primeiros dígitos e formata
+    cpf_clean = cpf_clean[:11]
+    return f"{cpf_clean[:3]}.{cpf_clean[3:6]}.{cpf_clean[6:9]}-{cpf_clean[9:11]}"
+
 def format_date_filter(value, format='%d/%m/%Y'):
     """Formata data ISO para formato brasileiro"""
     if not value:
@@ -2424,7 +2444,12 @@ def save_client():
                 nome_socio = nome_socio.upper()
                 
                 client_data[f'socio_{i}_nome'] = nome_socio
-                client_data[f'socio_{i}_cpf'] = request.form.get(f'socio_{i}_cpf', '').strip()
+                # CORREÇÃO 07: Processar CPF dos sócios para manter zeros à esquerda
+                cpf_socio_raw = request.form.get(f'socio_{i}_cpf', '').strip()
+                cpf_socio_limpo = re.sub(r'\D', '', cpf_socio_raw)  # Remove formatação
+                cpf_socio_formatado = cpf_socio_limpo.zfill(11) if cpf_socio_limpo else ''  # Preenche com zeros à esquerda
+                client_data[f'socio_{i}_cpf'] = cpf_socio_formatado
+                
                 client_data[f'socio_{i}_data_nascimento'] = request.form.get(f'socio_{i}_data_nascimento', '').strip()
                 client_data[f'socio_{i}_participacao'] = request.form.get(f'socio_{i}_participacao', '').strip()
                 client_data[f'socio_{i}_administrador'] = request.form.get(f'socio_{i}_administrador') in ['1', 'on']
@@ -2434,11 +2459,11 @@ def save_client():
                 
                 # COMPATIBILIDADE: Adicionar também campos sem underscore para templates antigos
                 client_data[f'socio{i}_nome'] = nome_socio
-                client_data[f'socio{i}_cpf'] = client_data[f'socio_{i}_cpf']
+                client_data[f'socio{i}_cpf'] = cpf_socio_formatado  # Usar CPF corrigido
                 client_data[f'socio{i}_administrador'] = client_data[f'socio_{i}_administrador']
                 client_data[f'socio{i}'] = nome_socio  # Para templates mais antigos
                 
-                print(f"🔍 Sócio {i}: {nome_socio} - CPF: {client_data[f'socio_{i}_cpf']} - Admin: {client_data[f'socio_{i}_administrador']}")
+                print(f"🔍 Sócio {i}: {nome_socio} - CPF: {cpf_socio_formatado} (de '{cpf_socio_raw}') - Admin: {client_data[f'socio_{i}_administrador']}")
                 print(f"🔍 Compatibilidade: socio{i}_nome = {client_data[f'socio{i}_nome']}")
         
         # Processar dados dos contatos dinamicamente

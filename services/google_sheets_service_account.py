@@ -823,31 +823,31 @@ class GoogleSheetsServiceAccountService:
             'EMAIL SECUNDÁRIO',                  # 88. Email alternativo
             'RESPONSÁVEL IMEDIATO',              # 89. Contato direto na empresa
             'EMAILS DOS SÓCIOS',                 # 90. Emails dos sócios
-            'CONTATO CONTADOR',                  # 37. Nome do contador atual
-            'TELEFONE CONTADOR',                 # 38. Telefone do contador
-            'EMAIL CONTADOR',                    # 39. Email do contador
+            'CONTATO CONTADOR',                  # 91. Nome do contador atual
+            'TELEFONE CONTADOR',                 # 92. Telefone do contador
+            'EMAIL CONTADOR',                    # 93. Email do contador
             
             # Contatos Detalhados (até 5 contatos)
-            'CONTATO_1_NOME',                    # 40. Nome do contato 1
-            'CONTATO_1_CARGO',                   # 41. Cargo do contato 1
-            'CONTATO_1_TELEFONE',                # 42. Telefone do contato 1
-            'CONTATO_1_EMAIL',                   # 43. Email do contato 1
-            'CONTATO_2_NOME',                    # 44. Nome do contato 2
-            'CONTATO_2_CARGO',                   # 45. Cargo do contato 2
-            'CONTATO_2_TELEFONE',                # 46. Telefone do contato 2
-            'CONTATO_2_EMAIL',                   # 47. Email do contato 2
-            'CONTATO_3_NOME',                    # 48. Nome do contato 3
-            'CONTATO_3_CARGO',                   # 49. Cargo do contato 3
-            'CONTATO_3_TELEFONE',                # 50. Telefone do contato 3
-            'CONTATO_3_EMAIL',                   # 51. Email do contato 3
-            'CONTATO_4_NOME',                    # 52. Nome do contato 4
-            'CONTATO_4_CARGO',                   # 53. Cargo do contato 4
-            'CONTATO_4_TELEFONE',                # 54. Telefone do contato 4
-            'CONTATO_4_EMAIL',                   # 55. Email do contato 4
-            'CONTATO_5_NOME',                    # 56. Nome do contato 5
-            'CONTATO_5_CARGO',                   # 57. Cargo do contato 5
-            'CONTATO_5_TELEFONE',                # 58. Telefone do contato 5
-            'CONTATO_5_EMAIL',                   # 59. Email do contato 5
+            'CONTATO_1_NOME',                    # 94. Nome do contato 1
+            'CONTATO_1_CARGO',                   # 95. Cargo do contato 1
+            'CONTATO_1_TELEFONE',                # 96. Telefone do contato 1
+            'CONTATO_1_EMAIL',                   # 97. Email do contato 1
+            'CONTATO_2_NOME',                    # 98. Nome do contato 2
+            'CONTATO_2_CARGO',                   # 99. Cargo do contato 2
+            'CONTATO_2_TELEFONE',                # 100. Telefone do contato 2
+            'CONTATO_2_EMAIL',                   # 101. Email do contato 2
+            'CONTATO_3_NOME',                    # 102. Nome do contato 3
+            'CONTATO_3_CARGO',                   # 103. Cargo do contato 3
+            'CONTATO_3_TELEFONE',                # 104. Telefone do contato 3
+            'CONTATO_3_EMAIL',                   # 105. Email do contato 3
+            'CONTATO_4_NOME',                    # 107. Nome do contato 4
+            'CONTATO_4_CARGO',                   # 108. Cargo do contato 4
+            'CONTATO_4_TELEFONE',                # 109. Telefone do contato 4
+            'CONTATO_4_EMAIL',                   # 110. Email do contato 4
+            'CONTATO_5_NOME',                    # 111. Nome do contato 5
+            'CONTATO_5_CARGO',                   # 112. Cargo do contato 5
+            'CONTATO_5_TELEFONE',                # 113. Telefone do contato 5
+            'CONTATO_5_EMAIL',                   # 114. Email do contato 5
             
             # Bloco 5: Senhas e Credenciais (APENAS CAMPOS ESPECIFICADOS)
             'CPF/CNPJ SN',                       # 60. CPF/CNPJ Simples Nacional
@@ -1189,7 +1189,7 @@ class GoogleSheetsServiceAccountService:
             
             # Bloco 3: Quadro Societário - POSIÇÕES CORRETAS
             client.get('socio_1_nome', client.get('socio1_nome', client.get('socio1', ''))),     # 23. SÓCIO 1 NOME
-            client.get('socio_1_cpf', client.get('socio1_cpf', '')),                            # 24. SÓCIO 1 CPF
+            f"'{str(client.get('socio_1_cpf', client.get('socio1_cpf', '')))}" if client.get('socio_1_cpf', client.get('socio1_cpf', '')) else '',  # 24. SÓCIO 1 CPF - como string
             client.get('socio_1_data_nascimento', client.get('socio1_nascimento', '')),         # 25. SÓCIO 1 DATA NASCIMENTO (POSIÇÃO CORRETA)
             'SIM' if client.get('socio_1_administrador', client.get('socio1_admin')) else 'NÃO', # 26. SÓCIO 1 ADMINISTRADOR (POSIÇÃO CORRETA)
             client.get('socio_1_participacao', client.get('socio1_cotas', '')),                  # 27. SÓCIO 1 PARTICIPAÇÃO (POSIÇÃO CORRETA)
@@ -1197,63 +1197,63 @@ class GoogleSheetsServiceAccountService:
             
             # Sócios 2-10 - NOVOS CAMPOS
             client.get('socio_2_nome', client.get('socio2_nome', '')),                          # 29. SÓCIO 2 NOME
-            client.get('socio_2_cpf', client.get('socio2_cpf', '')),                            # 30. SÓCIO 2 CPF
+            f"'{str(client.get('socio_2_cpf', client.get('socio2_cpf', '')))}" if client.get('socio_2_cpf', client.get('socio2_cpf', '')) else '',  # 30. SÓCIO 2 CPF - como string
             client.get('socio_2_data_nascimento', client.get('socio2_nascimento', '')),         # 31. SÓCIO 2 DATA NASCIMENTO
             'SIM' if client.get('socio_2_administrador', client.get('socio2_admin')) else 'NÃO', # 32. SÓCIO 2 ADMINISTRADOR
             client.get('socio_2_participacao', client.get('socio2_cotas', '')),                  # 33. SÓCIO 2 PARTICIPAÇÃO
             'SIM' if client.get('socio_2_resp_legal', client.get('socio2_resp_legal')) else 'NÃO', # 34. SÓCIO 2 RESPONSÁVEL LEGAL
 
             client.get('socio_3_nome', client.get('socio3_nome', '')),                          # 35. SÓCIO 3 NOME
-            client.get('socio_3_cpf', client.get('socio3_cpf', '')),                            # 36. SÓCIO 3 CPF
+            f"'{str(client.get('socio_3_cpf', client.get('socio3_cpf', '')))}" if client.get('socio_3_cpf', client.get('socio3_cpf', '')) else '',  # 36. SÓCIO 3 CPF - como string
             client.get('socio_3_data_nascimento', client.get('socio3_nascimento', '')),         # 37. SÓCIO 3 DATA NASCIMENTO
             'SIM' if client.get('socio_3_administrador', client.get('socio3_admin')) else 'NÃO', # 38. SÓCIO 3 ADMINISTRADOR
             client.get('socio_3_participacao', client.get('socio3_cotas', '')),                  # 39. SÓCIO 3 PARTICIPAÇÃO
             'SIM' if client.get('socio_3_resp_legal', client.get('socio3_resp_legal')) else 'NÃO', # 40. SÓCIO 3 RESPONSÁVEL LEGAL
 
             client.get('socio_4_nome', client.get('socio4_nome', '')),                          # 41. SÓCIO 4 NOME
-            client.get('socio_4_cpf', client.get('socio4_cpf', '')),                            # 42. SÓCIO 4 CPF
+            f"'{str(client.get('socio_4_cpf', client.get('socio4_cpf', '')))}" if client.get('socio_4_cpf', client.get('socio4_cpf', '')) else '',  # 42. SÓCIO 4 CPF - como string
             client.get('socio_4_data_nascimento', client.get('socio4_nascimento', '')),         # 43. SÓCIO 4 DATA NASCIMENTO
             'SIM' if client.get('socio_4_administrador', client.get('socio4_admin')) else 'NÃO', # 44. SÓCIO 4 ADMINISTRADOR
             client.get('socio_4_participacao', client.get('socio4_cotas', '')),                  # 45. SÓCIO 4 PARTICIPAÇÃO
             'SIM' if client.get('socio_4_resp_legal', client.get('socio4_resp_legal')) else 'NÃO', # 46. SÓCIO 4 RESPONSÁVEL LEGAL
 
             client.get('socio_5_nome', client.get('socio5_nome', '')),                          # 47. SÓCIO 5 NOME
-            client.get('socio_5_cpf', client.get('socio5_cpf', '')),                            # 48. SÓCIO 5 CPF
+            f"'{str(client.get('socio_5_cpf', client.get('socio5_cpf', '')))}" if client.get('socio_5_cpf', client.get('socio5_cpf', '')) else '',  # 48. SÓCIO 5 CPF - como string
             client.get('socio_5_data_nascimento', client.get('socio5_nascimento', '')),         # 49. SÓCIO 5 DATA NASCIMENTO
             'SIM' if client.get('socio_5_administrador', client.get('socio5_admin')) else 'NÃO', # 50. SÓCIO 5 ADMINISTRADOR
             client.get('socio_5_participacao', client.get('socio5_cotas', '')),                  # 51. SÓCIO 5 PARTICIPAÇÃO
             'SIM' if client.get('socio_5_resp_legal', client.get('socio5_resp_legal')) else 'NÃO', # 52. SÓCIO 5 RESPONSÁVEL LEGAL
 
             client.get('socio_6_nome', client.get('socio6_nome', '')),                          # 53. SÓCIO 6 NOME
-            client.get('socio_6_cpf', client.get('socio6_cpf', '')),                            # 54. SÓCIO 6 CPF
+            f"'{str(client.get('socio_6_cpf', client.get('socio6_cpf', '')))}" if client.get('socio_6_cpf', client.get('socio6_cpf', '')) else '',  # 54. SÓCIO 6 CPF - como string
             client.get('socio_6_data_nascimento', client.get('socio6_nascimento', '')),         # 55. SÓCIO 6 DATA NASCIMENTO
             'SIM' if client.get('socio_6_administrador', client.get('socio6_admin')) else 'NÃO', # 56. SÓCIO 6 ADMINISTRADOR
             client.get('socio_6_participacao', client.get('socio6_cotas', '')),                  # 57. SÓCIO 6 PARTICIPAÇÃO
             'SIM' if client.get('socio_6_resp_legal', client.get('socio6_resp_legal')) else 'NÃO', # 58. SÓCIO 6 RESPONSÁVEL LEGAL
 
             client.get('socio_7_nome', client.get('socio7_nome', '')),                          # 59. SÓCIO 7 NOME
-            client.get('socio_7_cpf', client.get('socio7_cpf', '')),                            # 60. SÓCIO 7 CPF
+            f"'{str(client.get('socio_7_cpf', client.get('socio7_cpf', '')))}" if client.get('socio_7_cpf', client.get('socio7_cpf', '')) else '',  # 60. SÓCIO 7 CPF - como string
             client.get('socio_7_data_nascimento', client.get('socio7_nascimento', '')),         # 61. SÓCIO 7 DATA NASCIMENTO
             'SIM' if client.get('socio_7_administrador', client.get('socio7_admin')) else 'NÃO', # 62. SÓCIO 7 ADMINISTRADOR
             client.get('socio_7_participacao', client.get('socio7_cotas', '')),                  # 63. SÓCIO 7 PARTICIPAÇÃO
             'SIM' if client.get('socio_7_resp_legal', client.get('socio7_resp_legal')) else 'NÃO', # 64. SÓCIO 7 RESPONSÁVEL LEGAL
 
             client.get('socio_8_nome', client.get('socio8_nome', '')),                          # 65. SÓCIO 8 NOME
-            client.get('socio_8_cpf', client.get('socio8_cpf', '')),                            # 66. SÓCIO 8 CPF
+            f"'{str(client.get('socio_8_cpf', client.get('socio8_cpf', '')))}" if client.get('socio_8_cpf', client.get('socio8_cpf', '')) else '',  # 66. SÓCIO 8 CPF - como string
             client.get('socio_8_data_nascimento', client.get('socio8_nascimento', '')),         # 67. SÓCIO 8 DATA NASCIMENTO
             'SIM' if client.get('socio_8_administrador', client.get('socio8_admin')) else 'NÃO', # 68. SÓCIO 8 ADMINISTRADOR
             client.get('socio_8_participacao', client.get('socio8_cotas', '')),                  # 69. SÓCIO 8 PARTICIPAÇÃO
             'SIM' if client.get('socio_8_resp_legal', client.get('socio8_resp_legal')) else 'NÃO', # 70. SÓCIO 8 RESPONSÁVEL LEGAL
 
             client.get('socio_9_nome', client.get('socio9_nome', '')),                          # 71. SÓCIO 9 NOME
-            client.get('socio_9_cpf', client.get('socio9_cpf', '')),                            # 72. SÓCIO 9 CPF
+            f"'{str(client.get('socio_9_cpf', client.get('socio9_cpf', '')))}" if client.get('socio_9_cpf', client.get('socio9_cpf', '')) else '',  # 72. SÓCIO 9 CPF - como string
             client.get('socio_9_data_nascimento', client.get('socio9_nascimento', '')),         # 73. SÓCIO 9 DATA NASCIMENTO
             'SIM' if client.get('socio_9_administrador', client.get('socio9_admin')) else 'NÃO', # 74. SÓCIO 9 ADMINISTRADOR
             client.get('socio_9_participacao', client.get('socio9_cotas', '')),                  # 75. SÓCIO 9 PARTICIPAÇÃO
             'SIM' if client.get('socio_9_resp_legal', client.get('socio9_resp_legal')) else 'NÃO', # 76. SÓCIO 9 RESPONSÁVEL LEGAL
 
             client.get('socio_10_nome', client.get('socio10_nome', '')),                        # 77. SÓCIO 10 NOME
-            client.get('socio_10_cpf', client.get('socio10_cpf', '')),                          # 78. SÓCIO 10 CPF
+            f"'{str(client.get('socio_10_cpf', client.get('socio10_cpf', '')))}" if client.get('socio_10_cpf', client.get('socio10_cpf', '')) else '',  # 78. SÓCIO 10 CPF - como string
             client.get('socio_10_data_nascimento', client.get('socio10_nascimento', '')),       # 79. SÓCIO 10 DATA NASCIMENTO
             'SIM' if client.get('socio_10_administrador', client.get('socio10_admin')) else 'NÃO', # 80. SÓCIO 10 ADMINISTRADOR
             client.get('socio_10_participacao', client.get('socio10_cotas', '')),                # 81. SÓCIO 10 PARTICIPAÇÃO
@@ -1267,67 +1267,60 @@ class GoogleSheetsServiceAccountService:
             client.get('emailSecundario', ''),                # 87. EMAIL SECUNDÁRIO (AJUSTADO)
             client.get('responsavelImediato', ''),            # 88. RESPONSÁVEL IMEDIATO (AJUSTADO)
             client.get('emailsSocios', ''),                   # 89. EMAILS DOS SÓCIOS (AJUSTADO)
-            client.get('contatoContador', ''),                # 90. CONTATO CONTADOR (AJUSTADO)
-            client.get('telefoneContador', ''),               # 91. TELEFONE CONTADOR (AJUSTADO)
-            client.get('emailContador', ''),                  # 92. EMAIL CONTADOR (AJUSTADO)
+            client.get('contatoContador', ''),                # 91. CONTATO CONTADOR (CORRIGIDO)
+            client.get('telefoneContador', ''),               # 92. TELEFONE CONTADOR (CORRIGIDO)
+            client.get('emailContador', ''),                  # 93. EMAIL CONTADOR (CORRIGIDO)
             
             # Contatos Detalhados - POSIÇÕES CORRETAS
-            client.get('contato_1_nome', ''),                 # 39. CONTATO_1_NOME (POSIÇÃO CORRETA)
-            client.get('contato_1_cargo', ''),                # 40. CONTATO_1_CARGO (POSIÇÃO CORRETA)
-            client.get('contato_1_telefone', ''),             # 41. CONTATO_1_TELEFONE (POSIÇÃO CORRETA)
-            client.get('contato_1_email', ''),                # 42. CONTATO_1_EMAIL (POSIÇÃO CORRETA)
-            client.get('contato_2_nome', ''),                 # 43. CONTATO_2_NOME (POSIÇÃO CORRETA)
-            client.get('contato_2_cargo', ''),                # 44. CONTATO_2_CARGO (POSIÇÃO CORRETA)
-            client.get('contato_2_telefone', ''),             # 45. CONTATO_2_TELEFONE (POSIÇÃO CORRETA)
-            client.get('contato_2_email', ''),                # 46. CONTATO_2_EMAIL (POSIÇÃO CORRETA)
-            client.get('contato_3_nome', ''),                 # 47. CONTATO_3_NOME (POSIÇÃO CORRETA)
-            client.get('contato_3_cargo', ''),                # 48. CONTATO_3_CARGO (POSIÇÃO CORRETA)
-            client.get('contato_3_telefone', ''),             # 49. CONTATO_3_TELEFONE (POSIÇÃO CORRETA)
-            client.get('contato_3_email', ''),                # 51. CONTATO_3_EMAIL (POSIÇÃO CORRETA)
-            client.get('contato_4_nome', ''),                 # 52. CONTATO_4_NOME
-            client.get('contato_4_cargo', ''),                # 53. CONTATO_4_CARGO
-            client.get('contato_4_telefone', ''),             # 54. CONTATO_4_TELEFONE
-            client.get('contato_4_email', ''),                # 55. CONTATO_4_EMAIL
-            client.get('contato_5_nome', ''),                 # 56. CONTATO_5_NOME
-            client.get('contato_5_cargo', ''),                # 57. CONTATO_5_CARGO
-            client.get('contato_5_telefone', ''),             # 58. CONTATO_5_TELEFONE
-            client.get('contato_5_email', ''),                # 59. CONTATO_5_EMAIL
+            client.get('contato_1_nome', ''),                 # 94. CONTATO_1_NOME (POSIÇÃO CORRETA)
+            client.get('contato_1_cargo', ''),                # 95. CONTATO_1_CARGO (POSIÇÃO CORRETA)
+            client.get('contato_1_telefone', ''),             # 96. CONTATO_1_TELEFONE (POSIÇÃO CORRETA)
+            client.get('contato_1_email', ''),                # 97. CONTATO_1_EMAIL (POSIÇÃO CORRETA)
+            client.get('contato_2_nome', ''),                 # 98. CONTATO_2_NOME (POSIÇÃO CORRETA)
+            client.get('contato_2_cargo', ''),                # 99. CONTATO_2_CARGO (POSIÇÃO CORRETA)
+            client.get('contato_2_telefone', ''),             # 100. CONTATO_2_TELEFONE (POSIÇÃO CORRETA)
+            client.get('contato_2_email', ''),                # 101. CONTATO_2_EMAIL (POSIÇÃO CORRETA)
+            client.get('contato_3_nome', ''),                 # 102. CONTATO_3_NOME (POSIÇÃO CORRETA)
+            client.get('contato_3_cargo', ''),                # 103. CONTATO_3_CARGO (POSIÇÃO CORRETA)
+            client.get('contato_3_telefone', ''),             # 104. CONTATO_3_TELEFONE (POSIÇÃO CORRETA)
+            client.get('contato_3_email', ''),                # 105. CONTATO_3_EMAIL (POSIÇÃO CORRETA)
+            client.get('contato_4_nome', ''),                 # 107. CONTATO_4_NOME
+            client.get('contato_4_cargo', ''),                # 108. CONTATO_4_CARGO
+            client.get('contato_4_telefone', ''),             # 109. CONTATO_4_TELEFONE
+            client.get('contato_4_email', ''),                # 110. CONTATO_4_EMAIL
+            client.get('contato_5_nome', ''),                 # 111. CONTATO_5_NOME
+            client.get('contato_5_cargo', ''),                # 112. CONTATO_5_CARGO
+            client.get('contato_5_telefone', ''),             # 113. CONTATO_5_TELEFONE
+            client.get('contato_5_email', ''),                # 114. CONTATO_5_EMAIL
             
-            # Bloco 5: Senhas e Credenciais (ORGANIZADO CONFORME FORMULÁRIO - 4 LINHAS)
-            # Linha 1: CNPJ Acesso Simples Nacional, CPF do Representante Legal, Código de Acesso Simples Nacional, Senha ISS
-            client.get('cnpjAcessoSn', ''),                   # 60. CNPJ ACESSO SIMPLES NACIONAL
-            client.get('cpfRepLegal', ''),                    # 61. CPF DO REPRESENTANTE LEGAL
-            client.get('codigoAcessoSn', ''),                 # 62. CÓDIGO ACESSO SN
-            client.get('senhaIss', ''),                       # 63. SENHA ISS
+            # Bloco 5: Senhas e Credenciais (POSIÇÕES CORRETAS)
+            client.get('cnpjAcessoSn', ''),                   # 114. CPF/CNPJ SN
+            client.get('codigoAcessoSn', ''),                 # 115. CÓDIGO ACESSO SN
+            client.get('acessoEmpWeb', ''),                   # 116. ACESSO EMPWEB
+            client.get('senhaEmpWeb', ''),                    # 117. SENHA EMPWEB
+            client.get('acessoIss', ''),                      # 118. ACESSO ISS
+            client.get('acessoSefin', ''),                    # 119. ACESSO SEFIN
+            client.get('acessoSeuma', ''),                    # 120. ACESSO SEUMA
+            client.get('acessoSemace', ''),                   # 121. ACESSO SEMACE
+            client.get('acessoIbama', ''),                    # 122. ACESSO IBAMA
+            client.get('acessoFapInss', ''),                  # 123. ACESSO FAP/INSS
+            client.get('acessoCrf', ''),                      # 124. ACESSO CRF
+            client.get('senhaSemace', ''),                    # 125. SENHA SEMACE
+            client.get('anvisaGestor', ''),                   # 126. ANVISA GESTOR
+            client.get('anvisaEmpresa', ''),                  # 127. ANVISA EMPRESA
             
-            # Linha 2: Senha SEFIN, Senha SEUMA, Acesso EmpWeb, Senha EmpWeb
-            client.get('senhaSefin', ''),                     # 64. SENHA SEFIN
-            client.get('senhaSeuma', ''),                     # 65. SENHA SEUMA
-            client.get('acessoEmpWeb', ''),                   # 66. ACESSO EMPWEB
-            client.get('senhaEmpWeb', ''),                    # 67. SENHA EMPWEB
-            
-            # Linha 3: Login ANVISA Empresa, Senha ANVISA Empresa, Login ANVISA Gestor, Senha ANVISA Gestor
-            client.get('anvisaEmpresa', ''),                  # 68. LOGIN ANVISA EMPRESA
-            client.get('senhaAnvisaEmpresa', ''),             # 69. SENHA ANVISA EMPRESA
-            client.get('anvisaGestor', ''),                   # 70. LOGIN ANVISA GESTOR
-            client.get('senhaAnvisaGestor', ''),              # 71. SENHA ANVISA GESTOR
-            
-            # Linha 4: Acesso CRF, Senha FAP/INSS
-            client.get('acessoCrf', ''),                      # 72. ACESSO CRF
-            client.get('senhaFapInss', ''),                   # 73. SENHA FAP/INSS
-            
-            # Bloco 5: Senhas Específicas Adicionais (NOVOS CAMPOS)
-            client.get('senhaFgts', ''),                      # 74. SENHA FGTS
-            client.get('senhaSocial', ''),                    # 75. SENHA SOCIAL
-            client.get('senhaGiss', ''),                      # 76. SENHA GISS
-            client.get('senhaDetran', ''),                    # 77. SENHA DETRAN
-            client.get('senhaReceita', ''),                   # 78. SENHA RECEITA
-            client.get('senhaSintegra', ''),                  # 79. SENHA SINTEGRA
-            client.get('senhaJucesp', ''),                    # 80. SENHA JUCESP
-            client.get('senhaPortalEmpregador', ''),          # 81. SENHA PORTAL EMPREGADOR
-            client.get('senhaSimples', ''),                   # 82. SENHA SIMPLES
-            client.get('senhaGoverno', ''),                   # 83. SENHA GOVERNO
-            client.get('senhaViaSoft', ''),                   # 84. SENHA VIA SOFT
+            # Senhas Específicas Adicionais (NOVOS CAMPOS)
+            client.get('senhaFgts', ''),                      # 128. SENHA FGTS
+            client.get('senhaSocial', ''),                    # 129. SENHA SOCIAL
+            client.get('senhaGiss', ''),                      # 130. SENHA GISS
+            client.get('senhaDetran', ''),                    # 131. SENHA DETRAN
+            client.get('senhaReceita', ''),                   # 132. SENHA RECEITA
+            client.get('senhaSintegra', ''),                  # 133. SENHA SINTEGRA
+            client.get('senhaJucesp', ''),                    # 134. SENHA JUCESP
+            client.get('senhaPortalEmpregador', ''),          # 135. SENHA PORTAL EMPREGADOR
+            client.get('senhaSimples', ''),                   # 136. SENHA SIMPLES
+            client.get('senhaGoverno', ''),                   # 137. SENHA GOVERNO
+            client.get('senhaViaSoft', ''),                   # 138. SENHA VIA SOFT
             client.get('senhaSimei', ''),                     # 85. SENHA SIMEI
 
             # Bloco 6: Procurações (CORRIGIDO - alinhado com formulário)
@@ -1614,60 +1607,56 @@ class GoogleSheetsServiceAccountService:
             # Campos legados para compatibilidade
             'emailsSocio': safe_get(row, 35),                     # POSIÇÃO CORRETA
 
-            # Contatos Detalhados - POSIÇÕES CORRIGIDAS
-            'contato_1_nome': safe_get(row, 93),                  # POSIÇÃO REAL: 93 (CONTATO_1_NOME)
-            'contato_1_cargo': safe_get(row, 94),                 # POSIÇÃO REAL: 94 (CONTATO_1_CARGO)
-            'contato_1_telefone': safe_get(row, 95),              # POSIÇÃO REAL: 95 (CONTATO_1_TELEFONE)
-            'contato_1_email': safe_get(row, 96),                 # POSIÇÃO REAL: 96 (CONTATO_1_EMAIL)
-            'contato_2_nome': safe_get(row, 97),                  # POSIÇÃO ESTIMADA: 97 (CONTATO_2_NOME)
-            'contato_2_cargo': safe_get(row, 98),                 # POSIÇÃO ESTIMADA: 98 (CONTATO_2_CARGO)
-            'contato_2_telefone': safe_get(row, 99),              # POSIÇÃO ESTIMADA: 99 (CONTATO_2_TELEFONE)
-            'contato_2_email': safe_get(row, 100),                # POSIÇÃO ESTIMADA: 100 (CONTATO_2_EMAIL)
-            'contato_3_nome': safe_get(row, 47),     # 48-1 = 47 (CONTATO_3_NOME)
-            'contato_3_cargo': safe_get(row, 48),    # 49-1 = 48 (CONTATO_3_CARGO)
-            'contato_3_telefone': safe_get(row, 49), # 50-1 = 49 (CONTATO_3_TELEFONE)
-            'contato_3_email': safe_get(row, 50),    # 51-1 = 50 (CONTATO_3_EMAIL)
-            'contato_4_nome': safe_get(row, 51),     # 52-1 = 51 (CONTATO_4_NOME)
-            'contato_4_cargo': safe_get(row, 52),    # 53-1 = 52 (CONTATO_4_CARGO)
-            'contato_4_telefone': safe_get(row, 53), # 54-1 = 53 (CONTATO_4_TELEFONE)
-            'contato_4_email': safe_get(row, 54),    # 55-1 = 54 (CONTATO_4_EMAIL)
-            'contato_5_nome': safe_get(row, 55),     # 56-1 = 55 (CONTATO_5_NOME)
-            'contato_5_cargo': safe_get(row, 56),    # 57-1 = 56 (CONTATO_5_CARGO)
-            'contato_5_telefone': safe_get(row, 57), # 58-1 = 57 (CONTATO_5_TELEFONE)
-            'contato_5_email': safe_get(row, 58),    # 59-1 = 58 (CONTATO_5_EMAIL)
+            # Contatos Detalhados - POSIÇÕES AJUSTADAS EMPIRICAMENTE (OFFSET -1)
+            'contato_1_nome': safe_get(row, 93),                  # Nome do contato 1 (offset -1)
+            'contato_1_cargo': safe_get(row, 94),                 # Cargo do contato 1 (offset -1)
+            'contato_1_telefone': safe_get(row, 95),              # Telefone do contato 1 (offset -1)
+            'contato_1_email': safe_get(row, 96),                 # Email do contato 1 (offset -1)
+            'contato_2_nome': safe_get(row, 97),                  # Nome do contato 2 (offset -1)
+            'contato_2_cargo': safe_get(row, 98),                 # Cargo do contato 2 (offset -1)
+            'contato_2_telefone': safe_get(row, 99),              # Telefone do contato 2 (offset -1)
+            'contato_2_email': safe_get(row, 100),                # Email do contato 2 (offset -1)
+            'contato_3_nome': safe_get(row, 101),                 # Nome do contato 3 (offset -1)
+            'contato_3_cargo': safe_get(row, 102),                # Cargo do contato 3 (offset -1)
+            'contato_3_telefone': safe_get(row, 103),             # Telefone do contato 3 (offset -1)
+            'contato_3_email': safe_get(row, 104),                # Email do contato 3 (offset -1)
+            'contato_4_nome': safe_get(row, 106),                 # 107-1 = 106 (CONTATO_4_NOME)
+            'contato_4_cargo': safe_get(row, 107),                # 108-1 = 107 (CONTATO_4_CARGO)
+            'contato_4_telefone': safe_get(row, 108),             # 109-1 = 108 (CONTATO_4_TELEFONE)
+            'contato_4_email': safe_get(row, 109),                # 110-1 = 109 (CONTATO_4_EMAIL)
+            'contato_5_nome': safe_get(row, 110),                 # 111-1 = 110 (CONTATO_5_NOME)
+            'contato_5_cargo': safe_get(row, 111),                # 112-1 = 111 (CONTATO_5_CARGO)
+            'contato_5_telefone': safe_get(row, 112),             # 113-1 = 112 (CONTATO_5_TELEFONE)
+            'contato_5_email': safe_get(row, 113),                # 114-1 = 113 (CONTATO_5_EMAIL)
 
-            # Bloco 5: Senhas e Credenciais (ORGANIZADO CONFORME FORMULÁRIO - 4 LINHAS)
-            # Linha 1: CNPJ Acesso Simples Nacional, CPF do Representante Legal, Código de Acesso Simples Nacional, Senha ISS
-            'cnpjAcessoSn': safe_get(row, 59),       # 60. CNPJ ACESSO SIMPLES NACIONAL
-            'cpfRepLegal': safe_get(row, 60),        # 61. CPF DO REPRESENTANTE LEGAL
-            'codigoAcessoSn': safe_get(row, 61),     # 62. CÓDIGO ACESSO SN
-            'senhaIss': safe_get(row, 62),           # 63. SENHA ISS
+            # Bloco 5: Senhas e Credenciais (POSIÇÕES CORRIGIDAS)
+            'cnpjAcessoSn': safe_get(row, 105),      # 106-1 = 105 (CPF/CNPJ SN)
+            'cpfRepLegal': safe_get(row, 106),       # 107-1 = 106 (CÓDIGO ACESSO SN)
+            'codigoAcessoSn': safe_get(row, 107),    # 108-1 = 107 (ACESSO EMPWEB)
+            'senhaIss': safe_get(row, 108),          # 109-1 = 108 (SENHA EMPWEB)
             
-            # Linha 2: Senha SEFIN, Senha SEUMA, Acesso EmpWeb, Senha EmpWeb
-            'senhaSefin': safe_get(row, 63),         # 64. SENHA SEFIN
-            'senhaSeuma': safe_get(row, 64),         # 65. SENHA SEUMA
-            'acessoEmpWeb': safe_get(row, 65),       # 66. ACESSO EMPWEB
-            'senhaEmpWeb': safe_get(row, 66),        # 67. SENHA EMPWEB
+            'senhaSefin': safe_get(row, 109),        # 110-1 = 109 (ACESSO ISS)
+            'senhaSeuma': safe_get(row, 110),        # 111-1 = 110 (ACESSO SEFIN)
+            'acessoEmpWeb': safe_get(row, 111),      # 112-1 = 111 (ACESSO SEUMA)
+            'senhaEmpWeb': safe_get(row, 120),       # 121-1 = 120 (ACESSO SEMACE)
             
-            # Linha 3: Login ANVISA Empresa, Senha ANVISA Empresa, Login ANVISA Gestor, Senha ANVISA Gestor
-            'anvisaEmpresa': safe_get(row, 67),      # 68. LOGIN ANVISA EMPRESA
-            'senhaAnvisaEmpresa': safe_get(row, 68), # 69. SENHA ANVISA EMPRESA
-            'anvisaGestor': safe_get(row, 69),       # 70. LOGIN ANVISA GESTOR
-            'senhaAnvisaGestor': safe_get(row, 70),  # 71. SENHA ANVISA GESTOR
+            'anvisaEmpresa': safe_get(row, 121),     # 122-1 = 121 (ACESSO IBAMA)
+            'senhaAnvisaEmpresa': safe_get(row, 122), # 123-1 = 122 (ACESSO FAP/INSS)
+            'anvisaGestor': safe_get(row, 123),      # 124-1 = 123 (ACESSO CRF)
+            'senhaAnvisaGestor': safe_get(row, 124), # 125-1 = 124 (SENHA SEMACE)
             
-            # Linha 4: Acesso CRF, Senha FAP/INSS
-            'acessoCrf': safe_get(row, 71),          # 72. ACESSO CRF
-            'senhaFapInss': safe_get(row, 72),       # 73. SENHA FAP/INSS
+            'acessoCrf': safe_get(row, 125),         # 126-1 = 125 (ANVISA GESTOR)
+            'senhaFapInss': safe_get(row, 126),      # 127-1 = 126 (ANVISA EMPRESA)
             
-            # Bloco 5: Senhas Específicas Adicionais (POSIÇÕES REAIS NA PLANILHA)
-            'senhaFgts': safe_get(row, 127),                      # 127. SENHA FGTS (posição real)
-            'senhaSocial': safe_get(row, 128),                    # 128. SENHA SOCIAL (posição real)
-            'senhaGiss': safe_get(row, 129),                      # 129. SENHA GISS (posição real)
-            'senhaDetran': safe_get(row, 130),                    # 130. SENHA DETRAN (posição real)
-            'senhaReceita': safe_get(row, 131),                   # 131. SENHA RECEITA (posição real)
-            'senhaSintegra': safe_get(row, 132),                  # 132. SENHA SINTEGRA (posição real)
-            'senhaJucesp': safe_get(row, 133),                    # 133. SENHA JUCESP (posição real)
-            'senhaPortalEmpregador': safe_get(row, 134),          # 134. SENHA PORTAL EMPREGADOR (posição real)
+            # Senhas Específicas Adicionais (POSIÇÕES CORRIGIDAS)
+            'senhaFgts': safe_get(row, 127),         # 128-1 = 127 (SENHA FGTS)
+            'senhaSocial': safe_get(row, 128),       # 129-1 = 128 (SENHA SOCIAL)
+            'senhaGiss': safe_get(row, 129),         # 130-1 = 129 (SENHA GISS)
+            'senhaDetran': safe_get(row, 130),       # 131-1 = 130 (SENHA DETRAN)
+            'senhaReceita': safe_get(row, 131),      # 132-1 = 131 (SENHA RECEITA)
+            'senhaSintegra': safe_get(row, 132),     # 133-1 = 132 (SENHA SINTEGRA)
+            'senhaJucesp': safe_get(row, 133),       # 134-1 = 133 (SENHA JUCESP)
+            'senhaPortalEmpregador': safe_get(row, 134), # 135-1 = 134 (SENHA PORTAL EMPREGADOR)
             'senhaSimples': safe_get(row, 135),                   # 135. SENHA SIMPLES (posição real)
             'senhaGoverno': safe_get(row, 136),                   # 136. SENHA GOVERNO (posição real)
             'senhaViaSoft': safe_get(row, 137),                   # 137. SENHA VIA SOFT (posição real)

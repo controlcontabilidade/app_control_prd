@@ -104,6 +104,56 @@ console.log('✅ MODO VISUALIZAÇÃO ATIVO');
 console.log('✏️ MODO EDIÇÃO/CRIAÇÃO ATIVO');
 {% endif %}
 
+// ===== FUNÇÕES DE FORMATAÇÃO (DEFINIDAS NO INÍCIO) =====
+function formatPhone(input) {
+    let value = input.value.replace(/\D/g, '');
+    if (value.length <= 11) {
+        value = value.replace(/(\d{2})(\d)/, '($1) $2');
+        value = value.replace(/(\d{4,5})(\d{4})$/, '$1-$2');
+    }
+    input.value = value;
+}
+
+function formatCPF(input) {
+    // Salvar posição do cursor
+    const cursorPos = input.selectionStart;
+    const valueLength = input.value.length;
+    
+    // Remover tudo que não é dígito
+    let value = input.value.replace(/\D/g, '');
+    
+    // Aplicar formatação apenas se tiver dígitos
+    if (value.length > 0) {
+        // Limitar a 11 dígitos (CPF)
+        if (value.length > 11) {
+            value = value.substring(0, 11);
+        }
+        
+        // Aplicar máscara CPF: 000.000.000-00
+        if (value.length <= 3) {
+            // 123
+            value = value;
+        } else if (value.length <= 6) {
+            // 123.456
+            value = value.replace(/(\d{3})(\d+)/, '$1.$2');
+        } else if (value.length <= 9) {
+            // 123.456.789
+            value = value.replace(/(\d{3})(\d{3})(\d+)/, '$1.$2.$3');
+        } else {
+            // 123.456.789-01
+            value = value.replace(/(\d{3})(\d{3})(\d{3})(\d+)/, '$1.$2.$3-$4');
+        }
+    }
+    
+    input.value = value;
+    console.log('✅ CPF formatado:', value);
+    
+    // Restaurar posição do cursor (aproximada)
+    const newLength = value.length;
+    const newCursorPos = Math.min(cursorPos + (newLength - valueLength), newLength);
+    input.setSelectionRange(newCursorPos, newCursorPos);
+}
+
 // ===== FUNÇÃO INLINE SIMPLES PARA CPF/CNPJ =====
 function formatarCpfCnpjInline(input) {
     console.log('🎯 FUNÇÃO INLINE CHAMADA:', input.value);
@@ -968,7 +1018,7 @@ document.addEventListener('DOMContentLoaded', function() {
                                                     <label class="form-label small mb-1">CPF</label>
                                                     <input type="text" class="form-control form-control-sm cpf-mask" 
                                                            name="socio_1_cpf" id="socio_1_cpf"
-                                                           value="{{ client.socio_1_cpf if client else '' }}"
+                                                           value="{{ (client.socio_1_cpf | format_cpf) if client else '' }}"
                                                            placeholder="000.000.000-00">
                                                 </div>
                                                 <div class="col-md-2 mb-2">
@@ -1035,7 +1085,7 @@ document.addEventListener('DOMContentLoaded', function() {
                                                     <label class="form-label small mb-1">CPF</label>
                                                     <input type="text" class="form-control form-control-sm cpf-mask" 
                                                            name="socio_2_cpf" id="socio_2_cpf"
-                                                           value="{{ client.socio_2_cpf if client else '' }}"
+                                                           value="{{ (client.socio_2_cpf | format_cpf) if client else '' }}"
                                                            placeholder="000.000.000-00">
                                                 </div>
                                                 <div class="col-md-2 mb-2">
@@ -1102,7 +1152,7 @@ document.addEventListener('DOMContentLoaded', function() {
                                                     <label class="form-label small mb-1">CPF</label>
                                                     <input type="text" class="form-control form-control-sm cpf-mask" 
                                                            name="socio_3_cpf" id="socio_3_cpf"
-                                                           value="{{ client.socio_3_cpf if client else '' }}"
+                                                           value="{{ (client.socio_3_cpf | format_cpf) if client else '' }}"
                                                            placeholder="000.000.000-00">
                                                 </div>
                                                 <div class="col-md-2 mb-2">
@@ -1169,7 +1219,7 @@ document.addEventListener('DOMContentLoaded', function() {
                                                     <label class="form-label small mb-1">CPF</label>
                                                     <input type="text" class="form-control form-control-sm cpf-mask" 
                                                            name="socio_4_cpf" id="socio_4_cpf"
-                                                           value="{{ client.socio_4_cpf if client else '' }}"
+                                                           value="{{ (client.socio_4_cpf | format_cpf) if client else '' }}"
                                                            placeholder="000.000.000-00">
                                                 </div>
                                                 <div class="col-md-2 mb-2">
@@ -1236,7 +1286,7 @@ document.addEventListener('DOMContentLoaded', function() {
                                                     <label class="form-label small mb-1">CPF</label>
                                                     <input type="text" class="form-control form-control-sm cpf-mask" 
                                                            name="socio_5_cpf" id="socio_5_cpf"
-                                                           value="{{ client.socio_5_cpf if client else '' }}"
+                                                           value="{{ (client.socio_5_cpf | format_cpf) if client else '' }}"
                                                            placeholder="000.000.000-00">
                                                 </div>
                                                 <div class="col-md-2 mb-2">
@@ -1304,7 +1354,105 @@ document.addEventListener('DOMContentLoaded', function() {
                                     <label class="form-label fw-bold">
                                         <i class="bi bi-telephone-fill me-1"></i>CONTATOS DA EMPRESA
                                     </label>
-                                    <button type="button" class="btn btn-outline-primary btn-sm" onclick="adicionarContato()">
+                                    <button type="button" 
+                                            class="btn btn-outline-primary btn-sm" 
+                                            id="btnAdicionarContato"
+                                            onclick="
+                                                console.log('🔴 [CONTATOS] BOTÃO CLICADO - Verificando contatos ocultos');
+                                                
+                                                // Primeiro verificar se há contatos estáticos ocultos (2-3)
+                                                var contatosEstaticosOcultos = [];
+                                                for (var i = 2; i <= 3; i++) {
+                                                    var contatoEstatico = document.getElementById('contato_' + i);
+                                                    if (contatoEstatico && contatoEstatico.style.display === 'none') {
+                                                        contatosEstaticosOcultos.push(i);
+                                                    }
+                                                }
+                                                
+                                                if (contatosEstaticosOcultos.length > 0) {
+                                                    // Mostrar o primeiro contato oculto
+                                                    var proximoContato = contatosEstaticosOcultos[0];
+                                                    var contatoElement = document.getElementById('contato_' + proximoContato);
+                                                    contatoElement.style.display = 'block';
+                                                    console.log('✅ [CONTATOS] Contato', proximoContato, 'revelado (estava oculto)');
+                                                    
+                                                    // Aplicar máscara telefone ao contato revelado
+                                                    var phoneInput = contatoElement.querySelector('.phone-mask');
+                                                    if (phoneInput) {
+                                                        if (phoneInput.value && phoneInput.value.length > 0) {
+                                                            formatPhone(phoneInput);
+                                                            console.log('🔧 [CONTATOS] Telefone formatado no contato revelado:', phoneInput.value);
+                                                        }
+                                                    }
+                                                    
+                                                    // Focar no primeiro campo do contato revelado
+                                                    var firstInput = contatoElement.querySelector('input');
+                                                    if (firstInput) firstInput.focus();
+                                                    
+                                                    return; // Sair da função - não criar contato dinâmico
+                                                }
+                                                
+                                                // Se chegou aqui, todos os contatos estáticos (2-3) já estão visíveis
+                                                // Proceder com criação de contato dinâmico (4+)
+                                                console.log('🔧 [CONTATOS] Todos contatos estáticos visíveis - criando dinâmico');
+                                                
+                                                var container = document.getElementById('contatosContainer');
+                                                if (!container) {
+                                                    alert('Container de contatos não encontrado!');
+                                                    return;
+                                                }
+                                                console.log('✅ Container de contatos encontrado');
+                                                var contatos = container.querySelectorAll('.contato-card');
+                                                var total = contatos.length;
+                                                console.log('📊 Total contatos:', total);
+                                                if (total >= 10) {
+                                                    alert('Máximo 10 contatos!');
+                                                    return;
+                                                }
+                                                var num = total + 1;
+                                                var div = document.createElement('div');
+                                                div.className = 'card border-light mb-2 contato-card';
+                                                div.id = 'contato_' + num;
+                                                div.innerHTML = '<div class=\&quot;card-body py-3\&quot;><div class=\&quot;d-flex justify-content-between align-items-center mb-2\&quot;><span class=\&quot;badge bg-success\&quot;>Contato ' + num + '</span><button type=\&quot;button\&quot; class=\&quot;btn btn-sm btn-outline-danger\&quot; onclick=\&quot;this.closest(\\\&quot;.contato-card\\\&quot;).remove();\&quot;>❌</button></div><div class=\&quot;row align-items-center\&quot;><div class=\&quot;col-md-3 mb-2\&quot;><label class=\&quot;form-label small mb-1\&quot;>Nome</label><input type=\&quot;text\&quot; class=\&quot;form-control form-control-sm\&quot; name=\&quot;contato_' + num + '_nome\&quot; onkeyup=\&quot;this.value=this.value.toUpperCase()\&quot; placeholder=\&quot;Nome completo do contato\&quot;></div><div class=\&quot;col-md-3 mb-2\&quot;><label class=\&quot;form-label small mb-1\&quot;>Cargo</label><input type=\&quot;text\&quot; class=\&quot;form-control form-control-sm\&quot; name=\&quot;contato_' + num + '_cargo\&quot; placeholder=\&quot;Ex: Gerente, Diretor, Sócio\&quot;></div><div class=\&quot;col-md-3 mb-2\&quot;><label class=\&quot;form-label small mb-1\&quot;>Telefone</label><input type=\&quot;tel\&quot; class=\&quot;form-control form-control-sm phone-mask\&quot; name=\&quot;contato_' + num + '_telefone\&quot; placeholder=\&quot;(85) 99999-9999\&quot;></div><div class=\&quot;col-md-3 mb-2\&quot;><label class=\&quot;form-label small mb-1\&quot;>E-mail</label><input type=\&quot;email\&quot; class=\&quot;form-control form-control-sm\&quot; name=\&quot;contato_' + num + '_email\&quot; placeholder=\&quot;contato@empresa.com\&quot;></div></div></div>';
+                                                container.appendChild(div);
+                                                
+                                                // Aplicar máscaras aos novos campos
+                                                console.log('🔧 [CONTATOS] Aplicando máscara telefone ao contato', num);
+                                                var phoneInput = div.querySelector('.phone-mask');
+                                                if (phoneInput) {
+                                                    // Event listener para input em tempo real
+                                                    phoneInput.addEventListener('input', function() {
+                                                        formatPhone(this);
+                                                    });
+                                                    
+                                                    // Event listener para blur (quando sai do campo)
+                                                    phoneInput.addEventListener('blur', function() {
+                                                        if (this.value && this.value.length > 0) {
+                                                            formatPhone(this);
+                                                        }
+                                                    });
+                                                    
+                                                    // Formatar se já tiver valor
+                                                    if (phoneInput.value && phoneInput.value.length > 0) {
+                                                        formatPhone(phoneInput);
+                                                    }
+                                                    
+                                                    console.log('✅ [CONTATOS] Máscara telefone aplicada ao contato', num);
+                                                } else {
+                                                    console.error('❌ [CONTATOS] Campo telefone não encontrado no contato', num);
+                                                }
+                                                
+                                                console.log('✅ [CONTATOS] Contato dinâmico', num, 'adicionado com TODOS os campos e máscaras!');
+                                                
+                                                // Reaplicar formatação de telefone após adicionar contato
+                                                setTimeout(function() {
+                                                    reaplicarFormatacaoTelefone();
+                                                    console.log('🔧 [CONTATOS] Formatação telefone reaplicada após adicionar contato', num);
+                                                }, 50);
+                                                
+                                                var input = div.querySelector('input');
+                                                if (input) input.focus();
+                                            ">
                                         <i class="bi bi-plus-circle me-1"></i>Adicionar Contato
                                     </button>
                                 </div>
@@ -1860,63 +2008,6 @@ document.addEventListener('DOMContentLoaded', function() {
 // (Removido bloco duplicado de DOMContentLoaded; lógica consolidada abaixo)
 // =============================================================================
 
-// Aplicar máscaras aos campos existentes
-function formatPhone(input) {
-    let value = input.value.replace(/\D/g, '');
-    if (value.length <= 11) {
-        value = value.replace(/(\d{2})(\d)/, '($1) $2');
-        value = value.replace(/(\d{4,5})(\d{4})$/, '$1-$2');
-    }
-    input.value = value;
-}
-
-// Formatação de CPF - CORREÇÃO 07: Versão melhorada
-function formatCPF(input) {
-    // Salvar posição do cursor
-    const cursorPos = input.selectionStart;
-    const valueLength = input.value.length;
-    
-    // Remover tudo que não é dígito
-    let value = input.value.replace(/\D/g, '');
-    
-    // Aplicar formatação apenas se tiver dígitos
-    if (value.length > 0) {
-        // Limitar a 11 dígitos (CPF)
-        if (value.length > 11) {
-            value = value.substring(0, 11);
-        }
-        
-        // Aplicar formatação progressiva CPF: 000.000.000-00
-        if (value.length <= 3) {
-            // 1-3 dígitos: sem formatação
-            value = value;
-        } else if (value.length <= 6) {
-            // 4-6 dígitos: 123.4 ou 123.456
-            value = value.replace(/^(\d{3})(\d+)/, '$1.$2');
-        } else if (value.length <= 9) {
-            // 7-9 dígitos: 123.456.7 ou 123.456.789
-            value = value.replace(/^(\d{3})(\d{3})(\d+)/, '$1.$2.$3');
-        } else {
-            // 10-11 dígitos: 123.456.789-0 ou 123.456.789-01
-            value = value.replace(/^(\d{3})(\d{3})(\d{3})(\d+)/, '$1.$2.$3-$4');
-        }
-    }
-    
-    // Atualizar valor
-    input.value = value;
-    
-    // Calcular nova posição do cursor baseado na diferença de tamanho
-    const lengthDiff = value.length - valueLength;
-    const newCursorPos = Math.min(Math.max(cursorPos + lengthDiff, 0), value.length);
-    
-    // Restaurar posição do cursor
-    if (input.setSelectionRange) {
-        setTimeout(() => {
-            input.setSelectionRange(newCursorPos, newCursorPos);
-        }, 0);
-    }
-}
-
 // CORREÇÃO 07: Função utilitária para reaplicar formatação CPF em todos os campos
 function reaplicarFormatacaoCPF() {
     console.log('🔧 [CORREÇÃO 07] Reaplicando formatação CPF em todos os campos...');
@@ -1952,6 +2043,44 @@ function reaplicarFormatacaoCPF() {
     });
     
     console.log(`✅ [CORREÇÃO 07] Reaplicação concluída: ${contador} campos reformatados de ${camposCpf.length} encontrados`);
+    return contador;
+}
+
+// Função para reaplicar formatação de telefone em todos os campos
+function reaplicarFormatacaoTelefone() {
+    console.log('🔧 [CONTATOS] Reaplicando formatação telefone em todos os campos...');
+    
+    const camposTelefone = document.querySelectorAll('.phone-mask, input[name*="_telefone"]');
+    let contador = 0;
+    
+    camposTelefone.forEach(function(input) {
+        if (input.value && input.value.length > 0) {
+            const valorAntes = input.value;
+            formatPhone(input);
+            
+            if (valorAntes !== input.value) {
+                console.log('✅ [CONTATOS] Telefone reformatado:', input.name || input.id, valorAntes, '→', input.value);
+                contador++;
+            }
+        }
+        
+        // Garantir que tem event listeners
+        if (!input.hasAttribute('data-phone-listener')) {
+            input.addEventListener('input', function() {
+                formatPhone(this);
+            });
+            
+            input.addEventListener('blur', function() {
+                if (this.value && this.value.length > 0) {
+                    formatPhone(this);
+                }
+            });
+            
+            input.setAttribute('data-phone-listener', 'true');
+        }
+    });
+    
+    console.log(`✅ [CONTATOS] Reaplicação concluída: ${contador} campos reformatados de ${camposTelefone.length} encontrados`);
     return contador;
 }
 
@@ -2352,118 +2481,20 @@ document.addEventListener('DOMContentLoaded', function() {
 
     // Carregar dados dos sócios e contatos se estiver editando
     {% if client %}
-    console.log('🚀 CORREÇÃO 03 - CARREGANDO SÓCIOS EXISTENTES');
+    console.log('🚀 [INÍCIO] CARREGANDO SÓCIOS E CONTATOS EXISTENTES');
     const dadosCliente = {{ client|tojson }};
-    console.log('🔍 DADOS DO CLIENTE RECEBIDOS:', dadosCliente);
-    console.log('🔍 SOCIO_1_NOME:', dadosCliente.socio_1_nome);
-    console.log('🔍 SOCIO_2_NOME:', dadosCliente.socio_2_nome);
-    console.log('🔍 SOCIO_3_NOME:', dadosCliente.socio_3_nome);
-    console.log('� CHAMANDO FUNÇÃO CORRIGIDA carregarSociosCorrigido...');
-    // CORREÇÃO 03: Carregar TODOS os sócios automaticamente (2 a 10)
+    console.log('🔍 [INÍCIO] DADOS DO CLIENTE RECEBIDOS:', dadosCliente);
+    console.log('🔍 [INÍCIO] Sócio 2 nome:', dadosCliente.socio_2_nome);
+    console.log('🔍 [INÍCIO] Contato 2 nome:', dadosCliente.contato_2_nome);
+    
+    // Delay para garantir que DOM esteja carregado
     setTimeout(function() {
-        console.log('🔧 CORREÇÃO 03 - CARREGANDO TODOS OS SÓCIOS AUTOMATICAMENTE...');
+        console.log('� EXECUTANDO carregarSocios...');
+        carregarSocios(dadosCliente);
         
-        const container = document.getElementById('sociosContainer');
-        if (!container) {
-            console.error('❌ sociosContainer não encontrado');
-            return;
-        }
-        
-        // Loop para carregar sócios de 2 a 10
-        for (let i = 2; i <= 10; i++) {
-            const nomeField = `socio_${i}_nome`;
-            const cpfField = `socio_${i}_cpf`;
-            const nascimentoField = `socio_${i}_data_nascimento`;
-            const participacaoField = `socio_${i}_participacao`;
-            const administradorField = `socio_${i}_administrador`;
-            
-            if (dadosCliente[nomeField] && dadosCliente[nomeField].trim()) {
-                console.log(`➕ Criando card para sócio ${i}:`, dadosCliente[nomeField]);
-                
-                const cardSocio = document.createElement('div');
-                cardSocio.className = 'card border-light mb-2 socio-card';
-                cardSocio.id = `socio_${i}`;
-                
-                // Verificar se é representante legal
-                const isRepLegal = dadosCliente.representante_legal === `socio_${i}`;
-                const isAdmin = dadosCliente[administradorField];
-                
-                cardSocio.innerHTML = `
-                    <div class="card-body py-3">
-                        <div class="d-flex justify-content-between align-items-center mb-2">
-                            <span class="badge bg-primary">Sócio ${i}</span>
-                            <button type="button" class="btn btn-sm btn-outline-danger" 
-                                    onclick="this.closest('.socio-card').remove()">❌</button>
-                        </div>
-                        <div class="row align-items-center">
-                            <div class="col-md-3 mb-2">
-                                <label class="form-label small mb-1">Nome do Sócio</label>
-                                <input type="text" class="form-control form-control-sm" 
-                                       name="socio_${i}_nome" 
-                                       value="${dadosCliente[nomeField]}"
-                                       onkeyup="this.value=this.value.toUpperCase()"
-                                       placeholder="Nome completo do sócio">
-                            </div>
-                            <div class="col-md-2 mb-2">
-                                <label class="form-label small mb-1">CPF</label>
-                                <input type="text" class="form-control form-control-sm cpf-mask" 
-                                       name="socio_${i}_cpf" 
-                                       value="${dadosCliente[cpfField] || ''}"
-                                       placeholder="000.000.000-00">
-                            </div>
-                            <div class="col-md-2 mb-2">
-                                <label class="form-label small mb-1">Data de Nascimento</label>
-                                <input type="date" class="form-control form-control-sm" 
-                                       name="socio_${i}_data_nascimento"
-                                       value="${dadosCliente[nascimentoField] || ''}">
-                            </div>
-                            <div class="col-md-2 mb-2">
-                                <label class="form-label small mb-1">% de Quotas</label>
-                                <input type="number" class="form-control form-control-sm" 
-                                       name="socio_${i}_participacao" 
-                                       value="${dadosCliente[participacaoField] || ''}"
-                                       placeholder="50.00" step="0.01" min="0" max="100">
-                            </div>
-                            <div class="col-md-3 mb-2">
-                                <div class="row">
-                                    <div class="col-6">
-                                        <div class="form-check">
-                                            <input class="form-check-input representante-legal" type="radio" 
-                                                   name="representante_legal" value="socio_${i}" 
-                                                   id="rep_legal_${i}"
-                                                   ${isRepLegal ? 'checked' : ''}>
-                                            <label class="form-check-label small" for="rep_legal_${i}">
-                                                Representante Legal
-                                            </label>
-                                        </div>
-                                    </div>
-                                    <div class="col-6">
-                                        <div class="form-check">
-                                            <input class="form-check-input socio-admin" type="checkbox" 
-                                                   name="socio_${i}_administrador" value="1" 
-                                                   id="admin_${i}"
-                                                   ${isAdmin ? 'checked' : ''}>
-                                            <label class="form-check-label small" for="admin_${i}">
-                                                Sócio Administrador
-                                            </label>
-                                        </div>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                `;
-                
-                container.appendChild(cardSocio);
-                console.log(`✅ Sócio ${i} adicionado com todos os campos:`, dadosCliente[nomeField]);
-            }
-        }
-        
-        console.log('🎉 CORREÇÃO 03 CONCLUÍDA - TODOS OS SÓCIOS CARREGADOS!');
-        
-    }, 1000); // Delay para garantir que tudo carregou
-    console.log('🔍 EXECUTANDO carregarContatos...');
-    carregarContatos(dadosCliente);
+        console.log('🔍 EXECUTANDO carregarContatos...');
+        carregarContatos(dadosCliente);
+    }, 1000);
     {% endif %}
 
     // Forçar caixa alta nos inputs
@@ -2479,6 +2510,24 @@ document.addEventListener('DOMContentLoaded', function() {
         reaplicarFormatacaoCPF();
         console.log('🔧 [CORREÇÃO 07] Formatação CPF reaplicada após carregamento completo');
     }, 2000);
+
+    // Carregar dados dos sócios e contatos se estiver editando
+    {% if client %}
+    console.log('🚀 [INÍCIO] CARREGANDO SÓCIOS E CONTATOS EXISTENTES');
+    const dadosCliente = {{ client|tojson }};
+    console.log('🔍 [INÍCIO] DADOS DO CLIENTE RECEBIDOS:', dadosCliente);
+    console.log('🔍 [INÍCIO] Sócio 2 nome:', dadosCliente.socio_2_nome);
+    console.log('🔍 [INÍCIO] Contato 2 nome:', dadosCliente.contato_2_nome);
+    
+    // Delay para garantir que DOM esteja carregado
+    setTimeout(function() {
+        console.log('🔄 EXECUTANDO carregarSocios...');
+        carregarSocios(dadosCliente);
+        
+        console.log('🔍 EXECUTANDO carregarContatos...');
+        carregarContatos(dadosCliente);
+    }, 1000);
+    {% endif %}
 });
 
 // Função para configurar controles dos sócios
@@ -2523,88 +2572,84 @@ let numeroContatos = 1;
 
 // FOCO NO PROBLEMA: QUADRO SOCIETÁRIO - VERSÃO ULTRA SIMPLES
 function carregarSocios(dadosCliente) {
-    console.log('� [CORREÇÃO 14] VERSÃO ULTRA SIMPLES - FOCO QUADRO SOCIETÁRIO');
-    console.log('� CARREGANDO SÓCIOS - VERSÃO ULTRA SIMPLES');
+    console.log('🚀 [CARREGAMENTO CORRIGIDO] CARREGANDO TODOS OS SÓCIOS');
+    console.log('🔍 [DEBUG] dadosCliente recebido:', dadosCliente);
     
     if (!dadosCliente) {
         console.error('❌ ERRO: Dados do cliente não fornecidos');
         return;
     }
     
-    // FORÇAR criação de 3 cards imediatamente
-    console.log('🔧 FORÇANDO criação de 3 cards para os 3 sócios');
-    
-    // Card 2
-    setTimeout(() => {
-        adicionarSocio();
-        // Preencher dados do sócio 2
-        const nome2 = dadosCliente.socio_2_nome;
-        const cpf2 = dadosCliente.socio_2_cpf;
-        const nasc2 = dadosCliente.socio_2_data_nascimento;
-        const part2 = dadosCliente.socio_2_participacao;
+    // Preencher e mostrar sócios que têm dados (sócios 1-5 apenas)
+    for (let i = 1; i <= 5; i++) {
+        const nome = dadosCliente[`socio_${i}_nome`];
         
-        if (nome2) {
-            const inputNome2 = document.querySelector('input[name="socio_2_nome"]');
-            const inputCpf2 = document.querySelector('input[name="socio_2_cpf"]');
-            const inputNasc2 = document.querySelector('input[name="socio_2_data_nascimento"]');
-            const inputPart2 = document.querySelector('input[name="socio_2_participacao"]');
+        console.log(`🔍 [DEBUG] Verificando sócio ${i}: nome = "${nome}"`);
+        
+        if (nome && nome.trim() !== '') {
+            console.log(`✅ Carregando sócio ${i}: ${nome}`);
             
-            if (inputNome2) inputNome2.value = nome2;
-            if (inputCpf2) inputCpf2.value = cpf2 || '';
-            if (inputNasc2) inputNasc2.value = nasc2 || '';
-            if (inputPart2) inputPart2.value = part2 || '';
+            // Buscar o elemento do sócio
+            const socioElement = document.getElementById(`socio_${i}`);
+            console.log(`🔍 [DEBUG] Elemento socio_${i} encontrado:`, socioElement);
             
-            console.log(`✅ Preenchido sócio 2: ${nome2}`);
+            if (socioElement) {
+                // Mostrar o sócio
+                socioElement.style.display = 'block';
+                console.log(`👀 [DEBUG] Sócio ${i} mostrado (display = block)`);
+                
+                // Preencher os campos
+                const inputNome = socioElement.querySelector(`input[name="socio_${i}_nome"]`);
+                const inputCpf = socioElement.querySelector(`input[name="socio_${i}_cpf"]`);
+                const inputNasc = socioElement.querySelector(`input[name="socio_${i}_data_nascimento"]`);
+                const inputPart = socioElement.querySelector(`input[name="socio_${i}_participacao"]`);
+                const checkboxAdmin = socioElement.querySelector(`input[name="socio_${i}_administrador"]`);
+                
+                console.log(`🔍 [DEBUG] Inputs encontrados para sócio ${i}:`, {
+                    nome: inputNome,
+                    cpf: inputCpf,
+                    nasc: inputNasc,
+                    part: inputPart,
+                    admin: checkboxAdmin
+                });
+                
+                if (inputNome) {
+                    inputNome.value = nome;
+                    console.log(`✏️ [DEBUG] Nome preenchido: ${nome}`);
+                }
+                if (inputCpf) {
+                    inputCpf.value = dadosCliente[`socio_${i}_cpf`] || '';
+                    console.log(`✏️ [DEBUG] CPF preenchido: ${dadosCliente[`socio_${i}_cpf`] || 'vazio'}`);
+                }
+                if (inputNasc) {
+                    inputNasc.value = dadosCliente[`socio_${i}_data_nascimento`] || '';
+                    console.log(`✏️ [DEBUG] Data nasc preenchida: ${dadosCliente[`socio_${i}_data_nascimento`] || 'vazio'}`);
+                }
+                if (inputPart) {
+                    inputPart.value = dadosCliente[`socio_${i}_participacao`] || '';
+                    console.log(`✏️ [DEBUG] Participação preenchida: ${dadosCliente[`socio_${i}_participacao`] || 'vazio'}`);
+                }
+                if (checkboxAdmin) {
+                    checkboxAdmin.checked = dadosCliente[`socio_${i}_administrador`] || false;
+                    console.log(`✏️ [DEBUG] Admin checkbox: ${dadosCliente[`socio_${i}_administrador`] || false}`);
+                }
+                
+                console.log(`✅ Sócio ${i} carregado e mostrado: ${nome}`);
+            } else {
+                console.warn(`⚠️ Elemento socio_${i} não encontrado no HTML`);
+            }
+        } else {
+            console.log(`➖ Sócio ${i} vazio, mantendo oculto`);
         }
-    }, 100);
-    
-    // Card 3
-    setTimeout(() => {
-        adicionarSocio();
-        // Preencher dados do sócio 3
-        const nome3 = dadosCliente.socio_3_nome;
-        const cpf3 = dadosCliente.socio_3_cpf;
-        const nasc3 = dadosCliente.socio_3_data_nascimento;
-        const part3 = dadosCliente.socio_3_participacao;
-        
-        if (nome3) {
-            const inputNome3 = document.querySelector('input[name="socio_3_nome"]');
-            const inputCpf3 = document.querySelector('input[name="socio_3_cpf"]');
-            const inputNasc3 = document.querySelector('input[name="socio_3_data_nascimento"]');
-            const inputPart3 = document.querySelector('input[name="socio_3_participacao"]');
-            
-            if (inputNome3) inputNome3.value = nome3;
-            if (inputCpf3) inputCpf3.value = cpf3 || '';
-            if (inputNasc3) inputNasc3.value = nasc3 || '';
-            if (inputPart3) inputPart3.value = part3 || '';
-            
-            console.log(`✅ Preenchido sócio 3: ${nome3}`);
-        }
-    }, 200);
-    
-    // Preencher primeiro sócio (já existe)
-    const nome1 = dadosCliente.socio_1_nome;
-    if (nome1) {
-        const inputNome1 = document.querySelector('input[name="socio_1_nome"]');
-        const inputCpf1 = document.querySelector('input[name="socio_1_cpf"]');
-        const inputNasc1 = document.querySelector('input[name="socio_1_data_nascimento"]');
-        const inputPart1 = document.querySelector('input[name="socio_1_participacao"]');
-        
-        if (inputNome1) inputNome1.value = nome1;
-        if (inputCpf1) inputCpf1.value = dadosCliente.socio_1_cpf || '';
-        if (inputNasc1) inputNasc1.value = dadosCliente.socio_1_data_nascimento || '';
-        if (inputPart1) inputPart1.value = dadosCliente.socio_1_participacao || '';
-        
-        console.log(`✅ Preenchido sócio 1: ${nome1}`);
     }
     
-    console.log('✅ [CORREÇÃO 14] QUADRO SOCIETÁRIO CARREGADO - 3 SÓCIOS!');
+    console.log('✅ [CARREGAMENTO CORRIGIDO] TODOS OS SÓCIOS PROCESSADOS!');
     
     // CORREÇÃO 07: Reaplicar formatação CPF após carregar sócios
     setTimeout(function() {
         reaplicarFormatacaoCPF();
-        console.log('🔧 [CORREÇÃO 07] Formatação CPF reaplicada após carregamento do quadro societário');
-    }, 100);
+        console.log('🔧 [CARREGAMENTO CORRIGIDO] Formatação CPF reaplicada');
+    }, 200);
 }
 
 function preencherFormularioSocio(numero, dadosSocio) {
@@ -2689,67 +2734,72 @@ function criarCardSocio(numero, dadosSocio) {
     if (!dadosCliente) {
         console.log('❌ Dados do cliente não fornecidos');
 function carregarContatos(dadosCliente) {
-    console.log('� [CORREÇÃO 14] EXECUTANDO VERSÃO DEFINITIVA carregarContatos! 2025-08-24 08:30:00');
-    console.log('🔧 [CORREÇÃO 14] EXECUTANDO VERSÃO DEFINITIVA carregarContatos! 2025-08-24 08:30:00');
+    console.log('🚀 [CARREGAMENTO CORRIGIDO] CARREGANDO TODOS OS CONTATOS');
+    console.log('🔍 [DEBUG] dadosCliente recebido:', dadosCliente);
     
     if (!dadosCliente) {
         console.log('❌ Dados do cliente não fornecidos');
         return;
     }
     
-    const container = document.getElementById('contatos-container');
-    if (!container) {
-        console.log('❌ Container de contatos não encontrado');
-        return;
-    }
-    
-    // Identificar quantos contatos existem
-    let contatosComDados = [];
+    // Preencher e mostrar contatos que têm dados (contatos 1-5)
     for (let i = 1; i <= 5; i++) {
         const nome = dadosCliente[`contato_${i}_nome`];
+        
+        console.log(`🔍 [DEBUG] Verificando contato ${i}: nome = "${nome}"`);
+        
         if (nome && nome.trim() !== '') {
-            contatosComDados.push({
-                numero: i,
-                nome: nome,
-                cargo: dadosCliente[`contato_${i}_cargo`] || '',
-                telefone: dadosCliente[`contato_${i}_telefone`] || '',
-                email: dadosCliente[`contato_${i}_email`] || ''
-            });
+            console.log(`✅ Carregando contato ${i}: ${nome}`);
+            
+            // Buscar o elemento do contato
+            const contatoElement = document.getElementById(`contato_${i}`);
+            console.log(`🔍 [DEBUG] Elemento contato_${i} encontrado:`, contatoElement);
+            
+            if (contatoElement) {
+                // Mostrar o contato
+                contatoElement.style.display = 'block';
+                console.log(`👀 [DEBUG] Contato ${i} mostrado (display = block)`);
+                
+                // Preencher os campos
+                const inputNome = contatoElement.querySelector(`input[name="contato_${i}_nome"]`);
+                const inputCargo = contatoElement.querySelector(`input[name="contato_${i}_cargo"]`);
+                const inputTelefone = contatoElement.querySelector(`input[name="contato_${i}_telefone"]`);
+                const inputEmail = contatoElement.querySelector(`input[name="contato_${i}_email"]`);
+                
+                console.log(`🔍 [DEBUG] Inputs encontrados para contato ${i}:`, {
+                    nome: inputNome,
+                    cargo: inputCargo,
+                    telefone: inputTelefone,
+                    email: inputEmail
+                });
+                
+                if (inputNome) {
+                    inputNome.value = nome;
+                    console.log(`✏️ [DEBUG] Nome preenchido: ${nome}`);
+                }
+                if (inputCargo) {
+                    inputCargo.value = dadosCliente[`contato_${i}_cargo`] || '';
+                    console.log(`✏️ [DEBUG] Cargo preenchido: ${dadosCliente[`contato_${i}_cargo`] || 'vazio'}`);
+                }
+                if (inputTelefone) {
+                    inputTelefone.value = dadosCliente[`contato_${i}_telefone`] || '';
+                    console.log(`✏️ [DEBUG] Telefone preenchido: ${dadosCliente[`contato_${i}_telefone`] || 'vazio'}`);
+                }
+                if (inputEmail) {
+                    inputEmail.value = dadosCliente[`contato_${i}_email`] || '';
+                    console.log(`✏️ [DEBUG] Email preenchido: ${dadosCliente[`contato_${i}_email`] || 'vazio'}`);
+                }
+                
+                console.log(`✅ Contato ${i} carregado e mostrado: ${nome}`);
+            } else {
+                console.warn(`⚠️ Elemento contato_${i} não encontrado no HTML`);
+            }
+        } else {
+            console.log(`➖ Contato ${i} vazio, mantendo oculto`);
         }
     }
     
-    console.log(`✅ Encontrados ${contatosComDados.length} contatos:`, contatosComDados);
-    
-    // Se só tem 1 contato, não precisamos criar cards adicionais
-    if (contatosComDados.length <= 1) {
-        console.log('ℹ️ Apenas 1 contato - preenchendo formulário principal');
-        if (contatosComDados.length === 1) {
-            const contato = contatosComDados[0];
-            preencherFormularioContato(1, contato);
-        }
-        return;
-    }
-    
-    // Para múltiplos contatos, criar cards adicionais
-    console.log(`🔧 Criando ${contatosComDados.length - 1} cards de contatos adicionais...`);
-    
-    // Preencher primeiro contato (já existe no HTML)
-    preencherFormularioContato(1, contatosComDados[0]);
-    
-    // Criar cards para contatos 2+
-    for (let i = 1; i < contatosComDados.length; i++) {
-        const contato = contatosComDados[i];
-        const numeroCard = i + 1;
-        
-        console.log(`➕ Criando card para contato ${numeroCard}: ${contato.nome}`);
-        
-        // Criar o card diretamente
-        criarCardContato(numeroCard, contato);
-    }
-    
-    // Atualizar contador global
-    numeroContatos = contatosComDados.length;
-    console.log(`✅ Carregamento de contatos concluído! Total: ${numeroContatos}`);
+    console.log('✅ [CARREGAMENTO CORRIGIDO] TODOS OS CONTATOS PROCESSADOS!');
 }
 
 function preencherFormularioContato(numero, dadosContato) {
@@ -3573,304 +3623,6 @@ function carregarContatosSimples(dadosCliente) {
     
     console.log('✅ [CORREÇÃO 14] CONTATOS SIMPLES CARREGADOS!');
 }
-
-// Sobrescrever a função problemática
-window.carregarContatos = carregarContatosSimples;
-
-// NOVA FUNÇÃO PARA SÓCIOS - FORÇA BRUTA
-function carregarSociosForcaBruta(dadosCliente) {
-    console.log('� [CORREÇÃO 14] FORÇA BRUTA - SEMPRE 3 SÓCIOS!');
-    console.log('⚡ Executando força bruta para sócios');
-    
-    // SEMPRE criar 2 sócios adicionais (total = 3)
-    console.log('🔧 Criando sócio 2...');
-    setTimeout(() => {
-        adicionarSocio();
-        console.log('✅ Sócio 2 adicionado');
-        
-        // Preencher sócio 2 se tiver dados
-        setTimeout(() => {
-            const input2 = document.querySelector('input[name="socio_2_nome"]');
-            if (input2) {
-                if (dadosCliente && dadosCliente.socio_2_nome) {
-                    input2.value = dadosCliente.socio_2_nome;
-                    console.log('✅ Sócio 2 preenchido com dados reais');
-                } else {
-                    input2.value = 'SÓCIO 2 - TESTE';
-                    console.log('⚠️ Sócio 2 preenchido com dados de teste');
-                }
-            }
-        }, 200);
-    }, 100);
-    
-    console.log('🔧 Criando sócio 3...');
-    setTimeout(() => {
-        adicionarSocio();
-        console.log('✅ Sócio 3 adicionado');
-        
-        // Preencher sócio 3 se tiver dados
-        setTimeout(() => {
-            const input3 = document.querySelector('input[name="socio_3_nome"]');
-            if (input3) {
-                if (dadosCliente && dadosCliente.socio_3_nome) {
-                    input3.value = dadosCliente.socio_3_nome;
-                    console.log('✅ Sócio 3 preenchido com dados reais');
-                } else {
-                    input3.value = 'SÓCIO 3 - TESTE';
-                    console.log('⚠️ Sócio 3 preenchido com dados de teste');
-                }
-            }
-        }, 200);
-    }, 300);
-    
-    // Preencher sócio 1 (já existe)
-    setTimeout(() => {
-        const input1 = document.querySelector('input[name="socio_1_nome"]');
-        if (input1) {
-            if (dadosCliente && dadosCliente.socio_1_nome) {
-                input1.value = dadosCliente.socio_1_nome;
-                console.log('✅ Sócio 1 preenchido com dados reais');
-            } else {
-                input1.value = 'SÓCIO 1 - TESTE';
-                console.log('⚠️ Sócio 1 preenchido com dados de teste');
-            }
-        }
-    }, 50);
-    
-    // Verificação final
-    setTimeout(() => {
-        const cards = document.querySelectorAll('.socio-card, [id*="socio"], .card:has(input[name*="socio"])');
-        alert(`🎯 CRIADOS: ${cards.length} cards de sócios!`);
-        console.log(`🏁 Resultado final: ${cards.length} cards encontrados`);
-    }, 1000);
-}
-
-// SOLUÇÃO SIMPLES E FINAL
-window.carregarSocios = function(dadosCliente) {
-    console.log('🔧 SOLUÇÃO SIMPLES - Carregando sócios...');
-    
-    if (!dadosCliente) return;
-    
-    // Usar a função original adicionarSocio que já funciona
-    setTimeout(() => {
-        // Se tem sócio 2, adicionar card
-        if (dadosCliente.socio_2_nome) {
-            adicionarSocio();
-            setTimeout(() => {
-                const nome2 = document.querySelector('input[name="socio_2_nome"]');
-                if (nome2) nome2.value = dadosCliente.socio_2_nome;
-                
-                const cpf2 = document.querySelector('input[name="socio_2_cpf"]');
-                if (cpf2) cpf2.value = dadosCliente.socio_2_cpf || '';
-            }, 200);
-        }
-        
-        // Se tem sócio 3, adicionar card
-        if (dadosCliente.socio_3_nome) {
-            setTimeout(() => {
-                adicionarSocio();
-                setTimeout(() => {
-                    const nome3 = document.querySelector('input[name="socio_3_nome"]');
-                    if (nome3) nome3.value = dadosCliente.socio_3_nome;
-                    
-                    const cpf3 = document.querySelector('input[name="socio_3_cpf"]');
-                    if (cpf3) cpf3.value = dadosCliente.socio_3_cpf || '';
-                }, 200);
-            }, 400);
-        }
-        
-        // Preencher sócio 1
-        const nome1 = document.querySelector('input[name="socio_1_nome"]');
-        if (nome1) nome1.value = dadosCliente.socio_1_nome || '';
-        
-        const cpf1 = document.querySelector('input[name="socio_1_cpf"]');
-        if (cpf1) cpf1.value = dadosCliente.socio_1_cpf || '';
-    }, 100);
-};
-
-// Função final para carregar sócios
-function carregarSocios(dadosCliente) {
-    console.log('� SOLUÇÃO DEFINITIVA - Carregando sócios...');
-    
-    if (!dadosCliente) return;
-    
-    // Aguardar DOM estar pronto
-    setTimeout(() => {
-        const container = document.getElementById('socios-container');
-        if (!container) {
-            console.error('❌ Container socios-container não encontrado');
-            return;
-        }
-        
-        // Criar HTML completo para 3 sócios (incluindo o primeiro)
-        const htmlCompleto = `
-        <!-- Sócio 1 -->
-        <div class="card socio-card mb-3" id="socio_1">
-            <div class="card-header d-flex justify-content-between align-items-center">
-                <h6 class="mb-0">Sócio 1</h6>
-            </div>
-            <div class="card-body">
-                <div class="row">
-                    <div class="col-md-6">
-                        <label class="form-label">Nome do Sócio:</label>
-                        <input type="text" class="form-control upper-input" name="socio_1_nome" value="${dadosCliente.socio_1_nome || ''}">
-                    </div>
-                    <div class="col-md-6">
-                        <label class="form-label">CPF:</label>
-                        <input type="text" class="form-control" name="socio_1_cpf" value="${dadosCliente.socio_1_cpf || ''}">
-                    </div>
-                </div>
-                <div class="row mt-2">
-                    <div class="col-md-4">
-                        <label class="form-label">Data de Nascimento:</label>
-                        <input type="date" class="form-control" name="socio_1_data_nascimento" value="${dadosCliente.socio_1_data_nascimento || ''}">
-                    </div>
-                    <div class="col-md-4">
-                        <label class="form-label">Participação (%):</label>
-                        <input type="number" class="form-control" name="socio_1_participacao" step="0.01" value="${dadosCliente.socio_1_participacao || ''}">
-                    </div>
-                    <div class="col-md-4">
-                        <div class="form-check mt-4">
-                            <input class="form-check-input" type="checkbox" name="socio_1_administrador" ${dadosCliente.socio_1_administrador ? 'checked' : ''}>
-                            <label class="form-check-label">Administrador</label>
-                        </div>
-                        <div class="form-check">
-                            <input class="form-check-input" type="checkbox" name="socio_1_resp_legal" ${dadosCliente.socio_1_resp_legal ? 'checked' : ''}>
-                            <label class="form-check-label">Resp. Legal</label>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        </div>
-        
-        <!-- Sócio 2 -->
-        <div class="card socio-card mb-3" id="socio_2" ${!dadosCliente.socio_2_nome ? 'style="display:none;"' : ''}>
-            <div class="card-header d-flex justify-content-between align-items-center">
-                <h6 class="mb-0">Sócio 2</h6>
-                <button type="button" class="btn btn-danger btn-sm" onclick="document.getElementById('socio_2').style.display='none'">
-                    <i class="fas fa-trash"></i> Remover
-                </button>
-            </div>
-            <div class="card-body">
-                <div class="row">
-                    <div class="col-md-6">
-                        <label class="form-label">Nome do Sócio:</label>
-                        <input type="text" class="form-control upper-input" name="socio_2_nome" value="${dadosCliente.socio_2_nome || ''}">
-                    </div>
-                    <div class="col-md-6">
-                        <label class="form-label">CPF:</label>
-                        <input type="text" class="form-control" name="socio_2_cpf" value="${dadosCliente.socio_2_cpf || ''}">
-                    </div>
-                </div>
-                <div class="row mt-2">
-                    <div class="col-md-4">
-                        <label class="form-label">Data de Nascimento:</label>
-                        <input type="date" class="form-control" name="socio_2_data_nascimento" value="${dadosCliente.socio_2_data_nascimento || ''}">
-                    </div>
-                    <div class="col-md-4">
-                        <label class="form-label">Participação (%):</label>
-                        <input type="number" class="form-control" name="socio_2_participacao" step="0.01" value="${dadosCliente.socio_2_participacao || ''}">
-                    </div>
-                    <div class="col-md-4">
-                        <div class="form-check mt-4">
-                            <input class="form-check-input" type="checkbox" name="socio_2_administrador" ${dadosCliente.socio_2_administrador ? 'checked' : ''}>
-                            <label class="form-check-label">Administrador</label>
-                        </div>
-                        <div class="form-check">
-                            <input class="form-check-input" type="checkbox" name="socio_2_resp_legal" ${dadosCliente.socio_2_resp_legal ? 'checked' : ''}>
-                            <label class="form-check-label">Resp. Legal</label>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        </div>
-        
-        <!-- Sócio 3 -->
-        <div class="card socio-card mb-3" id="socio_3" ${!dadosCliente.socio_3_nome ? 'style="display:none;"' : ''}>
-            <div class="card-header d-flex justify-content-between align-items-center">
-                <h6 class="mb-0">Sócio 3</h6>
-                <button type="button" class="btn btn-danger btn-sm" onclick="document.getElementById('socio_3').style.display='none'">
-                    <i class="fas fa-trash"></i> Remover
-                </button>
-            </div>
-            <div class="card-body">
-                <div class="row">
-                    <div class="col-md-6">
-                        <label class="form-label">Nome do Sócio:</label>
-                        <input type="text" class="form-control upper-input" name="socio_3_nome" value="${dadosCliente.socio_3_nome || ''}">
-                    </div>
-                    <div class="col-md-6">
-                        <label class="form-label">CPF:</label>
-                        <input type="text" class="form-control" name="socio_3_cpf" value="${dadosCliente.socio_3_cpf || ''}">
-                    </div>
-                </div>
-                <div class="row mt-2">
-                    <div class="col-md-4">
-                        <label class="form-label">Data de Nascimento:</label>
-                        <input type="date" class="form-control" name="socio_3_data_nascimento" value="${dadosCliente.socio_3_data_nascimento || ''}">
-                    </div>
-                    <div class="col-md-4">
-                        <label class="form-label">Participação (%):</label>
-                        <input type="number" class="form-control" name="socio_3_participacao" step="0.01" value="${dadosCliente.socio_3_participacao || ''}">
-                    </div>
-                    <div class="col-md-4">
-                        <div class="form-check mt-4">
-                            <input class="form-check-input" type="checkbox" name="socio_3_administrador" ${dadosCliente.socio_3_administrador ? 'checked' : ''}>
-                            <label class="form-check-label">Administrador</label>
-                        </div>
-                        <div class="form-check">
-                            <input class="form-check-input" type="checkbox" name="socio_3_resp_legal" ${dadosCliente.socio_3_resp_legal ? 'checked' : ''}>
-                            <label class="form-check-label">Resp. Legal</label>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        </div>
-        `;
-        
-        // Substituir todo o conteúdo do container
-        container.innerHTML = htmlCompleto;
-        
-        console.log('✅ Sócios carregados com HTML completo');
-        
-        // Mostrar cards que têm dados
-        if (dadosCliente.socio_2_nome) {
-            document.getElementById('socio_2').style.display = 'block';
-        }
-        if (dadosCliente.socio_3_nome) {
-            document.getElementById('socio_3').style.display = 'block';
-        }
-        
-    }, 100);
-}
-
-// Função simples para mostrar sócios ocultos
-function mostrarSocio(numero) {
-    const socio = document.getElementById(`socio_${numero}`);
-    if (socio) {
-        socio.style.display = 'block';
-    }
-}
-
-// Substituir as funções problemáticas
-window.carregarSocios = carregarSocios;
-window.adicionarSocio = () => {
-    // Mostrar sócio 2 se estiver oculto
-    const socio2 = document.getElementById('socio_2');
-    const socio3 = document.getElementById('socio_3');
-    
-    if (socio2 && socio2.style.display === 'none') {
-        socio2.style.display = 'block';
-        return;
-    }
-    
-    if (socio3 && socio3.style.display === 'none') {
-        socio3.style.display = 'block';
-        return;
-    }
-    
-    alert('Máximo de 3 sócios permitidos');
-};
 
 </script>
 {% endblock %}

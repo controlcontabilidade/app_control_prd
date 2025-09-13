@@ -215,116 +215,59 @@
                 </h5>
             </div>
             <div class="card-body">
-                <div class="row">
-                    <!-- Contato 1 -->
-                    {% if client.contato_1_nome or client.contato_1_telefone or client.contato_1_email or client.contato_1_cargo %}
-                    <div class="col-md-12 mb-4">
-                        <h6 class="border-bottom pb-2 mb-3">Contato 1</h6>
-                        <div class="row">
-                            {% if client.contato_1_nome %}
-                            <div class="col-md-3 mb-2">
-                                <label class="form-label text-muted">Nome</label>
-                                <p class="mb-0"><i class="bi bi-person me-1"></i>{{ client.contato_1_nome }}</p>
+                {% set contatos_existentes = [] %}
+                {% for i in range(1, 4) %}
+                    {% set contato_nome = client.get('contato_' ~ i ~ '_nome') %}
+                    {% set contato_telefone = client.get('contato_' ~ i ~ '_telefone') %}
+                    {% set contato_email = client.get('contato_' ~ i ~ '_email') %}
+                    {% set contato_cargo = client.get('contato_' ~ i ~ '_cargo') %}
+                    
+                    {# Filtra valores vazios ou "NÃO"/"NAO" #}
+                    {% set nome_valido = contato_nome and contato_nome.strip() and contato_nome.upper() not in ['NÃO', 'NAO', 'N/A', '-'] %}
+                    {% set telefone_valido = contato_telefone and contato_telefone.strip() and contato_telefone.upper() not in ['NÃO', 'NAO', 'N/A', '-'] %}
+                    {% set email_valido = contato_email and contato_email.strip() and contato_email.upper() not in ['NÃO', 'NAO', 'N/A', '-'] %}
+                    {% set cargo_valido = contato_cargo and contato_cargo.strip() and contato_cargo.upper() not in ['NÃO', 'NAO', 'N/A', '-'] %}
+                    
+                    {% if nome_valido or telefone_valido or email_valido or cargo_valido %}
+                        {% set _ = contatos_existentes.append(i) %}
+                        <div class="col-md-12 mb-4">
+                            <h6 class="border-bottom pb-2 mb-3">Contato {{ i }}</h6>
+                            <div class="row">
+                                {% if nome_valido %}
+                                <div class="col-md-3 mb-2">
+                                    <label class="form-label text-muted">Nome</label>
+                                    <p class="mb-0"><i class="bi bi-person me-1"></i>{{ contato_nome }}</p>
+                                </div>
+                                {% endif %}
+                                {% if cargo_valido %}
+                                <div class="col-md-3 mb-2">
+                                    <label class="form-label text-muted">Cargo</label>
+                                    <p class="mb-0"><i class="bi bi-briefcase me-1"></i>{{ contato_cargo }}</p>
+                                </div>
+                                {% endif %}
+                                {% if telefone_valido %}
+                                <div class="col-md-3 mb-2">
+                                    <label class="form-label text-muted">Telefone</label>
+                                    <p class="mb-0"><i class="bi bi-telephone me-1"></i>{{ contato_telefone }}</p>
+                                </div>
+                                {% endif %}
+                                {% if email_valido %}
+                                <div class="col-md-3 mb-2">
+                                    <label class="form-label text-muted">E-mail</label>
+                                    <p class="mb-0"><i class="bi bi-envelope me-1"></i>{{ contato_email }}</p>
+                                </div>
+                                {% endif %}
                             </div>
-                            {% endif %}
-                            {% if client.contato_1_cargo %}
-                            <div class="col-md-3 mb-2">
-                                <label class="form-label text-muted">Cargo</label>
-                                <p class="mb-0"><i class="bi bi-briefcase me-1"></i>{{ client.contato_1_cargo }}</p>
-                            </div>
-                            {% endif %}
-                            {% if client.contato_1_telefone %}
-                            <div class="col-md-3 mb-2">
-                                <label class="form-label text-muted">Telefone</label>
-                                <p class="mb-0"><i class="bi bi-telephone me-1"></i>{{ client.contato_1_telefone }}</p>
-                            </div>
-                            {% endif %}
-                            {% if client.contato_1_email %}
-                            <div class="col-md-3 mb-2">
-                                <label class="form-label text-muted">E-mail</label>
-                                <p class="mb-0"><i class="bi bi-envelope me-1"></i>{{ client.contato_1_email }}</p>
-                            </div>
-                            {% endif %}
                         </div>
-                    </div>
                     {% endif %}
-
-                    <!-- Contato 2 -->
-                    {% if client.contato_2_nome or client.contato_2_telefone or client.contato_2_email or client.contato_2_cargo %}
-                    <div class="col-md-12 mb-4">
-                        <h6 class="border-bottom pb-2 mb-3">Contato 2</h6>
-                        <div class="row">
-                            {% if client.contato_2_nome %}
-                            <div class="col-md-3 mb-2">
-                                <label class="form-label text-muted">Nome</label>
-                                <p class="mb-0"><i class="bi bi-person me-1"></i>{{ client.contato_2_nome }}</p>
-                            </div>
-                            {% endif %}
-                            {% if client.contato_2_cargo %}
-                            <div class="col-md-3 mb-2">
-                                <label class="form-label text-muted">Cargo</label>
-                                <p class="mb-0"><i class="bi bi-briefcase me-1"></i>{{ client.contato_2_cargo }}</p>
-                            </div>
-                            {% endif %}
-                            {% if client.contato_2_telefone %}
-                            <div class="col-md-3 mb-2">
-                                <label class="form-label text-muted">Telefone</label>
-                                <p class="mb-0"><i class="bi bi-telephone me-1"></i>{{ client.contato_2_telefone }}</p>
-                            </div>
-                            {% endif %}
-                            {% if client.contato_2_email %}
-                            <div class="col-md-3 mb-2">
-                                <label class="form-label text-muted">E-mail</label>
-                                <p class="mb-0"><i class="bi bi-envelope me-1"></i>{{ client.contato_2_email }}</p>
-                            </div>
-                            {% endif %}
-                        </div>
-                    </div>
-                    {% endif %}
-
-                    <!-- Contato 3 -->
-                    {% if client.contato_3_nome or client.contato_3_telefone or client.contato_3_email or client.contato_3_cargo %}
-                    <div class="col-md-12 mb-4">
-                        <h6 class="border-bottom pb-2 mb-3">Contato 3</h6>
-                        <div class="row">
-                            {% if client.contato_3_nome %}
-                            <div class="col-md-3 mb-2">
-                                <label class="form-label text-muted">Nome</label>
-                                <p class="mb-0"><i class="bi bi-person me-1"></i>{{ client.contato_3_nome }}</p>
-                            </div>
-                            {% endif %}
-                            {% if client.contato_3_cargo %}
-                            <div class="col-md-3 mb-2">
-                                <label class="form-label text-muted">Cargo</label>
-                                <p class="mb-0"><i class="bi bi-briefcase me-1"></i>{{ client.contato_3_cargo }}</p>
-                            </div>
-                            {% endif %}
-                            {% if client.contato_3_telefone %}
-                            <div class="col-md-3 mb-2">
-                                <label class="form-label text-muted">Telefone</label>
-                                <p class="mb-0"><i class="bi bi-telephone me-1"></i>{{ client.contato_3_telefone }}</p>
-                            </div>
-                            {% endif %}
-                            {% if client.contato_3_email %}
-                            <div class="col-md-3 mb-2">
-                                <label class="form-label text-muted">E-mail</label>
-                                <p class="mb-0"><i class="bi bi-envelope me-1"></i>{{ client.contato_3_email }}</p>
-                            </div>
-                            {% endif %}
-                        </div>
-                    </div>
-                    {% endif %}
-
-                    <!-- Caso não tenha nenhum contato -->
-                    {% if not (client.contato_1_nome or client.contato_1_telefone or client.contato_1_email or client.contato_1_cargo or client.contato_2_nome or client.contato_2_telefone or client.contato_2_email or client.contato_2_cargo or client.contato_3_nome or client.contato_3_telefone or client.contato_3_email or client.contato_3_cargo) %}
-                    <div class="col-12">
-                        <p class="text-muted text-center">
-                            <i class="fas fa-info-circle me-2"></i>
-                            Nenhum contato cadastrado
-                        </p>
-                    </div>
-                    {% endif %}
-                </div>
+                {% endfor %}
+                
+                {% if contatos_existentes|length == 0 %}
+                    <p class="text-muted text-center">
+                        <i class="fas fa-info-circle me-2"></i>
+                        Nenhum contato cadastrado
+                    </p>
+                {% endif %}
             </div>
         </div>
 
