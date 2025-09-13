@@ -73,17 +73,17 @@
                         <td>
                             <div class="d-flex align-items-center">
                                 <div class="avatar-circle me-2" style="width: 32px; height: 32px; background: linear-gradient(135deg, #1e3c72, #2a5298); border-radius: 50%; display: flex; align-items: center; justify-content: center; color: white; font-weight: bold; font-size: 0.8rem;">
-                                    {{ user.nome[0].upper() if user.nome else 'U' }}
+                                    {{ user.get('nome', 'U')[0].upper() if user.get('nome') else 'U' }}
                                 </div>
-                                <strong>{{ user.nome }}</strong>
+                                <strong>{{ user.get('nome', 'Nome não informado') }}</strong>
                             </div>
                         </td>
-                        <td>{{ user.email }}</td>
+                        <td>{{ user.get('email', 'Email não informado') }}</td>
                         <td>
-                            <code>{{ user.usuario }}</code>
+                            <code>{{ user.get('usuario', 'usuário não informado') }}</code>
                         </td>
                         <td>
-                            {% if user.perfil.lower() == 'administrador' %}
+                            {% if user.get('perfil', '').lower() == 'administrador' %}
                                 <span class="badge bg-danger rounded-pill">
                                     <i class="bi bi-shield-check me-1"></i>Administrador
                                 </span>
@@ -94,7 +94,7 @@
                             {% endif %}
                         </td>
                         <td>
-                            {% set sistemas = user.sistemas_acesso.split(',') if user.sistemas_acesso else ['sigec'] %}
+                            {% set sistemas = user.get('sistemas_acesso', '').split(',') if user.get('sistemas_acesso') else ['sigec'] %}
                             {% for sistema in sistemas %}
                                 {% if sistema.strip() == 'sigec' %}
                                     <span class="badge bg-primary me-1 mb-1">SIGEC</span>
@@ -109,13 +109,13 @@
                         </td>
                         <td>
                             <small class="text-muted">
-                                {% if user.permissoes_sigec == 'VISUALIZADOR' %}
+                                {% if user.get('permissoes_sigec', 'VISUALIZADOR') == 'VISUALIZADOR' %}
                                     Visualizador
-                                {% elif user.permissoes_sigec == 'INCLUIR_ATAS' %}
+                                {% elif user.get('permissoes_sigec') == 'INCLUIR_ATAS' %}
                                     Incluir Atas
-                                {% elif user.permissoes_sigec == 'TOTAL_ATAS' %}
+                                {% elif user.get('permissoes_sigec') == 'TOTAL_ATAS' %}
                                     Total Atas
-                                {% elif user.permissoes_sigec == 'TOTAL_CADASTROS' %}
+                                {% elif user.get('permissoes_sigec') == 'TOTAL_CADASTROS' %}
                                     Total Cadastros
                                 {% else %}
                                     Visualizador
@@ -123,7 +123,7 @@
                             </small>
                         </td>
                         <td>
-                            {% if user.ativo.lower() == 'sim' %}
+                            {% if user.get('ativo', '').lower() == 'sim' %}
                                 <span class="badge bg-success rounded-pill">
                                     <i class="bi bi-check-circle me-1"></i>Ativo
                                 </span>
@@ -134,8 +134,8 @@
                             {% endif %}
                         </td>
                         <td>
-                            {% if user.ultimo_login %}
-                                <small class="text-muted">{{ user.ultimo_login }}</small>
+                            {% if user.get('ultimo_login') %}
+                                <small class="text-muted">{{ user.get('ultimo_login') }}</small>
                             {% else %}
                                 <small class="text-muted">Nunca logou</small>
                             {% endif %}
@@ -143,13 +143,13 @@
                         <td class="text-center">
                             <div class="btn-group btn-group-sm">
                                 <button type="button" class="btn btn-outline-primary" 
-                                        onclick="editUser('{{ user.id }}', '{{ user.nome }}', '{{ user.email }}', '{{ user.usuario }}', '{{ user.perfil }}', '{{ user.ativo }}', '{{ user.sistemas_acesso or 'sigec' }}', '{{ user.permissoes_sigec or 'VISUALIZADOR' }}')"
+                                        onclick="editUser('{{ user.get('id', '') }}', '{{ user.get('nome', '') }}', '{{ user.get('email', '') }}', '{{ user.get('usuario', '') }}', '{{ user.get('perfil', '') }}', '{{ user.get('ativo', 'sim') }}', '{{ user.get('sistemas_acesso', 'sigec') }}', '{{ user.get('permissoes_sigec', 'VISUALIZADOR') }}')"
                                         title="Editar">
                                     <i class="bi bi-pencil"></i>
                                 </button>
-                                {% if user.usuario.lower() != 'admin' and user.id != '1' %}
+                                {% if user.get('usuario', '').lower() != 'admin' and user.get('id', '') != '1' %}
                                 <button type="button" class="btn btn-outline-danger" 
-                                        onclick="deleteUser('{{ user.id }}', '{{ user.nome }}')"
+                                        onclick="deleteUser('{{ user.get('id', '') }}', '{{ user.get('nome', '') }}')"
                                         title="Excluir">
                                     <i class="bi bi-trash"></i>
                                 </button>

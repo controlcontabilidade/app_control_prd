@@ -679,7 +679,7 @@ def get_segmentos_list():
         service = get_segmento_atividade_service()
         if service:
             segmentos = service.get_segmentos_ativos()
-            return [s['nome'] for s in segmentos]
+            return segmentos  # Retorna objetos completos com id e nome
         else:
             print("⚠️ Serviço não disponível, usando lista padrão")
     except Exception as e:
@@ -687,16 +687,16 @@ def get_segmentos_list():
     
     # Fallback para lista estática
     return [
-        "COMÉRCIO VAREJISTA",
-        "PRESTAÇÃO DE SERVIÇOS",
-        "INDÚSTRIA",
-        "AGRONEGÓCIO",
-        "TECNOLOGIA",
-        "SAÚDE",
-        "EDUCAÇÃO",
-        "TRANSPORTE",
-        "CONSTRUÇÃO CIVIL",
-        "ALIMENTAÇÃO"
+        {"id": 1, "nome": "COMÉRCIO VAREJISTA"},
+        {"id": 2, "nome": "COMÉRCIO ATACADISTA"},
+        {"id": 3, "nome": "PRESTAÇÃO DE SERVIÇOS"},
+        {"id": 4, "nome": "INDÚSTRIA"},
+        {"id": 5, "nome": "AGRONEGÓCIO"},
+        {"id": 6, "nome": "TECNOLOGIA"},
+        {"id": 7, "nome": "EDUCAÇÃO"},
+        {"id": 8, "nome": "SAÚDE"},
+        {"id": 9, "nome": "ALIMENTAÇÃO"},
+        {"id": 10, "nome": "OUTROS"}
     ]
 
 def get_atividades_list():
@@ -705,7 +705,7 @@ def get_atividades_list():
         service = get_segmento_atividade_service()
         if service:
             atividades = service.get_atividades_ativas()
-            return [a['nome'] for a in atividades]
+            return atividades  # Retorna objetos completos com id e nome
         else:
             print("⚠️ Serviço não disponível, usando lista padrão")
     except Exception as e:
@@ -713,34 +713,34 @@ def get_atividades_list():
     
     # Fallback para lista estática
     return [
-        "VENDA DE ROUPAS E ACESSÓRIOS",
-        "CONSULTORIA EMPRESARIAL", 
-        "DESENVOLVIMENTO DE SOFTWARE",
-        "SERVIÇOS CONTÁBEIS",
-        "RESTAURANTE E LANCHONETE",
-        "CLÍNICA MÉDICA",
-        "ESCOLA DE ENSINO FUNDAMENTAL",
-        "TRANSPORTE RODOVIÁRIO DE CARGAS",
-        "CONSTRUÇÃO DE EDIFÍCIOS",
-        "PRODUÇÃO AGRÍCOLA"
+        {"id": 1, "nome": "VENDA DE ROUPAS E ACESSÓRIOS"},
+        {"id": 2, "nome": "CONSULTORIA EMPRESARIAL"},
+        {"id": 3, "nome": "DESENVOLVIMENTO DE SOFTWARE"},
+        {"id": 4, "nome": "SERVIÇOS CONTÁBEIS"},
+        {"id": 5, "nome": "RESTAURANTE E LANCHONETE"},
+        {"id": 6, "nome": "CLÍNICA MÉDICA"},
+        {"id": 7, "nome": "ESCOLA DE ENSINO FUNDAMENTAL"},
+        {"id": 8, "nome": "TRANSPORTE RODOVIÁRIO DE CARGAS"},
+        {"id": 9, "nome": "CONSTRUÇÃO DE EDIFÍCIOS"},
+        {"id": 10, "nome": "PRODUÇÃO AGRÍCOLA"}
     ]
 
 def get_sistemas_list():
     """Retorna lista de sistemas utilizados disponíveis"""
     # Lista estática de sistemas mais utilizados
     return [
-        "FORTES",
-        "DOMÍNIO",
-        "SAGE",
-        "ALTERDATA",
-        "ECONET",
-        "SISPAG",
-        "FOLHAMATIC",
-        "PROSOFT",
-        "SISTEMA PRÓPRIO",
-        "PLANILHAS EXCEL",
-        "SISTEMA ONLINE",
-        "OUTROS"
+        {"id": 1, "nome": "FORTES"},
+        {"id": 2, "nome": "DOMÍNIO"},
+        {"id": 3, "nome": "SAGE"},
+        {"id": 4, "nome": "ALTERDATA"},
+        {"id": 5, "nome": "ECONET"},
+        {"id": 6, "nome": "SISPAG"},
+        {"id": 7, "nome": "FOLHAMATIC"},
+        {"id": 8, "nome": "PROSOFT"},
+        {"id": 9, "nome": "SISTEMA PRÓPRIO"},
+        {"id": 10, "nome": "PLANILHAS EXCEL"},
+        {"id": 11, "nome": "SISTEMA ONLINE"},
+        {"id": 12, "nome": "OUTROS"}
     ]
 
 # === ROTAS PARA CADASTRO DE SEGMENTOS E ATIVIDADES ===
@@ -2233,6 +2233,14 @@ def save_client():
     print(f"🔍 ID do cliente (processed): '{client_id}'")
     print(f"🔍 Operação: {'EDIÇÃO' if client_id else 'CRIAÇÃO'}")
     
+    # DEBUG ESPECÍFICO PARA CAMPOS DE CÓDIGOS
+    print("🔍 === VERIFICANDO CAMPOS DE CÓDIGOS ===")
+    print(f"🔍 codDominio (raw): '{request.form.get('codDominio')}'")
+    print(f"🔍 codFortesCt (raw): '{request.form.get('codFortesCt')}'") 
+    print(f"🔍 codFortesFs (raw): '{request.form.get('codFortesFs')}'")
+    print(f"🔍 codFortesPs (raw): '{request.form.get('codFortesPs')}'")
+    print("🔍 =======================================")
+    
     try:
         # Validar dados obrigatórios do Bloco 1
         nome_empresa = request.form.get('nomeEmpresa', '').strip()
@@ -2249,6 +2257,20 @@ def save_client():
         regime_estadual = request.form.get('regimeEstadual', '').strip()
         segmento = request.form.get('segmento', '').strip()
         atividade = request.form.get('atividade', '').strip()
+        
+        # DEBUG ESPECÍFICO: Campos que não estão salvando
+        print("🔍 === DEBUG CAMPOS ESPECÍFICOS ===")
+        print(f"🔍 bpoFinanceiro (form): '{request.form.get('bpoFinanceiro')}'")
+        print(f"🔍 ct (form): '{request.form.get('ct')}'")
+        print(f"🔍 fs (form): '{request.form.get('fs')}'")
+        print(f"🔍 dp (form): '{request.form.get('dp')}'")
+        print(f"🔍 codDominio (form): '{request.form.get('codDominio')}'")
+        print(f"🔍 codFortesCt (form): '{request.form.get('codFortesCt')}'")
+        print(f"🔍 codFortesFs (form): '{request.form.get('codFortesFs')}'")
+        print(f"🔍 codFortesPs (form): '{request.form.get('codFortesPs')}'")
+        print("🔍 ====================================")
+        
+        # Verificar se há outras chaves no formulário
         
         # Função auxiliar para retornar ao formulário com dados preservados
         def return_to_form_with_error(error_msg):
@@ -2273,31 +2295,31 @@ def save_client():
         
         # Validações obrigatórias - retornar ao formulário em caso de erro
         if not nome_empresa:
-            return return_to_form_with_error('Nome da empresa é obrigatório!')
+            return return_to_form_with_error('❌ Campo obrigatório: Nome da empresa deve ser preenchido.')
         if not razao_social:
-            return return_to_form_with_error('Razão Social (Receita) é obrigatória!')
+            return return_to_form_with_error('❌ Campo obrigatório: Razão Social (Receita) deve ser preenchida.')
         if not nome_fantasia:
-            return return_to_form_with_error('Nome Fantasia (Receita) é obrigatório!')
+            return return_to_form_with_error('❌ Campo obrigatório: Nome Fantasia (Receita) deve ser preenchido.')
         if not cpf_cnpj:
-            return return_to_form_with_error('CPF/CNPJ é obrigatório!')
+            return return_to_form_with_error('❌ Campo obrigatório: CPF/CNPJ deve ser preenchido.')
         if not perfil:
-            return return_to_form_with_error('Perfil é obrigatório!')
+            return return_to_form_with_error('❌ Campo obrigatório: Perfil do cliente deve ser selecionado.')
         if not insc_est:
-            return return_to_form_with_error('Inscrição Estadual é obrigatória!')
+            return return_to_form_with_error('❌ Campo obrigatório: Inscrição Estadual deve ser preenchida (ou "ISENTO").')
         if not insc_mun:
-            return return_to_form_with_error('Inscrição Municipal é obrigatória!')
+            return return_to_form_with_error('❌ Campo obrigatório: Inscrição Municipal deve ser preenchida (ou "ISENTO").')
         if not estado:
-            return return_to_form_with_error('Estado é obrigatório!')
+            return return_to_form_with_error('❌ Campo obrigatório: Estado deve ser selecionado.')
         if not cidade:
-            return return_to_form_with_error('Cidade é obrigatória!')
+            return return_to_form_with_error('❌ Campo obrigatório: Cidade deve ser preenchida.')
         if not regime_federal:
-            return return_to_form_with_error('Regime Federal é obrigatório!')
+            return return_to_form_with_error('❌ Campo obrigatório: Regime Federal deve ser selecionado.')
         if not regime_estadual:
-            return return_to_form_with_error('Regime Estadual é obrigatório!')
+            return return_to_form_with_error('❌ Campo obrigatório: Regime Estadual deve ser selecionado.')
         if not segmento:
-            return return_to_form_with_error('Segmento é obrigatório!')
+            return return_to_form_with_error('❌ Campo obrigatório: Segmento deve ser selecionado.')
         if not atividade:
-            return return_to_form_with_error('Atividade Principal é obrigatória!')
+            return return_to_form_with_error('❌ Campo obrigatório: Atividade Principal deve ser selecionada.')
         
         # CORREÇÃO 02: Converter campos específicos para MAIÚSCULAS
         nome_empresa = nome_empresa.upper()
@@ -2357,17 +2379,16 @@ def save_client():
             'ct': request.form.get('ct') == 'on',
             'fs': request.form.get('fs') == 'on',
             'dp': request.form.get('dp') == 'on',
-            'dataInicioServicos': request.form.get('dataInicioServicos', ''),
-            # Novos campos Bloco 2
-            'domestica': request.form.get('domestica', '').strip().upper(),
-            'geraArquivoSped': request.form.get('geraArquivoSped', '').strip().upper(),
+            'domestica': request.form.get('domestica', '').strip(),
+            'dataInicioServicos': request.form.get('dataInicioServicos', '').strip(),
+            'geraArquivoSped': request.form.get('geraArquivoSped', '').strip(),
+            'sistemaUtilizado': request.form.get('sistemaUtilizado', '').strip(),
             
             # Códigos dos Sistemas (Bloco 2)
-            'codFortesCt': request.form.get('codFortesCt', ''),
-            'codFortesFs': request.form.get('codFortesFs', ''),
-            'codFortesPs': request.form.get('codFortesPs', ''),
-            'codDominio': request.form.get('codDominio', ''),
-            'sistemaUtilizado': request.form.get('sistemaUtilizado', ''),
+            'codigoDominio': request.form.get('codDominio', '').strip(),
+            'codigoFortesCT': request.form.get('codFortesCt', '').strip(),
+            'codigoFortesFS': request.form.get('codFortesFs', '').strip(),
+            'codigoFortesPS': request.form.get('codFortesPs', '').strip(),
             
             # Bloco 4: Contatos
             'telefoneFixo': request.form.get('telefoneFixo', ''),
@@ -2382,6 +2403,18 @@ def save_client():
             'emailContador': request.form.get('emailContador', ''),
         }
         
+        # DEBUG ESPECÍFICO: Verificar valores processados
+        print("🔍 === DEBUG VALORES PROCESSADOS ===")
+        print(f"🔍 bpoFinanceiro (processado): {client_data.get('bpoFinanceiro')}")
+        print(f"🔍 ct (processado): {client_data.get('ct')}")
+        print(f"🔍 fs (processado): {client_data.get('fs')}")
+        print(f"🔍 dp (processado): {client_data.get('dp')}")
+        print(f"🔍 codigoDominio (processado): '{client_data.get('codigoDominio')}'")
+        print(f"🔍 codigoFortesCT (processado): '{client_data.get('codigoFortesCT')}'")
+        print(f"🔍 codigoFortesFS (processado): '{client_data.get('codigoFortesFS')}'")
+        print(f"🔍 codigoFortesPS (processado): '{client_data.get('codigoFortesPS')}'")
+        print("🔍 =====================================")
+        
         # Processar dados dos sócios dinamicamente
         print("🔍 Processando dados dos sócios...")
         for i in range(1, 11):  # Suporte para até 10 sócios
@@ -2394,7 +2427,7 @@ def save_client():
                 client_data[f'socio_{i}_cpf'] = request.form.get(f'socio_{i}_cpf', '').strip()
                 client_data[f'socio_{i}_data_nascimento'] = request.form.get(f'socio_{i}_data_nascimento', '').strip()
                 client_data[f'socio_{i}_participacao'] = request.form.get(f'socio_{i}_participacao', '').strip()
-                client_data[f'socio_{i}_administrador'] = request.form.get(f'socio_{i}_administrador') == '1'
+                client_data[f'socio_{i}_administrador'] = request.form.get(f'socio_{i}_administrador') in ['1', 'on']
                 client_data[f'socio_{i}_resp_legal'] = request.form.get('representante_legal') == f'socio_{i}'
                 client_data[f'socio_{i}_email'] = request.form.get(f'socio_{i}_email', '').strip()
                 client_data[f'socio_{i}_telefone'] = request.form.get(f'socio_{i}_telefone', '').strip()
@@ -2601,11 +2634,16 @@ def save_client():
             print(f"🔍 Doméstica permitida - CPF válido com {len(digits)} dígitos")
         
         # CORREÇÃO DUPLICAÇÃO: Melhor controle de criação vs edição
-        if not client_data.get('id'):
-            print("🔍 NOVO CLIENTE: Definindo criadoEm")
+        # Usar client_id do formulário para determinar operação, não o ID gerado automaticamente
+        if not client_id or client_id == '':
+            print("🔍 NOVO CLIENTE: Não incluir ID nos dados para forçar criação")
             client_data['criadoEm'] = datetime.now().isoformat()
+            # IMPORTANTE: NÃO incluir ID nos dados para novo cliente - deixar o serviço gerar
+            if 'id' in client_data:
+                del client_data['id']
         else:
-            print(f"🔍 EDITANDO CLIENTE: ID = {client_data['id']}")
+            print(f"🔍 EDITANDO CLIENTE: ID = {client_id}")
+            client_data['id'] = client_id  # Usar o ID do formulário
             # Para edição, sempre manter o ultimaAtualizacao
             client_data['ultimaAtualizacao'] = datetime.now().isoformat()
         
@@ -2633,9 +2671,13 @@ def save_client():
             if client_data.get('id'):
                 flash('Cliente atualizado com sucesso!', 'success')
                 print("✅ Flash message de atualização adicionada")
+                # Redirecionar para a página de visualização do cliente para mostrar os dados atualizados
+                return redirect(url_for('view_client', client_id=client_data.get('id')))
             else:
                 flash('Cliente criado com sucesso!', 'success')
                 print("✅ Flash message de criação adicionada")
+                # Para novo cliente, ir para página inicial já está bom
+                return redirect(url_for('index'))
         else:
             # Em caso de erro no salvamento, retornar ao formulário com dados preservados
             return return_to_form_with_error('Erro ao salvar cliente')
@@ -2647,15 +2689,7 @@ def save_client():
         print(f"❌ Traceback completo: {traceback.format_exc()}")
         
         # Em caso de exceção, retornar ao formulário com dados preservados
-        try:
-            return return_to_form_with_error(f'Erro ao salvar cliente: {str(e)}')
-        except:
-            # Fallback em caso de erro na função auxiliar
-            flash(f'Erro ao salvar cliente: {str(e)}', 'error')
-            return redirect(url_for('index'))
-    
-    print("🔍 Redirecionando para index...")
-    return redirect(url_for('index'))
+        return return_to_form_with_error(f'Erro ao salvar cliente: {str(e)}')
 
 @app.route('/client/<client_id>/delete', methods=['POST'])
 @login_required
