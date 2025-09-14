@@ -270,6 +270,9 @@ GOOGLE_SHEETS_API_KEY = os.environ.get('GOOGLE_SHEETS_API_KEY')
 GOOGLE_SHEETS_ID = os.environ.get('GOOGLE_SHEETS_ID')
 GOOGLE_SHEETS_RANGE = 'Clientes!A:DD'
 
+print(f"🔧 DEBUG Variáveis de ambiente após load_dotenv:")
+print(f"   GOOGLE_SHEETS_ID: {GOOGLE_SHEETS_ID}")
+print(f"   GOOGLE_SHEETS_API_KEY presente: {GOOGLE_SHEETS_API_KEY is not None}")
 print(f"🔧 Configurações:")
 print(f"   USE_GOOGLE_SHEETS: {USE_GOOGLE_SHEETS}")
 print(f"   USE_OAUTH2: {USE_OAUTH2}")
@@ -352,13 +355,25 @@ def get_storage_service():
 def get_meeting_service():
     """Lazy loading do meeting service"""
     global meeting_service
+    print(f"🔍 GET_MEETING_SERVICE: meeting_service atual: {meeting_service}")
+    print(f"🔍 GET_MEETING_SERVICE: GOOGLE_SHEETS_ID: {GOOGLE_SHEETS_ID}")
+    
     if meeting_service is None and GOOGLE_SHEETS_ID:
         try:
+            print(f"🔍 Tentando inicializar MeetingService com SHEETS_ID: {GOOGLE_SHEETS_ID}")
             meeting_service = MeetingService(GOOGLE_SHEETS_ID)
-            print("✅ Meeting service inicializado")
+            print("✅ Meeting service inicializado com sucesso!")
         except Exception as e:
             print(f"❌ Erro ao inicializar meeting service: {e}")
+            import traceback
+            traceback.print_exc()
             meeting_service = None
+    elif not GOOGLE_SHEETS_ID:
+        print("❌ GOOGLE_SHEETS_ID não está configurado")
+    elif meeting_service is not None:
+        print("♻️ Meeting service já inicializado")
+    
+    print(f"🔍 GET_MEETING_SERVICE: Retornando: {meeting_service}")
     return meeting_service
 
 def get_user_service():
@@ -2178,6 +2193,26 @@ def test():
     </html>
     """
 
+@app.route('/update-meeting-headers')
+@admin_required
+def update_meeting_headers():
+    """Atualiza os cabeçalhos da aba de Atas de Reunião"""
+    try:
+        current_meeting_service = get_meeting_service()
+        if current_meeting_service:
+            # Forçar a verificação e atualização dos cabeçalhos
+            current_meeting_service._ensure_worksheet_exists()
+            flash('✅ Cabeçalhos da aba de Atas de Reunião atualizados com sucesso!', 'success')
+        else:
+            flash('❌ Serviço de atas não disponível', 'error')
+    except Exception as e:
+        flash(f'❌ Erro ao atualizar cabeçalhos das atas: {str(e)}', 'error')
+        print(f"❌ Erro detalhado: {e}")
+        import traceback
+        traceback.print_exc()
+    
+    return redirect(url_for('index'))
+
 @app.route('/update-sheet-headers')
 @admin_required
 def update_sheet_headers():
@@ -2929,50 +2964,70 @@ def save_meeting(client_id):
     """Salvar ata de reunião"""
     try:
         # Busca o nome do cliente
-        client = storage_service.get_client(client_id)
+        storage = get_storage_service()
+        client = storage.get_client(client_id) if storage else None
         client_name = client.get('nomeFantasiaReceita') or client.get('nomeEmpresa') if client else 'Cliente'
+        
+        # Converte data do formato DD/MM/AAAA para formato padrão
+        meeting_date_input = request.form.get('meeting_date')
+        meeting_date_formatted = meeting_date_input  # Mantém no formato brasileiro
         
         meeting_data = {
             'client_id': client_id,
             'client_name': client_name,
-            'date': request.form.get('meeting_date'),
+            'date': meeting_date_formatted,
             'time': request.form.get('meeting_time'),
             'participants': request.form.get('participants'),
             'topics': request.form.get('topics'),
-            'decisions': request.form.get('decisions'),
-            'next_steps': request.form.get('next_steps')
+            'decisions': request.form.get('decisions', ''),  # Campo opcional
+            'next_steps': request.form.get('next_steps', '')  # Campo opcional
         }
         
+        # Obter o serviço de atas usando lazy loading
+        current_meeting_service = get_meeting_service()
+        
         # Salva usando o serviço de atas
-        if meeting_service:
-            meeting_id = meeting_service.save_meeting(meeting_data)
+        if current_meeting_service:
+            print(f"💾 Usando MeetingService para salvar ata do cliente {client_name}")
+            # Preparar informações do usuário para auditoria
+            user_info = {
+                'name': session.get('user_name', 'Usuário'),
+                'id': session.get('user_id', 'N/A')
+            }
+            
+            meeting_id = current_meeting_service.save_meeting(meeting_data, user_info)
             if meeting_id:
                 flash(f'✅ Ata de reunião {meeting_id} registrada com sucesso para {client_name}!', 'success')
             else:
                 flash('❌ Erro ao salvar ata de reunião', 'error')
         else:
+            print(f"❌ MeetingService não disponível. GOOGLE_SHEETS_ID: {GOOGLE_SHEETS_ID}")
             # Fallback - salva localmente (simulação)
             flash(f'⚠️ Ata de reunião registrada localmente para {client_name} (funcionalidade limitada)', 'warning')
         
     except Exception as e:
         flash(f'❌ Erro ao salvar ata de reunião: {str(e)}', 'error')
         print(f"❌ Erro detalhado: {e}")
+        import traceback
+        traceback.print_exc()
     
-    return redirect(url_for('index'))
+    return redirect(url_for('view_client_meetings', client_id=client_id))
 
 @app.route('/client/<client_id>/meetings')
 @login_required
 def view_client_meetings(client_id):
     """Visualizar todas as atas de um cliente"""
     try:
-        client = storage_service.get_client(client_id)
+        storage = get_storage_service()
+        client = storage.get_client(client_id) if storage else None
         if not client:
             flash('Cliente não encontrado', 'error')
             return redirect(url_for('index'))
         
         meetings = []
-        if meeting_service:
-            meetings = meeting_service.get_client_meetings(client_id)
+        current_meeting_service = get_meeting_service()
+        if current_meeting_service:
+            meetings = current_meeting_service.get_client_meetings(client_id)
         
         return render_template('client_meetings.html', client=client, meetings=meetings)
         
@@ -2986,8 +3041,9 @@ def all_meetings():
     """Visualizar todas as atas de reunião"""
     try:
         meetings = []
-        if meeting_service:
-            meetings = meeting_service.get_all_meetings()
+        current_meeting_service = get_meeting_service()
+        if current_meeting_service:
+            meetings = current_meeting_service.get_all_meetings()
         
         return render_template('all_meetings.html', meetings=meetings)
         
