@@ -372,9 +372,9 @@
                                    title="Editar">
                                     <i class="bi bi-pencil"></i>
                                 </a>
-                                <a href="{{ url_for('register_meeting', client_id=client['id']) }}" 
+                                <a href="{{ url_for('view_client_meetings', client_id=client['id']) }}" 
                                    class="btn btn-outline-success btn-sm" 
-                                   title="Registrar Ata de Reunião">
+                                   title="Ver Atas de Reuniões">
                                     <i class="bi bi-file-earmark-text"></i>
                                 </a>
                                 {% if session.user_perfil and session.user_perfil.lower() == 'administrador' %}

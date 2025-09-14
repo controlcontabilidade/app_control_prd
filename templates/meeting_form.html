@@ -17,6 +17,10 @@
             </p>
         </div>
         <div class="col-md-4 text-end">
+            <a href="{{ url_for('view_client_meetings', client_id=client.id) }}" class="btn btn-outline-secondary me-2">
+                <i class="bi bi-list-ul"></i>
+                Ver Todas as Atas
+            </a>
             <a href="/" class="btn btn-secondary">
                 <i class="bi bi-arrow-left"></i>
                 Voltar ao Dashboard
@@ -38,28 +42,37 @@
         </div>
         <div class="card-body">
             <div class="row">
-                <div class="col-md-3 mb-3">
+                <div class="col-md-4 mb-3">
                     <label for="meeting_date" class="form-label">
                         <i class="bi bi-calendar me-1"></i>data da reunião *
                     </label>
-                    <input type="date" class="form-control" id="meeting_date" name="meeting_date" required>
+                    <div class="input-group position-relative">
+                        <input type="text" class="form-control" id="meeting_date" name="meeting_date" 
+                               placeholder="DD/MM/AAAA" maxlength="10" required>
+                        <button class="btn btn-outline-secondary" type="button" id="calendar-btn" 
+                                data-bs-toggle="tooltip" title="Selecionar data">
+                            <i class="bi bi-calendar-date"></i>
+                        </button>
+                        <input type="date" id="date-picker" style="position: absolute; top: 100%; right: 0; opacity: 0; pointer-events: none; z-index: 1000;">
+                    </div>
                     <div class="invalid-feedback">
-                        Por favor, selecione a data da reunião.
+                        Por favor, informe a data da reunião no formato DD/MM/AAAA.
                     </div>
                 </div>
                 
-                <div class="col-md-3 mb-3">
+                <div class="col-md-4 mb-3">
                     <label for="meeting_time" class="form-label">
                         <i class="bi bi-clock me-1"></i>Horário
                     </label>
                     <input type="time" class="form-control" id="meeting_time" name="meeting_time">
+                    <div class="form-text">Horário que foi realizada a reunião</div>
                 </div>
                 
-                <div class="col-md-6 mb-3">
+                <div class="col-md-4 mb-3">
                     <label for="participants" class="form-label">
                         <i class="bi bi-people me-1"></i>participantes *
                     </label>
-                    <textarea class="form-control" id="participants" name="participants" rows="3" 
+                    <textarea class="form-control" id="participants" name="participants" rows="2" 
                               placeholder="Liste todos os participantes da reunião..." required></textarea>
                     <div class="invalid-feedback">
                         Por favor, informe os participantes da reunião.
@@ -78,75 +91,277 @@
             </h5>
         </div>
         <div class="card-body">
-            <div class="row">
-                <div class="col-12 mb-4">
-                    <label for="topics" class="form-label">
-                        <i class="bi bi-list-ul me-1"></i>Tópicos Discutidos *
-                    </label>
-                    <textarea class="form-control" id="topics" name="topics" rows="5" 
-                              placeholder="Descreva os principais tópicos e assuntos discutidos na reunião..." required></textarea>
-                    <div class="invalid-feedback">
-                        Por favor, descreva os tópicos discutidos.
+            <div class="mb-4">
+                <label for="topics" class="form-label">
+                    <i class="bi bi-chat-dots me-1"></i>Conteúdo da Reunião *
+                </label>
+                <div class="form-text mb-2">
+                    Descreva os principais tópicos e assuntos discutidos na reunião...
+                </div>
+                
+                <!-- Toolbar de formatação -->
+                <div class="border rounded-top p-2 bg-light">
+                    <div class="btn-toolbar" role="toolbar">
+                        <div class="btn-group me-2" role="group">
+                            <button type="button" class="btn btn-sm btn-outline-secondary" onclick="formatText('bold')" title="Negrito">
+                                <i class="bi bi-type-bold"></i>
+                            </button>
+                            <button type="button" class="btn btn-sm btn-outline-secondary" onclick="formatText('italic')" title="Itálico">
+                                <i class="bi bi-type-italic"></i>
+                            </button>
+                            <button type="button" class="btn btn-sm btn-outline-secondary" onclick="formatText('underline')" title="Sublinhado">
+                                <i class="bi bi-type-underline"></i>
+                            </button>
+                        </div>
+                        <div class="btn-group me-2" role="group">
+                            <button type="button" class="btn btn-sm btn-outline-secondary" onclick="formatText('justifyLeft')" title="Alinhar à esquerda">
+                                <i class="bi bi-text-left"></i>
+                            </button>
+                            <button type="button" class="btn btn-sm btn-outline-secondary" onclick="formatText('justifyCenter')" title="Centralizar">
+                                <i class="bi bi-text-center"></i>
+                            </button>
+                            <button type="button" class="btn btn-sm btn-outline-secondary" onclick="formatText('justifyRight')" title="Alinhar à direita">
+                                <i class="bi bi-text-right"></i>
+                            </button>
+                        </div>
+                        <div class="btn-group me-2" role="group">
+                            <button type="button" class="btn btn-sm btn-outline-secondary" onclick="formatText('insertOrderedList')" title="Lista numerada">
+                                <i class="bi bi-list-ol"></i>
+                            </button>
+                            <button type="button" class="btn btn-sm btn-outline-secondary" onclick="formatText('insertUnorderedList')" title="Lista com marcadores">
+                                <i class="bi bi-list-ul"></i>
+                            </button>
+                        </div>
+                        <div class="btn-group" role="group">
+                            <input type="color" id="textColor" class="btn btn-sm" onchange="formatColor(this.value)" title="Cor do texto" style="width: 40px; height: 31px;">
+                            <button type="button" class="btn btn-sm btn-outline-secondary" onclick="formatText('removeFormat')" title="Remover formatação">
+                                <i class="bi bi-eraser"></i>
+                            </button>
+                        </div>
                     </div>
                 </div>
                 
-                <div class="col-12 mb-4">
-                    <label for="decisions" class="form-label">
-                        <i class="bi bi-check2-square me-1"></i>decisões tomadas
-                    </label>
-                    <textarea class="form-control" id="decisions" name="decisions" rows="4" 
-                              placeholder="Liste as principais decisões tomadas durante a reunião..."></textarea>
+                <!-- Editor contenteditable -->
+                <div id="editor" contenteditable="true" 
+                     class="form-control border-top-0 rounded-bottom" 
+                     style="min-height: 300px; max-height: 500px; overflow-y: auto;"
+                     placeholder="Descreva os principais tópicos e assuntos discutidos na reunião...">
                 </div>
                 
-                <div class="col-12 mb-3">
-                    <label for="next_steps" class="form-label">
-                        <i class="bi bi-arrow-right-circle me-1"></i>próximos passos
-                    </label>
-                    <textarea class="form-control" id="next_steps" name="next_steps" rows="4" 
-                              placeholder="Defina os próximos passos, responsáveis e prazos..."></textarea>
+                <!-- Campo oculto para armazenar o conteúdo -->
+                <input type="hidden" id="topics" name="topics" required>
+                
+                <div class="invalid-feedback" id="topics-feedback">
+                    Por favor, descreva o conteúdo da reunião.
                 </div>
             </div>
         </div>
     </div>
 
     <!-- Botões de ação -->
-    <div class="card">
-        <div class="card-body">
-            <div class="row">
-                <div class="col-md-6">
-                    <p class="text-muted mb-0">
-                        <i class="bi bi-info-circle me-1"></i>
-                        * Campos obrigatórios
-                    </p>
-                </div>
-                <div class="col-md-6 text-end">
-                    <a href="/" class="btn btn-secondary me-2">
-                        <i class="bi bi-x-lg"></i>
-                        Cancelar
-                    </a>
-                    <button type="submit" class="btn btn-success">
-                        <i class="bi bi-check-lg"></i>
-                        Registrar Ata
-                    </button>
-                </div>
-            </div>
+    <div class="d-flex justify-content-between align-items-center mt-4 p-3 border rounded bg-light">
+        <div>
+            <small class="text-muted">
+                <i class="bi bi-info-circle me-1"></i>
+                * Campos obrigatórios
+            </small>
+        </div>
+        <div>
+            <button type="button" class="btn btn-outline-danger me-2" onclick="window.history.back()">
+                <i class="bi bi-x-lg me-1"></i>
+                Cancelar
+            </button>
+            <button type="submit" class="btn btn-success">
+                <i class="bi bi-check-lg me-1"></i>
+                Registrar Ata
+            </button>
         </div>
     </div>
 </form>
 
 <script>
+// Funções de formatação do editor
+function formatText(command) {
+    document.execCommand(command, false, null);
+    document.getElementById('editor').focus();
+    updateHiddenField();
+}
+
+function formatColor(color) {
+    document.execCommand('foreColor', false, color);
+    document.getElementById('editor').focus();
+    updateHiddenField();
+}
+
+function updateHiddenField() {
+    const editorContent = document.getElementById('editor').innerHTML;
+    document.getElementById('topics').value = editorContent;
+}
+
+// Atualizar campo oculto sempre que o conteúdo mudar
+document.getElementById('editor').addEventListener('input', updateHiddenField);
+document.getElementById('editor').addEventListener('paste', function() {
+    setTimeout(updateHiddenField, 100);
+});
+
+// Placeholder functionality
+document.getElementById('editor').addEventListener('focus', function() {
+    if (this.innerHTML === '' || this.innerHTML === '<br>') {
+        this.innerHTML = '';
+    }
+});
+
+document.getElementById('editor').addEventListener('blur', function() {
+    if (this.innerHTML === '' || this.innerHTML === '<br>') {
+        this.innerHTML = '';
+    }
+});
+
+// CSS para placeholder
+const style = document.createElement('style');
+style.textContent = `
+    #editor:empty::before {
+        content: attr(placeholder);
+        color: #6c757d;
+        font-style: italic;
+    }
+    #editor:focus:empty::before {
+        content: '';
+    }
+`;
+document.head.appendChild(style);
+
 // Validação do formulário
 (function() {
     'use strict';
     
-    // Set data atual como padrão
-    document.getElementById('meeting_date').valueAsDate = new Date();
+    // Função para converter data AAAA-MM-DD para DD/MM/AAAA
+    function formatDateToBR(dateStr) {
+        if (!dateStr) return '';
+        const [year, month, day] = dateStr.split('-');
+        return `${day}/${month}/${year}`;
+    }
+    
+    // Função para converter data DD/MM/AAAA para AAAA-MM-DD
+    function formatDateToISO(dateStr) {
+        if (!dateStr || dateStr.length !== 10) return '';
+        const [day, month, year] = dateStr.split('/');
+        return `${year}-${month.padStart(2, '0')}-${day.padStart(2, '0')}`;
+    }
+    
+    // Máscara para data DD/MM/AAAA
+    document.getElementById('meeting_date').addEventListener('input', function(e) {
+        let value = e.target.value.replace(/\D/g, '');
+        
+        if (value.length >= 2) {
+            value = value.substring(0, 2) + '/' + value.substring(2);
+        }
+        if (value.length >= 5) {
+            value = value.substring(0, 5) + '/' + value.substring(5, 9);
+        }
+        
+        e.target.value = value;
+    });
+    
+    // Funcionalidade do botão de calendário
+    document.getElementById('calendar-btn').addEventListener('click', function() {
+        const datePicker = document.getElementById('date-picker');
+        const textInput = document.getElementById('meeting_date');
+        const calendarBtn = this;
+        
+        // Se há uma data válida no campo texto, define no date picker
+        if (textInput.value && textInput.value.length === 10) {
+            const isoDate = formatDateToISO(textInput.value);
+            if (isoDate) {
+                datePicker.value = isoDate;
+            }
+        }
+        
+        // Posiciona o date picker abaixo do botão
+        const btnRect = calendarBtn.getBoundingClientRect();
+        const inputGroupRect = calendarBtn.parentElement.getBoundingClientRect();
+        
+        datePicker.style.position = 'absolute';
+        datePicker.style.top = '100%';
+        datePicker.style.right = '0';
+        datePicker.style.zIndex = '1050';
+        datePicker.style.opacity = '0';
+        datePicker.style.pointerEvents = 'auto';
+        
+        // Abre o seletor de data
+        datePicker.focus();
+        datePicker.showPicker();
+    });
+    
+    // Quando uma data é selecionada no date picker
+    document.getElementById('date-picker').addEventListener('change', function() {
+        const textInput = document.getElementById('meeting_date');
+        textInput.value = formatDateToBR(this.value);
+        textInput.focus();
+    });
+    
+    // Set data atual como padrão no formato DD/MM/AAAA
+    const today = new Date();
+    const day = String(today.getDate()).padStart(2, '0');
+    const month = String(today.getMonth() + 1).padStart(2, '0');
+    const year = today.getFullYear();
+    document.getElementById('meeting_date').value = `${day}/${month}/${year}`;
+    
+    // Inicializar tooltips do Bootstrap
+    var tooltipTriggerList = [].slice.call(document.querySelectorAll('[data-bs-toggle="tooltip"]'));
+    var tooltipList = tooltipTriggerList.map(function (tooltipTriggerEl) {
+        return new bootstrap.Tooltip(tooltipTriggerEl);
+    });
     
     // Validação Bootstrap
     var forms = document.querySelectorAll('.needs-validation');
     
     Array.prototype.slice.call(forms).forEach(function(form) {
         form.addEventListener('submit', function(event) {
+            // Atualizar campo oculto antes da validação
+            updateHiddenField();
+            
+            // Validar formato da data
+            const dateInput = document.getElementById('meeting_date');
+            const datePattern = /^(\d{2})\/(\d{2})\/(\d{4})$/;
+            const match = dateInput.value.match(datePattern);
+            
+            if (!match) {
+                dateInput.setCustomValidity('Data deve estar no formato DD/MM/AAAA');
+            } else {
+                const day = parseInt(match[1]);
+                const month = parseInt(match[2]);
+                const year = parseInt(match[3]);
+                
+                if (day < 1 || day > 31 || month < 1 || month > 12 || year < 1900) {
+                    dateInput.setCustomValidity('Data inválida');
+                } else {
+                    dateInput.setCustomValidity('');
+                }
+            }
+            
+            // Validar se o conteúdo da reunião foi preenchido
+            const editorContent = document.getElementById('editor').innerHTML;
+            const topicsInput = document.getElementById('topics');
+            const feedbackDiv = document.getElementById('topics-feedback');
+            const editorDiv = document.getElementById('editor');
+            
+            // Verifica se o conteúdo está vazio
+            const textContent = editorDiv.innerText.trim();
+            
+            if (!textContent || textContent === '' || editorContent === '<br>' || editorContent === '') {
+                // Mostra erro visual
+                editorDiv.style.borderColor = '#dc3545';
+                feedbackDiv.style.display = 'block';
+                feedbackDiv.style.color = '#dc3545';
+                topicsInput.setCustomValidity('Por favor, descreva o conteúdo da reunião.');
+            } else {
+                // Remove erro visual
+                editorDiv.style.borderColor = '#ced4da';
+                feedbackDiv.style.display = 'none';
+                topicsInput.setCustomValidity('');
+            }
+            
             if (!form.checkValidity()) {
                 event.preventDefault();
                 event.stopPropagation();

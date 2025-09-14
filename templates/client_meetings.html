@@ -19,11 +19,11 @@
         <div class="col-md-4 text-end">
             <a href="{{ url_for('register_meeting', client_id=client.id) }}" class="btn btn-success me-2">
                 <i class="bi bi-plus-circle"></i>
-                Nova Ata
+                Registrar Ata de Reunião
             </a>
             <a href="/" class="btn btn-secondary">
                 <i class="bi bi-arrow-left"></i>
-                Dashboard
+                Voltar ao Dashboard
             </a>
         </div>
     </div>
@@ -89,7 +89,7 @@
                         <th>Data</th>
                         <th>Horário</th>
                         <th>Participantes</th>
-                        <th>Tópicos Principais</th>
+                        <th>Conteúdo da Reunião</th>
                         <th>Ações</th>
                     </tr>
                 </thead>
@@ -122,8 +122,21 @@
                         </td>
                         <td>
                             <button type="button" 
-                                    class="btn btn-outline-primary btn-sm" 
-                                    onclick="viewMeetingDetails('{{ meeting.id }}')"
+                                    class="btn btn-outline-primary btn-sm view-meeting-btn" 
+                                    data-bs-toggle="modal" 
+                                    data-bs-target="#meetingDetailsModal"
+                                    data-meeting-id="{{ meeting.id }}"
+                                    data-meeting-date="{{ meeting.date or '' }}"
+                                    data-meeting-time="{{ meeting.time or '' }}"
+                                    data-meeting-participants="{{ meeting.participants or '' }}"
+                                    data-meeting-topics="{{ meeting.topics or '' }}"
+                                    data-meeting-topics-formatted="{{ meeting.topics_formatted or meeting.topics or '' }}"
+                                    data-meeting-created-date="{{ meeting.created_date or '' }}"
+                                    data-meeting-created-time="{{ meeting.created_time or '' }}"
+                                    data-meeting-created-by="{{ meeting.created_by or '' }}"
+                                    data-meeting-updated-date="{{ meeting.updated_date or '' }}"
+                                    data-meeting-updated-time="{{ meeting.updated_time or '' }}"
+                                    data-meeting-updated-by="{{ meeting.updated_by or '' }}"
                                     title="Ver detalhes completos">
                                 <i class="bi bi-eye"></i>
                             </button>
@@ -132,6 +145,67 @@
                     {% endfor %}
                 </tbody>
             </table>
+        </div>
+    </div>
+</div>
+
+<!-- Modal para visualizar detalhes da ata -->
+<div class="modal fade" id="meetingDetailsModal" tabindex="-1" aria-labelledby="meetingDetailsModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="meetingDetailsModalLabel">
+                    <i class="bi bi-file-earmark-text me-2"></i>
+                    Detalhes da Ata de Reunião
+                </h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <!-- Informações da Reunião -->
+                <div class="row mb-4">
+                    <div class="col-md-6">
+                        <h6 class="text-muted mb-2">📅 Data da Reunião</h6>
+                        <p id="modalDate" class="mb-0">-</p>
+                    </div>
+                    <div class="col-md-6">
+                        <h6 class="text-muted mb-2">🕐 Horário</h6>
+                        <p id="modalTime" class="mb-0">-</p>
+                    </div>
+                </div>
+
+                <div class="mb-4">
+                    <h6 class="text-muted mb-2">👥 Participantes</h6>
+                    <p id="modalParticipants" class="mb-0">-</p>
+                </div>
+
+                <div class="mb-4">
+                    <h6 class="text-muted mb-2">💭 Conteúdo da Reunião</h6>
+                    <div id="modalTopics" class="border rounded p-3 bg-light" style="max-height: 300px; overflow-y: auto;">-</div>
+                </div>
+
+                <!-- Informações de Auditoria -->
+                <hr>
+                <h6 class="text-muted mb-3">🔍 Informações de Registro</h6>
+                <div class="row">
+                    <div class="col-md-6">
+                        <small class="text-muted">
+                            <strong>Registrado em:</strong><br>
+                            <span id="modalCreatedDate">-</span> às <span id="modalCreatedTime">-</span><br>
+                            <strong>Por:</strong> <span id="modalCreatedBy">-</span>
+                        </small>
+                    </div>
+                    <div class="col-md-6" id="modalUpdatedInfo" style="display: none;">
+                        <small class="text-muted">
+                            <strong>Última atualização:</strong><br>
+                            <span id="modalUpdatedDate">-</span> às <span id="modalUpdatedTime">-</span><br>
+                            <strong>Por:</strong> <span id="modalUpdatedBy">-</span>
+                        </small>
+                    </div>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Fechar</button>
+            </div>
         </div>
     </div>
 </div>
@@ -154,8 +228,66 @@
 {% endif %}
 
 <script>
-function viewMeetingDetails(meetingId) {
-    alert('Funcionalidade de visualização detalhada será implementada em breve!\nID da Ata: ' + meetingId);
+// Adicionar event listeners para os botões de visualização
+document.addEventListener('DOMContentLoaded', function() {
+    const viewButtons = document.querySelectorAll('.view-meeting-btn');
+    viewButtons.forEach(button => {
+        button.addEventListener('click', function() {
+            const meetingData = {
+                id: this.dataset.meetingId,
+                date: this.dataset.meetingDate,
+                time: this.dataset.meetingTime,
+                participants: this.dataset.meetingParticipants,
+                topics: this.dataset.meetingTopics,
+                topics_formatted: this.dataset.meetingTopicsFormatted,
+                created_date: this.dataset.meetingCreatedDate,
+                created_time: this.dataset.meetingCreatedTime,
+                created_by: this.dataset.meetingCreatedBy,
+                updated_date: this.dataset.meetingUpdatedDate,
+                updated_time: this.dataset.meetingUpdatedTime,
+                updated_by: this.dataset.meetingUpdatedBy
+            };
+            
+            viewMeetingDetails(meetingData);
+        });
+    });
+});
+
+function viewMeetingDetails(meetingData) {
+    // Debug: logar os dados recebidos
+    console.log('Meeting Data:', meetingData);
+    
+    // Popula informações da reunião
+    document.getElementById('modalDate').textContent = meetingData.date || '-';
+    document.getElementById('modalTime').textContent = meetingData.time || '-';
+    document.getElementById('modalParticipants').textContent = meetingData.participants || '-';
+    
+    // Popula conteúdo da reunião com formatação preservada
+    const topicsElement = document.getElementById('modalTopics');
+    const formattedContent = meetingData.topics_formatted || meetingData.topics;
+    
+    if (formattedContent && formattedContent.trim() !== '') {
+        // Usar o conteúdo formatado original (HTML)
+        topicsElement.innerHTML = formattedContent;
+    } else {
+        topicsElement.textContent = 'Nenhum conteúdo registrado';
+    }
+    
+    // Popula informações de auditoria
+    document.getElementById('modalCreatedDate').textContent = meetingData.created_date || '-';
+    document.getElementById('modalCreatedTime').textContent = meetingData.created_time || '-';
+    document.getElementById('modalCreatedBy').textContent = meetingData.created_by || '-';
+    
+    // Mostra informações de atualização se existirem
+    const updatedInfo = document.getElementById('modalUpdatedInfo');
+    if (meetingData.updated_date && meetingData.updated_date.trim() !== '') {
+        document.getElementById('modalUpdatedDate').textContent = meetingData.updated_date;
+        document.getElementById('modalUpdatedTime').textContent = meetingData.updated_time || '-';
+        document.getElementById('modalUpdatedBy').textContent = meetingData.updated_by || '-';
+        updatedInfo.style.display = 'block';
+    } else {
+        updatedInfo.style.display = 'none';
+    }
 }
 </script>
 
