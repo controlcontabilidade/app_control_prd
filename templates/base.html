@@ -8,8 +8,9 @@
     <meta name="author" content="Control Contabilidade LTDA">
     <title>{% block title %}SIGEC - Sistema de Gestão de Empresas Control{% endblock %}</title>
     
-    <!-- Favicon personalizado SIGEC -->
-    <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><rect width='100' height='100' rx='15' fill='%23f97316'/><text x='50' y='65' font-family='Arial,sans-serif' font-size='60' font-weight='900' text-anchor='middle' fill='white'>S</text></svg>">
+    <!-- Favicon oficial Control Contabilidade -->
+    <link rel="icon" type="image/png" href="{{ url_for('static', filename='images/LogoControl.png') }}">
+    <link rel="apple-touch-icon" href="{{ url_for('static', filename='images/LogoControl.png') }}">
     
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
     <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.0/font/bootstrap-icons.css" rel="stylesheet">
@@ -104,17 +105,21 @@
             box-shadow: var(--shadow);
         }
 
-        /* Logo Control como imagem */
+        /* Logo Control como imagem oficial */
         .control-logo-img {
-            height: 45px;
+            height: 50px;
             width: auto;
-            margin-right: 12px;
+            margin-right: 15px;
             filter: brightness(1.1);
             transition: all 0.3s ease;
+            border-radius: 8px;
+            background: rgba(255, 255, 255, 0.1);
+            padding: 5px;
         }
 
         .control-logo-img:hover {
             filter: brightness(1.2) drop-shadow(0 2px 8px rgba(0,0,0,0.2));
+            transform: translateY(-1px);
         }
 
         /* Logo Control CSS - Nova versão fiel ao design original */
@@ -177,29 +182,35 @@
             text-shadow: 0 1px 2px rgba(0,0,0,0.2);
         }
 
-        /* Responsividade da logo */
+        /* Responsividade da logo oficial */
         @media (max-width: 768px) {
-            .control-logo-brand {
+            .control-logo-img {
                 height: 40px;
                 margin-right: 10px;
+                padding: 3px;
             }
             
-            .control-circle-brand {
-                width: 35px;
+            .navbar-brand .brand-text .main {
+                font-size: 1.2rem;
+            }
+            
+            .navbar-brand .brand-text .sub {
+                font-size: 0.65rem;
+            }
+        }
+
+        @media (max-width: 576px) {
+            .control-logo-img {
                 height: 35px;
-                margin-right: 6px;
+                margin-right: 8px;
             }
             
-            .check-mark-brand {
-                font-size: 16px;
+            .navbar-brand .brand-text .main {
+                font-size: 1rem;
             }
             
-            .control-text-brand {
-                font-size: 14px;
-            }
-            
-            .contabilidade-text-brand {
-                font-size: 6px;
+            .navbar-brand .brand-text .sub {
+                font-size: 0.6rem;
             }
         }
 
@@ -932,15 +943,7 @@
     <nav class="navbar navbar-expand-lg">
         <div class="container-fluid">
             <a class="navbar-brand" href="/">
-                <div class="control-logo-brand">
-                    <div class="control-circle-brand">
-                        <span class="check-mark-brand">✓</span>
-                    </div>
-                    <div class="text-part-brand">
-                        <div class="control-text-brand">control</div>
-                        <div class="contabilidade-text-brand">CONTABILIDADE</div>
-                    </div>
-                </div>
+                <img src="{{ url_for('static', filename='images/LogoControl.png') }}" alt="Control Contabilidade" class="control-logo-img">
                 <div class="brand-text">
                     <span class="main">SIGEC</span>
                     <span class="sub">Sistema de Gestão de Empresas Control</span>

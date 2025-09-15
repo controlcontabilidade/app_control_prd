@@ -151,11 +151,15 @@
                             <div class="text-truncate" style="max-width: 200px;" title="{{ meeting.participants }}">
                                 {{ meeting.participants[:50] }}{% if meeting.participants|length > 50 %}...{% endif %}
                             </div>
+                            <!-- Dados completos escondidos para o modal -->
+                            <span class="d-none full-participants">{{ meeting.participants }}</span>
                         </td>
                         <td>
                             <div class="text-truncate" style="max-width: 300px;" title="{{ meeting.topics }}">
                                 {{ meeting.topics[:80] }}{% if meeting.topics|length > 80 %}...{% endif %}
                             </div>
+                            <!-- Dados completos escondidos para o modal -->
+                            <span class="d-none full-topics">{{ meeting.topics }}</span>
                         </td>
                         <td>
                             <small class="text-muted">{{ meeting.created_at }}</small>
@@ -202,7 +206,7 @@
 
 <!-- Modal para visualizar ata completa -->
 <div class="modal fade" id="meetingModal" tabindex="-1">
-    <div class="modal-dialog modal-lg">
+    <div class="modal-dialog modal-xl modal-dialog-scrollable">
         <div class="modal-content">
             <div class="modal-header">
                 <h5 class="modal-title">
@@ -215,7 +219,9 @@
                 <!-- Conteúdo será carregado via JavaScript -->
             </div>
             <div class="modal-footer">
-                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Fechar</button>
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">
+                    <i class="bi bi-x-circle me-1"></i>Fechar
+                </button>
             </div>
         </div>
     </div>
@@ -281,13 +287,17 @@ function viewMeeting(meetingId) {
     
     rows.forEach(row => {
         if (row.cells[0].textContent.includes(meetingId)) {
+            // Pega os dados completos dos elementos escondidos
+            const fullParticipants = row.cells[4].querySelector('.full-participants');
+            const fullTopics = row.cells[5].querySelector('.full-topics');
+            
             meetingData = {
                 id: meetingId,
                 client: row.cells[1].textContent,
                 date: row.cells[2].textContent,
                 time: row.cells[3].textContent,
-                participants: row.cells[4].getAttribute('title') || row.cells[4].textContent,
-                topics: row.cells[5].getAttribute('title') || row.cells[5].textContent
+                participants: fullParticipants ? fullParticipants.textContent : (row.cells[4].getAttribute('title') || row.cells[4].textContent),
+                topics: fullTopics ? fullTopics.textContent : (row.cells[5].getAttribute('title') || row.cells[5].textContent)
             };
         }
     });
@@ -314,13 +324,13 @@ function viewMeeting(meetingId) {
                 </div>
                 <div class="col-12 mb-3">
                     <strong>Participantes:</strong><br>
-                    <div class="border rounded p-2 bg-light">
+                    <div class="border rounded p-3 bg-light" style="white-space: pre-wrap; max-height: 200px; overflow-y: auto; line-height: 1.5;">
                         ${meetingData.participants}
                     </div>
                 </div>
                 <div class="col-12 mb-3">
                     <strong>Tópicos Discutidos:</strong><br>
-                    <div class="border rounded p-2 bg-light" style="white-space: pre-wrap;">
+                    <div class="border rounded p-3 bg-light" style="white-space: pre-wrap; max-height: 300px; overflow-y: auto; line-height: 1.6; word-wrap: break-word;">
                         ${meetingData.topics}
                     </div>
                 </div>
