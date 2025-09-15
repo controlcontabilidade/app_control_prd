@@ -139,6 +139,26 @@
             justify-content: space-between;
             align-items: center;
         }
+        .logo-simple {
+            height: 35px;
+            width: auto;
+            margin-right: 10px;
+            vertical-align: middle;
+            border-radius: 6px;
+            background: rgba(255, 255, 255, 0.1);
+            padding: 3px;
+            transition: all 0.3s ease;
+        }
+        .logo-simple:hover {
+            background: rgba(255, 255, 255, 0.15);
+            transform: translateY(-1px);
+        }
+        .nav-brand {
+            display: flex;
+            align-items: center;
+            font-weight: 600;
+            font-size: 16px;
+        }
         .nav a {
             color: white;
             text-decoration: none;
@@ -147,13 +167,51 @@
         .nav a:hover {
             color: #60a5fa;
         }
+        
+        /* Responsividade para mobile */
+        @media (max-width: 768px) {
+            .logo-simple {
+                height: 30px;
+                margin-right: 8px;
+            }
+            .nav-brand strong {
+                font-size: 14px;
+            }
+            .nav {
+                flex-direction: column;
+                gap: 15px;
+                text-align: center;
+            }
+            .nav div:last-child {
+                display: flex;
+                justify-content: center;
+                gap: 10px;
+            }
+            .nav a {
+                margin-left: 0;
+                padding: 8px 12px;
+                border-radius: 6px;
+                background: rgba(255, 255, 255, 0.1);
+            }
+        }
+        
+        @media (max-width: 576px) {
+            .logo-simple {
+                height: 25px;
+                margin-right: 6px;
+            }
+            .nav-brand strong {
+                font-size: 12px;
+            }
+        }
     </style>
 </head>
 <body>
     <div class="container">
         <nav class="nav">
-            <div>
-                <strong>📊 Sistema de Controle de Clientes</strong>
+            <div class="nav-brand">
+                <img src="{{ url_for('static', filename='images/LogoControl.png') }}" alt="Control Contabilidade" class="logo-simple">
+                <strong>SIGEC - Sistema de Gestão de Empresas Control</strong>
             </div>
             <div>
                 <a href="{{ url_for('index') }}">🏠 Clientes</a>
