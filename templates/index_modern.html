@@ -37,10 +37,12 @@
             <p class="mb-0">SISTEMA DE GESTÃO DE EMPRESAS CONTROL - CONTROLE COMPLETO DE CLIENTES E PROCESSOS</p>
         </div>
         <div class="col-md-4 text-end">
+            {% if can_create() %}
             <a href="{{ url_for('new_client') }}" class="btn btn-primary">
                 <i class="bi bi-plus-lg"></i>
                 NOVO CLIENTE
             </a>
+            {% endif %}
         </div>
     </div>
     
@@ -367,21 +369,23 @@
                                    title="Ver detalhes">
                                     <i class="bi bi-eye"></i>
                                 </a>
+                                {% if can_edit() %}
                                 <a href="{{ url_for('edit_client', client_id=client['id']) }}" 
                                    class="btn btn-outline-secondary btn-sm" 
                                    title="Editar">
                                     <i class="bi bi-pencil"></i>
                                 </a>
+                                {% endif %}
                                 <a href="{{ url_for('view_client_meetings', client_id=client['id']) }}" 
                                    class="btn btn-outline-success btn-sm" 
                                    title="Ver Atas de Reuniões">
                                     <i class="bi bi-file-earmark-text"></i>
                                 </a>
-                                {% if session.user_perfil and session.user_perfil.lower() == 'administrador' %}
+                                {% if can_delete() %}
                                 <button type="button" 
                                         class="btn btn-outline-danger btn-sm" 
                                         onclick="confirmDelete('{{ client['id'] }}', '{{ client['nomeEmpresa'] or client['nomeFantasiaReceita'] }}')"
-                                        title="Excluir (Apenas Admin)">
+                                        title="Excluir Cliente">
                                     <i class="bi bi-trash"></i>
                                 </button>
                                 {% endif %}

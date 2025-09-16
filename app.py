@@ -451,6 +451,51 @@ def get_segmento_atividade_service():
             segmento_atividade_service = None
     return segmento_atividade_service
 
+# Função de contexto para verificar permissões
+@app.context_processor
+def utility_processor():
+    """Adiciona funções úteis para os templates"""
+    def can_delete():
+        """Verifica se o usuário atual pode excluir clientes"""
+        user_perfil = session.get('user_perfil', '').lower()
+        user_permissions = session.get('user_permissions_sigec', '')
+        
+        return (
+            user_perfil == 'administrador' or 
+            user_permissions == 'TOTAL_CADASTROS' or 
+            'EXCLUIR' in user_permissions
+        )
+    
+    def can_edit():
+        """Verifica se o usuário atual pode editar clientes"""
+        user_perfil = session.get('user_perfil', '').lower()
+        user_permissions = session.get('user_permissions_sigec', '')
+        
+        return (
+            user_perfil == 'administrador' or 
+            user_permissions == 'TOTAL_CADASTROS' or 
+            'EDITAR' in user_permissions or
+            'INCLUIR' in user_permissions
+        )
+    
+    def can_create():
+        """Verifica se o usuário atual pode criar novos clientes"""
+        user_perfil = session.get('user_perfil', '').lower()
+        user_permissions = session.get('user_permissions_sigec', '')
+        
+        return (
+            user_perfil == 'administrador' or 
+            user_permissions == 'TOTAL_CADASTROS' or 
+            'INCLUIR' in user_permissions
+        )
+    
+    def can_view():
+        """Verifica se o usuário atual pode visualizar clientes"""
+        # Todos os usuários logados podem visualizar (mínimo)
+        return session.get('user_id') is not None
+    
+    return dict(can_delete=can_delete, can_edit=can_edit, can_create=can_create, can_view=can_view)
+
 # Inicialização básica - EXTREMAMENTE otimizada
 print("🚀 Aplicação inicializada com lazy loading EXTREMO")
 print(f"💾 Memória inicial: {UltraMemoryOptimizer.get_memory_usage() if MEMORY_OPTIMIZER_AVAILABLE else 'N/A'}")
@@ -558,8 +603,10 @@ def login():
                 session['user_id'] = user['id']
                 session['user_name'] = user['nome']
                 session['user_perfil'] = user['perfil']
+                # Adicionar permissões específicas na sessão
+                session['user_permissions_sigec'] = user.get('permissoes_sigec', 'VISUALIZADOR')
                 session.permanent = True
-                print(f"🔐 LOGIN: Sessão criada - user_id: {session['user_id']}")
+                print(f"🔐 LOGIN: Sessão criada - user_id: {session['user_id']}, perfil: {session['user_perfil']}, permissões: {session['user_permissions_sigec']}")
                 flash(f'Bem-vindo(a), {user["nome"]}!', 'success')
                 print("🔐 LOGIN: Redirecionando para seleção de sistemas...")
                 return redirect(url_for('system_selection'))
@@ -2391,6 +2438,20 @@ def view_client(client_id):
 @app.route('/client/new')
 @login_required
 def new_client():
+    # Verificar se o usuário tem permissão para incluir clientes
+    user_perfil = session.get('user_perfil', '').lower()
+    user_permissions = session.get('user_permissions_sigec', '')
+    
+    can_create = (
+        user_perfil == 'administrador' or 
+        user_permissions == 'TOTAL_CADASTROS' or 
+        'INCLUIR' in user_permissions
+    )
+    
+    if not can_create:
+        flash('Acesso negado. Você não tem permissão para criar novos clientes.', 'danger')
+        return redirect(url_for('index'))
+    
     segmentos = get_segmentos_list()
     atividades = get_atividades_list()
     sistemas = get_sistemas_list()
@@ -2400,6 +2461,21 @@ def new_client():
 @login_required
 def edit_client(client_id):
     try:
+        # Verificar se o usuário tem permissão para editar
+        user_perfil = session.get('user_perfil', '').lower()
+        user_permissions = session.get('user_permissions_sigec', '')
+        
+        can_edit = (
+            user_perfil == 'administrador' or 
+            user_permissions == 'TOTAL_CADASTROS' or 
+            'EDITAR' in user_permissions or
+            'INCLUIR' in user_permissions
+        )
+        
+        if not can_edit:
+            flash('Acesso negado. Você não tem permissão para editar clientes.', 'danger')
+            return redirect(url_for('view_client', client_id=client_id))
+        
         print(f"🔍 [EDIT] ===== CARREGANDO CLIENTE PARA EDIÇÃO =====")
         print(f"🔍 [EDIT] ID solicitado: '{client_id}'")
         
@@ -2917,9 +2993,18 @@ def save_client():
 @login_required
 def delete_client(client_id):
     try:
-        # Verificar se o usuário é administrador
-        if not session.get('user_perfil') or session.get('user_perfil').lower() != 'administrador':
-            flash('Acesso negado. Apenas administradores podem excluir clientes.', 'danger')
+        # Verificar se o usuário tem permissão para excluir
+        user_perfil = session.get('user_perfil', '').lower()
+        user_permissions = session.get('user_permissions_sigec', '')
+        
+        can_delete = (
+            user_perfil == 'administrador' or 
+            user_permissions == 'TOTAL_CADASTROS' or 
+            'EXCLUIR' in user_permissions
+        )
+        
+        if not can_delete:
+            flash('Acesso negado. Você não tem permissão para excluir clientes.', 'danger')
             return redirect(url_for('view_client', client_id=client_id))
         
         # CORREÇÃO: Usar get_storage_service() para lazy loading

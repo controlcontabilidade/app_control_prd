@@ -573,13 +573,15 @@
                     </a>
                     
                     <!-- 3. Editar Cliente -->
+                    {% if can_edit() %}
                     <a href="/client/{{ client.id }}/edit" class="btn btn-primary">
                         <i class="fas fa-edit me-2"></i>
                         Editar Cliente
                     </a>
+                    {% endif %}
                     
                     <!-- 4. Excluir Cliente -->
-                    {% if session.user_perfil and session.user_perfil.lower() == 'administrador' %}
+                    {% if can_delete() %}
                         <button type="button" class="btn btn-outline-danger" data-bs-toggle="modal" data-bs-target="#deleteModal">
                             <i class="fas fa-trash me-2"></i>
                             Excluir Cliente
@@ -592,7 +594,7 @@
 </div>
 
 <!-- Modal de Confirmação de Exclusão -->
-{% if session.user_perfil and session.user_perfil.lower() == 'administrador' %}
+{% if can_delete() %}
 <div class="modal fade" id="deleteModal" tabindex="-1" aria-labelledby="deleteModalLabel" aria-hidden="true">
     <div class="modal-dialog">
         <div class="modal-content">
