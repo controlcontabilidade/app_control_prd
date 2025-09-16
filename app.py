@@ -2107,16 +2107,19 @@ def index():
         elif status_filter == 'todos':
             print(f"🔍 Filtro TODOS aplicado: {len(clients)} clientes (sem filtro)")
         
-        # Limite EXTREMO baseado na memória disponível
-        max_clients = ULTRA_MEMORY_SETTINGS.get('MAX_ROWS_PER_REQUEST', 10) if MEMORY_OPTIMIZER_AVAILABLE else 10
+        # Limite baseado na memória disponível (ajustado para desenvolvimento)
+        max_clients = ULTRA_MEMORY_SETTINGS.get('MAX_ROWS_PER_REQUEST', 100) if MEMORY_OPTIMIZER_AVAILABLE else 100
         
-        # Para produção, ser EXTREMAMENTE restritivo
+        # Para produção, usar limite razoável mas não extremo
         if os.environ.get('FLASK_ENV') == 'production':
-            max_clients = min(max_clients, 5)  # Máximo 5 clientes em produção
+            max_clients = min(max_clients, 50)  # Máximo 50 clientes em produção (mais razoável)
+        else:
+            # Em desenvolvimento, permitir mais clientes para testes
+            max_clients = 1000  # Limite alto para desenvolvimento
             
         if len(clients) > max_clients:
-            clients = clients[:max_clients]  # Truncar para economizar memória extrema
-            print(f"🧠 EXTREMAMENTE LIMITADO a {max_clients} clientes (economia RAM crítica)")
+            clients = clients[:max_clients]
+            print(f"🧠 Lista limitada a {max_clients} clientes para otimização de memória")
         
         print(f"✅ {len(clients)} clientes carregados")
         print(f"💾 Memória atual: {UltraMemoryOptimizer.get_memory_usage() if MEMORY_OPTIMIZER_AVAILABLE else 'N/A'}")
