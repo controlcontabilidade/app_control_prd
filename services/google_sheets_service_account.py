@@ -851,19 +851,15 @@ class GoogleSheetsServiceAccountService:
             
             # Bloco 5: Senhas e Credenciais (APENAS CAMPOS ESPECIFICADOS)
             'CPF/CNPJ SN',                       # 60. CPF/CNPJ Simples Nacional
-            'CÓDIGO ACESSO SN',                  # 61. Código de acesso SN
-            'ACESSO EMPWEB',                     # 62. Login eSocial/EmpWeb
-            'SENHA EMPWEB',                      # 63. Senha eSocial/EmpWeb
-            'ACESSO ISS',                        # 64. Login ISS municipal
-            'ACESSO SEFIN',                      # 65. Login SEFIN estadual
-            'ACESSO SEUMA',                      # 66. Login SEUMA ambiental
-            'ACESSO SEMACE',                     # 67. Login SEMACE estadual
-            'ACESSO IBAMA',                      # 68. Login IBAMA
-            'ACESSO FAP/INSS',                   # 69. Login FAP/INSS
-            'ACESSO CRF',                        # 70. Login CRF (farmácias)
-            'SENHA SEMACE',                      # 71. Senha SEMACE estadual
-            'ANVISA GESTOR',                     # 72. Login ANVISA gestor
-            'ANVISA EMPRESA',                    # 73. Login ANVISA empresa
+            'ACESSO ISS',                        # 61. Login ISS municipal  
+            'ACESSO SEFIN',                      # 62. Login SEFIN estadual
+            'ACESSO SEUMA',                      # 63. Login SEUMA ambiental
+            'ACESSO SEMACE',                     # 64. Login SEMACE estadual
+            'ACESSO IBAMA',                      # 65. Login IBAMA
+            'ACESSO FAP/INSS',                   # 66. Login FAP/INSS
+            'SENHA SEMACE',                      # 67. Senha SEMACE estadual
+            'ANVISA GESTOR',                     # 68. Login ANVISA gestor
+            'ANVISA EMPRESA',                    # 69. Login ANVISA empresa
             
             # Bloco 5: Senhas Específicas Adicionais (NOVOS CAMPOS)
             'SENHA FGTS',                        # 74. Senha FGTS
@@ -909,17 +905,19 @@ class GoogleSheetsServiceAccountService:
             'CNPJ ACESSO SIMPLES NACIONAL',       # 107. CNPJ para Simples Nacional
             'CPF DO REPRESENTANTE LEGAL',         # 108. CPF do representante legal
             'CÓDIGO ACESSO SN',                   # 109. Código de acesso SN
-            'SENHA ISS',                          # 110. Senha ISS
-            'SENHA SEFIN',                        # 111. Senha SEFIN
-            'SENHA SEUMA',                        # 112. Senha SEUMA
-            'LOGIN ANVISA EMPRESA',               # 113. Login ANVISA Empresa
-            'SENHA ANVISA EMPRESA',               # 114. Senha ANVISA Empresa
-            'LOGIN ANVISA GESTOR',                # 115. Login ANVISA Gestor
-            'SENHA ANVISA GESTOR',                # 116. Senha ANVISA Gestor
-            'SENHA FAP/INSS',                     # 117. Senha FAP/INSS
-            'ACESSO EMP WEB',                     # 118. Acesso Emp Web
-            'SENHA EMP WEB',                      # 119. Senha Emp Web
-            'ACESSO CRF',                         # 120. Acesso CRF
+            'SENHA SEFIN',                        # 110. Senha SEFIN
+            'SENHA SEUMA',                        # 111. Senha SEUMA
+            'LOGIN ANVISA EMPRESA',               # 112. Login ANVISA Empresa
+            'SENHA ANVISA EMPRESA',               # 113. Senha ANVISA Empresa
+            'LOGIN ANVISA GESTOR',                # 114. Login ANVISA Gestor
+            'SENHA ANVISA GESTOR',                # 115. Senha ANVISA Gestor
+            'SENHA FAP/INSS',                     # 116. Senha FAP/INSS
+            'ACESSO EMP WEB',                     # 117. Acesso Emp Web
+            'SENHA EMP WEB',                      # 118. Senha Emp Web
+            'ACESSO CRF',                         # 119. Acesso CRF
+            'SENHA CRF',                          # 120. Senha CRF
+            'EMAIL SEFIN',                        # 121. E-mail SEFIN
+            'EMAIL EMPWEB',                       # 122. E-mail EmpWeb
         ]
 
     def ensure_correct_headers(self):
@@ -1414,7 +1412,10 @@ class GoogleSheetsServiceAccountService:
             'SENHA FAP/INSS': client.get('senhaFapInss', ''),
             'ACESSO EMP WEB': client.get('acessoEmpWeb', ''),
             'SENHA EMP WEB': client.get('senhaEmpWeb', ''),
-            'ACESSO CRF': client.get('acessoCrf', '')
+            'ACESSO CRF': client.get('acessoCrf', ''),
+            'SENHA CRF': client.get('senhaCrf', ''),
+            'EMAIL SEFIN': client.get('emailSefin', ''),
+            'EMAIL EMPWEB': client.get('emailEmpweb', '')
         }
         
         for header_name, value in senha_fields.items():
@@ -1705,6 +1706,9 @@ class GoogleSheetsServiceAccountService:
             'acessoEmpWeb': safe_get(row, 171),       # 172. ACESSO EMP WEB
             'senhaEmpWeb': safe_get(row, 172),        # 173. SENHA EMP WEB
             'acessoCrf': safe_get(row, 173),          # 174. ACESSO CRF
+            'senhaCrf': safe_get(row, 174),           # 175. SENHA CRF
+            'emailSefin': safe_get(row, 175),         # 176. EMAIL SEFIN
+            'emailEmpweb': safe_get(row, 176),        # 177. EMAIL EMPWEB
         }
 
         # CORREÇÃO CRÍTICA: Derivar campo 'ativo' a partir do statusCliente

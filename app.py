@@ -2154,6 +2154,22 @@ def index():
         elif status_filter == 'todos':
             print(f"🔍 Filtro TODOS aplicado: {len(clients)} clientes (sem filtro)")
         
+        # Ordenar clientes alfabeticamente por nome da empresa (A-Z)
+        try:
+            def get_client_name_for_sorting(client):
+                """Obtém o nome do cliente para ordenação, lidando com casos especiais"""
+                name = client.get('nomeEmpresa') or client.get('nomeFantasiaReceita') or ''
+                if not name or name.strip() == '':
+                    # Se não há nome, usar ID ou colocar no final
+                    return f"zzz_{client.get('id', '')}"
+                return name.strip().lower()
+            
+            clients = sorted(clients, key=get_client_name_for_sorting)
+            print(f"📝 Lista de {len(clients)} clientes ordenada alfabeticamente (A-Z)")
+        except Exception as sort_error:
+            print(f"⚠️ Erro ao ordenar clientes: {sort_error}")
+            # Em caso de erro, manter a lista original
+        
         # Limite baseado na memória disponível (ajustado para desenvolvimento)
         max_clients = ULTRA_MEMORY_SETTINGS.get('MAX_ROWS_PER_REQUEST', 100) if MEMORY_OPTIMIZER_AVAILABLE else 100
         

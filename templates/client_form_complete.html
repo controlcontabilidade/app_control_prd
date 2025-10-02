@@ -1774,7 +1774,7 @@ document.addEventListener('DOMContentLoaded', function() {
                             </div>
                         </div>
 
-                        <!-- Linha 4: Acesso CRF, Senha FAP/INSS -->
+                        <!-- Linha 4: Acesso CRF, Senha FAP/INSS, Senha CRF, E-mail SEFIN -->
                         <div class="row mb-3">
                             <div class="col-md-3 mb-2">
                                 <label for="acessoCrf" class="form-label small">Acesso CRF</label>
@@ -1789,6 +1789,31 @@ document.addEventListener('DOMContentLoaded', function() {
                                        id="senhaFapInss" name="senhaFapInss" 
                                        value="{{ client.senhaFapInss if client else '' }}" 
                                        placeholder="Senha FAP/INSS">
+                            </div>
+                            <div class="col-md-3 mb-2">
+                                <label for="senhaCrf" class="form-label small">Senha CRF</label>
+                                <input type="text" class="form-control form-control-sm" 
+                                       id="senhaCrf" name="senhaCrf" 
+                                       value="{{ client.senhaCrf if client else '' }}" 
+                                       placeholder="Senha CRF">
+                            </div>
+                            <div class="col-md-3 mb-2">
+                                <label for="emailSefin" class="form-label small">E-mail SEFIN</label>
+                                <input type="email" class="form-control form-control-sm" 
+                                       id="emailSefin" name="emailSefin" 
+                                       value="{{ client.emailSefin if client else '' }}" 
+                                       placeholder="email@sefin.gov.br">
+                            </div>
+                        </div>
+
+                        <!-- Linha 5: E-mail EmpWeb -->
+                        <div class="row mb-3">
+                            <div class="col-md-3 mb-2">
+                                <label for="emailEmpweb" class="form-label small">E-mail EmpWeb</label>
+                                <input type="email" class="form-control form-control-sm" 
+                                       id="emailEmpweb" name="emailEmpweb" 
+                                       value="{{ client.emailEmpweb if client else '' }}" 
+                                       placeholder="email@empweb.com.br">
                             </div>
                         </div>
                     </div>
