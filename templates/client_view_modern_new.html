@@ -345,7 +345,7 @@
                     </div>
                 </div>
 
-                <!-- Linha 4: Acesso CRF, Senha FAP/INSS -->
+                <!-- Linha 4: Acesso CRF, Senha FAP/INSS, Senha CRF, E-mail SEFIN -->
                 <div class="row mb-3">
                     <div class="col-md-3 mb-2">
                         <label class="form-label text-muted small">Acesso CRF</label>
@@ -354,6 +354,22 @@
                     <div class="col-md-3 mb-2">
                         <label class="form-label text-muted small">Senha FAP/INSS</label>
                         <p class="mb-0 border rounded p-2 bg-light"><small>{{ client.senhaFapInss if client.senhaFapInss else '-' }}</small></p>
+                    </div>
+                    <div class="col-md-3 mb-2">
+                        <label class="form-label text-muted small">Senha CRF</label>
+                        <p class="mb-0 border rounded p-2 bg-light"><small>{{ client.senhaCrf if client.senhaCrf else '-' }}</small></p>
+                    </div>
+                    <div class="col-md-3 mb-2">
+                        <label class="form-label text-muted small">E-mail SEFIN</label>
+                        <p class="mb-0 border rounded p-2 bg-light"><small>{{ client.emailSefin if client.emailSefin else '-' }}</small></p>
+                    </div>
+                </div>
+
+                <!-- Linha 5: E-mail EmpWeb -->
+                <div class="row mb-3">
+                    <div class="col-md-3 mb-2">
+                        <label class="form-label text-muted small">E-mail EmpWeb</label>
+                        <p class="mb-0 border rounded p-2 bg-light"><small>{{ client.emailEmpweb if client.emailEmpweb else '-' }}</small></p>
                     </div>
                 </div>
             </div>
