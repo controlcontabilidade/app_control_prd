@@ -15,7 +15,6 @@
 <table class="table">
     <thead>
         <tr>
-            <th>ID</th>
             <th>Nome da Empresa</th>
             <th>CNPJ</th>
             <th>Cidade</th>
@@ -26,7 +25,6 @@
     <tbody>
         {% for client in clients %}
         <tr>
-            <td>{{ client.id }}</td>
             <td><strong>{{ client.nomeEmpresa or 'Não informado' }}</strong></td>
             <td>{{ client.cnpj or '-' }}</td>
             <td>{{ client.cidade or '-' }}</td>

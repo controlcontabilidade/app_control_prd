@@ -1619,7 +1619,7 @@ class GoogleSheetsServiceAccountService:
 
             # Bloco 7: Observações e Dados Adicionais (posições reais na planilha)
             'observacoes': safe_get(row, 151, ''),                # 151. OBSERVAÇÕES
-            'statusCliente': safe_get(row, 152, 'ativo').lower(), # 152. STATUS DO CLIENTE
+            'statusCliente': safe_get(row, 86, 'ativo').lower(),  # 87. STATUS DO CLIENTE
             'ultimaAtualizacao': safe_get(row, 153),              # 153. ÚLTIMA ATUALIZAÇÃO
 
             # Campos internos do sistema (posições reais na planilha)

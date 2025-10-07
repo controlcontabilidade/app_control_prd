@@ -5,7 +5,64 @@
 {% block content %}
 <!-- Alerta de Status do Sistema (se necessário) -->
 <div id="system-status-alert" class="d-none">
-    <div class="alert alert-warning alert-dismissible fade show mb-4" role="alert">
+    <div class="alert alert-warning alert-dism    <div class="card-header bg-white border-0 pb-3">
+        <div class="d-flex justify-content-between align-items-center mb-3">
+            <h5 class="mb-0">
+                <i class="bi bi-table me-2"></i>
+                LISTA DE CLIENTES
+            </h5>
+            <small class="text-muted" id="resultsCounter">
+                {% if pagination %}
+                    Mostrando {{ pagination.start_index }}-{{ pagination.end_index }} de {{ pagination.total }} clientes
+                    {% if search_query %}(filtrados de "{{ search_query }}"){% endif %}
+                {% else %}
+                    {{ clients|length }} CLIENTES
+                {% endif %}
+            </small>
+        </div>
+        
+        <!-- Barra de Busca Inteligente -->
+        <div class="row g-3 align-items-end">
+            <div class="col-md-6">
+                <label for="globalSearch" class="form-label small text-muted mb-1">
+                    <i class="bi bi-search me-1"></i>BUSCA GLOBAL
+                </label>
+                <div class="input-group">
+                    <input type="text" 
+                           class="form-control" 
+                           id="globalSearch" 
+                           placeholder="Buscar por nome, CNPJ, cidade, regime..." 
+                           value="{{ search_query or '' }}"
+                           autocomplete="off">
+                    <button type="button" class="btn btn-outline-secondary" id="clearSearch" title="Limpar busca">
+                        <i class="bi bi-x"></i>
+                    </button>
+                </div>
+                <div class="form-text">A busca é realizada em todos os registros, não apenas na página atual.</div>
+            </div>
+            <div class="col-md-3">
+                <label for="perPageSelect" class="form-label small text-muted mb-1">
+                    <i class="bi bi-list-ul me-1"></i>ITENS POR PÁGINA
+                </label>
+                <select class="form-select" id="perPageSelect">
+                    <option value="10" {{ 'selected' if pagination and pagination.per_page == 10 else '' }}>10</option>
+                    <option value="20" {{ 'selected' if pagination and pagination.per_page == 20 else '' }}>20</option>
+                    <option value="50" {{ 'selected' if pagination and pagination.per_page == 50 else '' }}>50</option>
+                    <option value="100" {{ 'selected' if pagination and pagination.per_page == 100 else '' }}>100</option>
+                </select>
+            </div>
+            <div class="col-md-3">
+                <label for="statusFilter" class="form-label small text-muted mb-1">
+                    <i class="bi bi-funnel me-1"></i>FILTRO DE STATUS
+                </label>
+                <select class="form-select" id="statusFilter">
+                    <option value="ativo" {{ 'selected' if status_filter == 'ativo' else '' }}>Apenas Ativos</option>
+                    <option value="inativo" {{ 'selected' if status_filter == 'inativo' else '' }}>Apenas Inativos</option>
+                    <option value="todos" {{ 'selected' if status_filter == 'todos' else '' }}>Todos</option>
+                </select>
+            </div>
+        </div>
+    </div>ade show mb-4" role="alert">
         <div class="d-flex align-items-center">
             <i class="bi bi-exclamation-triangle-fill me-3 fs-4"></i>
             <div>
@@ -60,116 +117,115 @@
                     <!-- Indicadores Principais - Linha única -->
                     <div class="row g-3 mb-4">
                         <div class="col-lg-3 col-md-6">
-                            <div class="d-flex align-items-center p-2 rounded-3" style="background: rgba(59, 130, 246, 0.1); border-left: 4px solid #3b82f6;">
-                                <div class="flex-shrink-0 me-2">
-                                    <div class="rounded-circle d-flex align-items-center justify-content-center" style="width: 35px; height: 35px; background: #3b82f6;">
-                                        <i class="bi bi-people text-white fs-6"></i>
+                            <div class="d-flex align-items-center p-3 rounded-3" style="background: rgba(59, 130, 246, 0.1); border-left: 4px solid #3b82f6;">
+                                <div class="flex-shrink-0 me-3">
+                                    <div class="rounded-circle d-flex align-items-center justify-content-center" style="width: 45px; height: 45px; background: #3b82f6;">
+                                        <i class="bi bi-people text-white fs-5"></i>
                                     </div>
                                 </div>
                                 <div class="flex-grow-1">
-                                    <h5 class="mb-0 fw-bold text-primary">{{ stats.total_clientes or 0 }}</h5>
+                                    <h4 class="mb-0 fw-bold text-primary">{{ stats.total_clientes }}</h4>
                                     <small class="text-muted">TOTAL DE CLIENTES</small>
                                 </div>
                             </div>
                         </div>
                         <div class="col-lg-3 col-md-6">
-                            <div class="d-flex align-items-center p-2 rounded-3" style="background: rgba(34, 197, 94, 0.1); border-left: 4px solid #22c55e;">
-                                <div class="flex-shrink-0 me-2">
-                                    <div class="rounded-circle d-flex align-items-center justify-content-center" style="width: 35px; height: 35px; background: #22c55e;">
-                                        <i class="bi bi-check-circle text-white fs-6"></i>
+                            <div class="d-flex align-items-center p-3 rounded-3" style="background: rgba(34, 197, 94, 0.1); border-left: 4px solid #22c55e;">
+                                <div class="flex-shrink-0 me-3">
+                                    <div class="rounded-circle d-flex align-items-center justify-content-center" style="width: 45px; height: 45px; background: #22c55e;">
+                                        <i class="bi bi-check-circle text-white fs-5"></i>
                                     </div>
                                 </div>
                                 <div class="flex-grow-1">
-                                    <h5 class="mb-0 fw-bold text-success">{{ stats.clientes_ativos or 0 }}</h5>
+                                    <h4 class="mb-0 fw-bold text-success">{{ stats.clientes_ativos }}</h4>
                                     <small class="text-muted">CLIENTES ATIVOS</small>
                                 </div>
                             </div>
                         </div>
                         <div class="col-lg-3 col-md-6">
-                            <div class="d-flex align-items-center p-2 rounded-3" style="background: rgba(245, 158, 11, 0.1); border-left: 4px solid #f59e0b;">
-                                <div class="flex-shrink-0 me-2">
-                                    <div class="rounded-circle d-flex align-items-center justify-content-center" style="width: 35px; height: 35px; background: #f59e0b;">
+                            <div class="d-flex align-items-center p-3 rounded-3" style="background: rgba(245, 158, 11, 0.1); border-left: 4px solid #f59e0b;">
+                                <div class="flex-shrink-0 me-3">
+                                    <div class="rounded-circle d-flex align-items-center justify-content-center" style="width: 45px; height: 45px; background: #f59e0b;">
                                         <i class="bi bi-building text-white fs-6"></i>
                                     </div>
                                 </div>
                                 <div class="flex-grow-1">
-                                    <h5 class="mb-0 fw-bold" style="color: #f59e0b;">{{ stats.empresas or 0 }}</h5>
+                                    <h4 class="mb-0 fw-bold" style="color: #f59e0b;">{{ stats.empresas }}</h4>
                                     <small class="text-muted">EMPRESAS</small>
                                 </div>
                             </div>
                         </div>
                         <div class="col-lg-3 col-md-6">
-                            <div class="d-flex align-items-center p-2 rounded-3" style="background: rgba(168, 85, 247, 0.1); border-left: 4px solid #a855f7;">
-                                <div class="flex-shrink-0 me-2">
-                                    <div class="rounded-circle d-flex align-items-center justify-content-center" style="width: 35px; height: 35px; background: #a855f7;">
+                            <div class="d-flex align-items-center p-3 rounded-3" style="background: rgba(239, 68, 68, 0.1); border-left: 4px solid #ef4444;">
+                                <div class="flex-shrink-0 me-3">
+                                    <div class="rounded-circle d-flex align-items-center justify-content-center" style="width: 45px; height: 45px; background: #ef4444;">
                                         <i class="bi bi-house text-white fs-6"></i>
                                     </div>
                                 </div>
                                 <div class="flex-grow-1">
-                                    <h5 class="mb-0 fw-bold text-purple">{{ stats.domesticas or 0 }}</h5>
+                                    <h4 class="mb-0 fw-bold" style="color: #ef4444;">{{ stats.domesticas }}</h4>
                                     <small class="text-muted">DOMÉSTICAS</small>
                                 </div>
                             </div>
                         </div>
                     </div>
                     
-                    <!-- Seções lado a lado: Serviços e Regime - DENTRO DO MESMO CARD -->
-                    <div class="row g-3 mt-3">
-                        <!-- Coluna Esquerda: SERVIÇOS PRESTADOS -->
-                        <div class="col-lg-6">
-                            <h6 class="text-muted mb-3">
-                                <i class="bi bi-briefcase me-2"></i>
-                                SERVIÇOS PRESTADOS
+                    <!-- Serviços Prestados e Regime Tributário no mesmo padrão dos Indicadores -->
+                    <div class="row g-3">
+                        <!-- Coluna 1: Serviços Prestados (ESQUERDA) -->
+                        <div class="col-md-6">
+                            <h6 class="mb-3 text-muted fw-semibold">
+                                <i class="bi bi-briefcase me-2"></i>SERVIÇOS PRESTADOS
                             </h6>
                             <div class="row g-2">
-                                <div class="col-6">
+                                <div class="col-md-6">
                                     <div class="d-flex align-items-center p-2 rounded-3" style="background: rgba(59, 130, 246, 0.1); border-left: 4px solid #3b82f6;">
                                         <div class="flex-shrink-0 me-2">
-                                            <div class="rounded-circle d-flex align-items-center justify-content-center" style="width: 30px; height: 30px; background: #3b82f6;">
-                                                <i class="bi bi-calculator text-white" style="font-size: 0.8rem;"></i>
+                                            <div class="rounded-circle d-flex align-items-center justify-content-center" style="width: 35px; height: 35px; background: #3b82f6;">
+                                                <i class="bi bi-calculator text-white fs-6"></i>
                                             </div>
                                         </div>
                                         <div class="flex-grow-1">
-                                            <h6 class="mb-0 fw-bold text-primary">{{ stats.ct or 0 }}</h6>
+                                            <h5 class="mb-0 fw-bold text-primary">{{ stats.ct }}</h5>
                                             <small class="text-muted">CONTÁBIL</small>
                                         </div>
                                     </div>
                                 </div>
-                                <div class="col-6">
+                                <div class="col-md-6">
                                     <div class="d-flex align-items-center p-2 rounded-3" style="background: rgba(34, 197, 94, 0.1); border-left: 4px solid #22c55e;">
                                         <div class="flex-shrink-0 me-2">
-                                            <div class="rounded-circle d-flex align-items-center justify-content-center" style="width: 30px; height: 30px; background: #22c55e;">
-                                                <i class="bi bi-file-text text-white" style="font-size: 0.8rem;"></i>
+                                            <div class="rounded-circle d-flex align-items-center justify-content-center" style="width: 35px; height: 35px; background: #22c55e;">
+                                                <i class="bi bi-file-text text-white fs-6"></i>
                                             </div>
                                         </div>
                                         <div class="flex-grow-1">
-                                            <h6 class="mb-0 fw-bold text-success">{{ stats.fs or 0 }}</h6>
+                                            <h5 class="mb-0 fw-bold text-success">{{ stats.fs }}</h5>
                                             <small class="text-muted">FISCAL</small>
                                         </div>
                                     </div>
                                 </div>
-                                <div class="col-6 mt-2">
+                                <div class="col-md-6">
                                     <div class="d-flex align-items-center p-2 rounded-3" style="background: rgba(245, 158, 11, 0.1); border-left: 4px solid #f59e0b;">
                                         <div class="flex-shrink-0 me-2">
-                                            <div class="rounded-circle d-flex align-items-center justify-content-center" style="width: 30px; height: 30px; background: #f59e0b;">
-                                                <i class="bi bi-people text-white" style="font-size: 0.8rem;"></i>
+                                            <div class="rounded-circle d-flex align-items-center justify-content-center" style="width: 35px; height: 35px; background: #f59e0b;">
+                                                <i class="bi bi-people text-white fs-6"></i>
                                             </div>
                                         </div>
                                         <div class="flex-grow-1">
-                                            <h6 class="mb-0 fw-bold" style="color: #f59e0b;">{{ stats.dp or 0 }}</h6>
+                                            <h5 class="mb-0 fw-bold" style="color: #f59e0b;">{{ stats.dp }}</h5>
                                             <small class="text-muted">PESSOAL</small>
                                         </div>
                                     </div>
                                 </div>
-                                <div class="col-6 mt-2">
+                                <div class="col-md-6">
                                     <div class="d-flex align-items-center p-2 rounded-3" style="background: rgba(168, 85, 247, 0.1); border-left: 4px solid #a855f7;">
                                         <div class="flex-shrink-0 me-2">
-                                            <div class="rounded-circle d-flex align-items-center justify-content-center" style="width: 30px; height: 30px; background: #a855f7;">
-                                                <i class="bi bi-graph-up text-white" style="font-size: 0.8rem;"></i>
+                                            <div class="rounded-circle d-flex align-items-center justify-content-center" style="width: 35px; height: 35px; background: #a855f7;">
+                                                <i class="bi bi-briefcase text-white fs-6"></i>
                                             </div>
                                         </div>
                                         <div class="flex-grow-1">
-                                            <h6 class="mb-0 fw-bold text-purple">{{ stats.bpo or 0 }}</h6>
+                                            <h5 class="mb-0 fw-bold" style="color: #a855f7;">{{ stats.bpo }}</h5>
                                             <small class="text-muted">BPO</small>
                                         </div>
                                     </div>
@@ -177,61 +233,60 @@
                             </div>
                         </div>
                         
-                        <!-- Coluna Direita: REGIME TRIBUTÁRIO -->
-                        <div class="col-lg-6">
-                            <h6 class="text-muted mb-3">
-                                <i class="bi bi-percent me-2"></i>
-                                REGIME TRIBUTÁRIO
+                        <!-- Coluna 2: Regime Tributário (DIREITA) -->
+                        <div class="col-md-6">
+                            <h6 class="mb-3 text-muted fw-semibold">
+                                <i class="bi bi-pie-chart me-2"></i>REGIME TRIBUTÁRIO
                             </h6>
                             <div class="row g-2">
-                                <div class="col-6">
-                                    <div class="d-flex align-items-center p-2 rounded-3" style="background: rgba(59, 130, 246, 0.1); border-left: 4px solid #3b82f6;">
+                                <div class="col-md-6">
+                                    <div class="d-flex align-items-center p-2 rounded-3" style="background: rgba(99, 102, 241, 0.1); border-left: 4px solid #6366f1;">
                                         <div class="flex-shrink-0 me-2">
-                                            <div class="rounded-circle d-flex align-items-center justify-content-center" style="width: 30px; height: 30px; background: #3b82f6;">
-                                                <i class="bi bi-person-badge text-white" style="font-size: 0.8rem;"></i>
+                                            <div class="rounded-circle d-flex align-items-center justify-content-center" style="width: 35px; height: 35px; background: #6366f1;">
+                                                <i class="bi bi-person-badge text-white fs-6"></i>
                                             </div>
                                         </div>
                                         <div class="flex-grow-1">
-                                            <h6 class="mb-0 fw-bold text-primary">{{ stats.mei or 0 }}</h6>
+                                            <h5 class="mb-0 fw-bold" style="color: #6366f1;">{{ stats.mei }}</h5>
                                             <small class="text-muted">MEI</small>
                                         </div>
                                     </div>
                                 </div>
-                                <div class="col-6">
+                                <div class="col-md-6">
                                     <div class="d-flex align-items-center p-2 rounded-3" style="background: rgba(34, 197, 94, 0.1); border-left: 4px solid #22c55e;">
                                         <div class="flex-shrink-0 me-2">
-                                            <div class="rounded-circle d-flex align-items-center justify-content-center" style="width: 30px; height: 30px; background: #22c55e;">
-                                                <i class="bi bi-check-circle text-white" style="font-size: 0.8rem;"></i>
+                                            <div class="rounded-circle d-flex align-items-center justify-content-center" style="width: 35px; height: 35px; background: #22c55e;">
+                                                <i class="bi bi-graph-up text-white fs-6"></i>
                                             </div>
                                         </div>
                                         <div class="flex-grow-1">
-                                            <h6 class="mb-0 fw-bold text-success">{{ stats.simples_nacional or 0 }}</h6>
+                                            <h5 class="mb-0 fw-bold text-success">{{ stats.simples_nacional }}</h5>
                                             <small class="text-muted">SIMPLES NACIONAL</small>
                                         </div>
                                     </div>
                                 </div>
-                                <div class="col-6 mt-2">
+                                <div class="col-md-6">
                                     <div class="d-flex align-items-center p-2 rounded-3" style="background: rgba(245, 158, 11, 0.1); border-left: 4px solid #f59e0b;">
                                         <div class="flex-shrink-0 me-2">
-                                            <div class="rounded-circle d-flex align-items-center justify-content-center" style="width: 30px; height: 30px; background: #f59e0b;">
-                                                <i class="bi bi-currency-dollar text-white" style="font-size: 0.8rem;"></i>
+                                            <div class="rounded-circle d-flex align-items-center justify-content-center" style="width: 35px; height: 35px; background: #f59e0b;">
+                                                <i class="bi bi-calculator text-white fs-6"></i>
                                             </div>
                                         </div>
                                         <div class="flex-grow-1">
-                                            <h6 class="mb-0 fw-bold" style="color: #f59e0b;">{{ stats.lucro_presumido or 0 }}</h6>
+                                            <h5 class="mb-0 fw-bold" style="color: #f59e0b;">{{ stats.lucro_presumido }}</h5>
                                             <small class="text-muted">LUCRO PRESUMIDO</small>
                                         </div>
                                     </div>
                                 </div>
-                                <div class="col-6 mt-2">
+                                <div class="col-md-6">
                                     <div class="d-flex align-items-center p-2 rounded-3" style="background: rgba(168, 85, 247, 0.1); border-left: 4px solid #a855f7;">
                                         <div class="flex-shrink-0 me-2">
-                                            <div class="rounded-circle d-flex align-items-center justify-content-center" style="width: 30px; height: 30px; background: #a855f7;">
-                                                <i class="bi bi-graph-up-arrow text-white" style="font-size: 0.8rem;"></i>
+                                            <div class="rounded-circle d-flex align-items-center justify-content-center" style="width: 35px; height: 35px; background: #a855f7;">
+                                                <i class="bi bi-cash-stack text-white fs-6"></i>
                                             </div>
                                         </div>
                                         <div class="flex-grow-1">
-                                            <h6 class="mb-0 fw-bold text-purple">{{ stats.lucro_real or 0 }}</h6>
+                                            <h5 class="mb-0 fw-bold" style="color: #a855f7;">{{ stats.lucro_real }}</h5>
                                             <small class="text-muted">LUCRO REAL</small>
                                         </div>
                                     </div>
@@ -243,80 +298,20 @@
             </div>
         </div>
     </div>
-
-<!-- Barra de Busca e Controles - SEMPRE VISÍVEL -->
-<div class="card mt-3">
-    <div class="card-header bg-white border-0 pb-3">
-        <div class="d-flex justify-content-between align-items-center mb-3">
-            <h5 class="mb-0">
-                <i class="bi bi-search me-2"></i>
-                BUSCA E FILTROS
-            </h5>
-            <small class="text-muted" id="resultsCounter">
-                {% if pagination %}
-                    Mostrando {{ pagination.start_index }}-{{ pagination.end_index }} de {{ pagination.total }} clientes
-                    {% if search_query %}(filtrados de "{{ search_query }}"){% endif %}
-                {% elif clients %}
-                    {{ clients|length }} CLIENTES
-                {% else %}
-                    0 CLIENTES
-                {% endif %}
-            </small>
-        </div>
-        
-        <!-- Barra de Busca Inteligente - Campos Alinhados -->
-        <div class="row g-3">
-            <div class="col-md-6">
-                <label for="globalSearch" class="form-label small text-muted mb-1">
-                    <i class="bi bi-search me-1"></i>BUSCA GLOBAL
-                </label>
-                <div class="input-group">
-                    <input type="text" 
-                           class="form-control" 
-                           id="globalSearch" 
-                           placeholder="Buscar por nome, CNPJ, cidade, regime..." 
-                           value="{{ search_query or '' }}"
-                           autocomplete="off">
-                    <button type="button" class="btn btn-outline-secondary" id="clearSearch" title="Limpar busca">
-                        <i class="bi bi-x"></i>
-                    </button>
-                </div>
-                <div class="form-text">A busca é realizada em todos os registros, não apenas na página atual.</div>
-            </div>
-            <div class="col-md-3">
-                <label for="perPageSelect" class="form-label small text-muted mb-1">
-                    <i class="bi bi-list-ul me-1"></i>ITENS POR PÁGINA
-                </label>
-                <select class="form-select" id="perPageSelect">
-                    <option value="10" {{ 'selected' if pagination and pagination.per_page == 10 else '' }}>10</option>
-                    <option value="20" {{ 'selected' if pagination and pagination.per_page == 20 else '' }}>20</option>
-                    <option value="50" {{ 'selected' if pagination and pagination.per_page == 50 else '' }}>50</option>
-                    <option value="100" {{ 'selected' if pagination and pagination.per_page == 100 else '' }}>100</option>
-                </select>
-            </div>
-            <div class="col-md-3">
-                <label for="statusFilter" class="form-label small text-muted mb-1">
-                    <i class="bi bi-funnel me-1"></i>FILTRO DE STATUS
-                </label>
-                <select class="form-select" id="statusFilter">
-                    <option value="ativo" {{ 'selected' if status_filter == 'ativo' else '' }}>Apenas Ativos</option>
-                    <option value="inativo" {{ 'selected' if status_filter == 'inativo' else '' }}>Apenas Inativos</option>
-                    <option value="todos" {{ 'selected' if status_filter == 'todos' else '' }}>Todos</option>
-                </select>
-            </div>
-        </div>
-    </div>
 </div>
+
+
 
 {% if clients %}
 <!-- Tabela de clientes -->
-<div class="card mt-3">
-    <div class="card-header bg-white border-0 pb-3">
-        <div class="d-flex justify-content-between align-items-center mb-3">
+<div class="card">
+    <div class="card-header bg-light">
+        <div class="d-flex justify-content-between align-items-center">
             <h5 class="mb-0">
                 <i class="bi bi-table me-2"></i>
                 LISTA DE CLIENTES
             </h5>
+            <small class="text-muted" id="resultsCounter">{{ clients|length }} CLIENTES</small>
         </div>
     </div>
     <div class="card-body p-0">
@@ -324,14 +319,14 @@
             <table class="table table-hover mb-0" id="clientsTable">
                 <thead>
                     <tr>
-                        <th style="min-width: 180px;"><i class="bi bi-building me-1"></i>NOME DA EMPRESA</th>
-                        <th style="min-width: 120px;"><i class="bi bi-file-text me-1"></i>CNPJ</th>
-                        <th style="min-width: 90px;"><i class="bi bi-card-list me-1"></i>IE</th>
-                        <th style="min-width: 90px;"><i class="bi bi-geo me-1"></i>IM</th>
-                        <th style="min-width: 130px;"><i class="bi bi-percent me-1"></i>REGIME FEDERAL</th>
-                        <th style="min-width: 110px;"><i class="bi bi-briefcase me-1"></i>SERVIÇOS</th>
-                        <th style="min-width: 70px;"><i class="bi bi-person-badge me-1"></i>PERFIL</th>
-                        <th style="min-width: 140px;"><i class="bi bi-gear me-1"></i>AÇÕES</th>
+                        <th style="min-width: 250px;"><i class="bi bi-building me-1"></i>NOME DA EMPRESA</th>
+                        <th style="min-width: 140px;"><i class="bi bi-file-text me-1"></i>CNPJ</th>
+                        <th style="min-width: 100px;"><i class="bi bi-card-list me-1"></i>IE</th>
+                        <th style="min-width: 100px;"><i class="bi bi-geo me-1"></i>IM</th>
+                        <th style="min-width: 140px;"><i class="bi bi-percent me-1"></i>REGIME FEDERAL</th>
+                        <th style="min-width: 120px;"><i class="bi bi-briefcase me-1"></i>SERVIÇOS</th>
+                        <th style="min-width: 80px;"><i class="bi bi-person-badge me-1"></i>PERFIL</th>
+                        <th style="min-width: 160px;"><i class="bi bi-gear me-1"></i>AÇÕES</th>
                     </tr>
                 </thead>
                 <tbody>
@@ -340,6 +335,7 @@
                         <td>
                             <div>
                                 <strong class="text-primary">{{ client['nomeEmpresa'] or client['nomeFantasiaReceita'] or '-' }}</strong>
+                                <br><small class="text-muted">#{{ client['id'] or 'N/A' }}</small>
                             </div>
                         </td>
                         <td>
@@ -418,7 +414,7 @@
                                 {% if can_delete() %}
                                 <button type="button" 
                                         class="btn btn-outline-danger btn-sm" 
-                                        onclick="confirmDelete('{{ client['id'] }}', '{{ (client['nomeEmpresa'] or client['nomeFantasiaReceita'] or 'Cliente') | replace("'", "\\'") }}')"
+                                        onclick="confirmDelete('{{ client['id'] }}', '{{ client['nomeEmpresa'] or client['nomeFantasiaReceita'] }}')"
                                         title="Excluir Cliente">
                                     <i class="bi bi-trash"></i>
                                 </button>
@@ -505,38 +501,44 @@
 
 {% else %}
 <!-- Estado vazio -->
-<div class="card mt-3">
+<div class="card">
     <div class="card-body text-center py-5">
-        <i class="bi bi-search display-1 text-muted mb-3"></i>
-        <h4 class="text-muted">Nenhum cliente encontrado</h4>
-        <p class="text-muted mb-4">
-            {% if search_query %}
-                Não foram encontrados clientes que correspondam à busca "<strong>{{ search_query }}</strong>".
-                <br>
-                <small>Tente usar termos mais gerais ou verifique a ortografia.</small>
-            {% else %}
-                Não há clientes cadastrados no sistema ainda.
-            {% endif %}
-        </p>
-        {% if search_query %}
-            <button type="button" class="btn btn-outline-secondary me-2" onclick="clearSearchAndReload()">
-                <i class="bi bi-arrow-clockwise"></i>
-                LIMPAR BUSCA E VER TODOS
-            </button>
-        {% endif %}
-        {% if can_create() %}
+        <i class="bi bi-people display-1 text-muted mb-4"></i>
+        <h3 class="text-muted mb-3">Nenhum cliente cadastrado</h3>
+        <p class="text-muted mb-4">Comece adicionando seu primeiro cliente ao sistema</p>
         <a href="{{ url_for('new_client') }}" class="btn btn-primary">
-            <i class="bi bi-plus-lg"></i>
-            {% if search_query %}
-                CADASTRAR NOVO CLIENTE
-            {% else %}
-                CADASTRAR PRIMEIRO CLIENTE
-            {% endif %}
+            <i class="bi bi-plus-lg me-2"></i>Cadastrar Primeiro Cliente
         </a>
-        {% endif %}
     </div>
 </div>
 {% endif %}
+
+<!-- Modal de confirmação de exclusão -->
+<div class="modal fade" id="deleteModal" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">
+                    <i class="bi bi-exclamation-triangle text-warning me-2"></i>
+                    Confirmar Exclusão
+                </h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <p>Tem certeza que deseja excluir o cliente <strong id="clientName"></strong>?</p>
+                <p class="text-muted">Esta ação não pode ser desfeita.</p>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
+                <form id="deleteForm" method="POST" style="display: inline;">
+                    <button type="submit" class="btn btn-danger">
+                        <i class="bi bi-trash me-1"></i>Excluir
+                    </button>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
 
 <script>
 // Sistema de Paginação e Busca Inteligente
@@ -612,7 +614,7 @@ document.addEventListener('DOMContentLoaded', function() {
     function performGlobalSearch() {
         const searchQuery = globalSearch ? globalSearch.value.trim() : '';
         const status = statusFilter ? statusFilter.value : 'ativo';
-        const perPage = perPageSelect ? perPageSelect.value : '100';
+        const perPage = perPageSelect ? perPageSelect.value : '20';
         
         console.log('🔍 Executando busca global:', { searchQuery, status, perPage });
         
@@ -653,15 +655,6 @@ document.addEventListener('DOMContentLoaded', function() {
         window.location.href = url.toString();
     }
     
-    // Função para limpar busca e recarregar todos os clientes
-    window.clearSearchAndReload = function() {
-        const url = new URL(window.location);
-        url.searchParams.delete('search');
-        url.searchParams.set('page', '1');
-        console.log('🔄 Limpando busca e redirecionando para:', url.toString());
-        window.location.href = url.toString();
-    };
-
     // Função para confirmar exclusão
     window.confirmDelete = function(clientId, clientName) {
         if (confirm(`Tem certeza que deseja excluir o cliente "${clientName}"?\n\nEsta ação não pode ser desfeita.`)) {

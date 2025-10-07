@@ -27,7 +27,6 @@
             <table class="table table-hover mb-0">
                 <thead>
                     <tr>
-                        <th><i class="bi bi-hash me-1"></i>ID</th>
                         <th><i class="bi bi-building me-1"></i>Empresa</th>
                         <th><i class="bi bi-file-text me-1"></i>CNPJ</th>
                         <th><i class="bi bi-geo-alt me-1"></i>Cidade</th>
@@ -40,9 +39,6 @@
                 <tbody>
                     {% for client in clients %}
                     <tr>
-                        <td>
-                            <span class="badge bg-light text-dark">#{{ client.id }}</span>
-                        </td>
                         <td>
                             <div>
                                 <strong class="text-primary">{{ client.nomeEmpresa }}</strong>

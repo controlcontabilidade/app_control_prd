@@ -100,6 +100,41 @@ class GoogleSheetsServiceAccountService:
             print(f"❌ Traceback completo: {traceback.format_exc()}")
             raise
     
+    def get_next_numeric_id(self) -> str:
+        """Gera o próximo ID numérico sequencial disponível"""
+        try:
+            print("🔢 [SERVICE] Gerando próximo ID numérico...")
+            
+            # Buscar todos os clientes para determinar o maior ID numérico
+            clients = self.get_clients()
+            max_id = 0
+            
+            for client in clients:
+                client_id = client.get('id', '')
+                if client_id:
+                    try:
+                        # Tentar converter para inteiro
+                        id_num = int(str(client_id))
+                        if id_num > max_id:
+                            max_id = id_num
+                    except (ValueError, TypeError):
+                        # ID não numérico (timestamp ou outro formato), ignorar
+                        continue
+            
+            next_id = max_id + 1
+            print(f"🔢 [SERVICE] Próximo ID numérico: {next_id}")
+            return str(next_id)
+            
+        except Exception as e:
+            print(f"❌ [SERVICE] Erro ao gerar ID numérico: {e}")
+            # Fallback para ID baseado em timestamp (compatibilidade)
+            import random
+            timestamp = int(datetime.now().timestamp())
+            random_suffix = random.randint(100, 999)
+            fallback_id = f"{timestamp}{random_suffix}"
+            print(f"⚠️ [SERVICE] Usando fallback ID: {fallback_id}")
+            return fallback_id
+    
     def save_client(self, client: Dict) -> bool:
         """Salva ou atualiza cliente no Google Sheets - CORRIGIDO PARA EVITAR DUPLICAÇÃO"""
         try:
@@ -117,14 +152,17 @@ class GoogleSheetsServiceAccountService:
                 return self.update_client(client)
             else:
                 print("🔍 [SERVICE] ===== OPERAÇÃO: NOVO CLIENTE =====")
-                # Gerar ID único baseado em timestamp + random
-                import random
-                timestamp = int(datetime.now().timestamp())
-                random_suffix = random.randint(100, 999)
-                client['id'] = f"{timestamp}{random_suffix}"
+                # Gerar ID único numérico sequencial
+                client_id = self.get_next_numeric_id()
+                client['id'] = client_id
                 client['criadoEm'] = datetime.now().isoformat()
-                print(f"🔍 [SERVICE] ID gerado: {client['id']}")
-                return self.add_new_client(client)
+                print(f"🔍 [SERVICE] ID numérico gerado: {client_id}")
+                
+                result = self.add_new_client(client)
+                if result:
+                    return {'success': True, 'client_id': client_id}
+                else:
+                    return {'success': False, 'message': 'Erro ao adicionar cliente'}
                 
         except Exception as e:
             print(f"❌ [SERVICE] Erro ao processar cliente: {e}")
@@ -197,17 +235,33 @@ class GoogleSheetsServiceAccountService:
                 print("❌ [SERVICE] ABORTAR atualização para evitar duplicação")
                 return False
             
-            # Manter dados originais importantes
+            # Manter dados originais importantes - recuperar criadoEm diretamente da planilha
             if not client.get('criadoEm'):
-                print("🔍 [SERVICE] Recuperando criadoEm original...")
+                print("🔍 [SERVICE] Recuperando criadoEm original diretamente da planilha...")
                 try:
-                    existing_client = self.get_client(client_id)
-                    if existing_client:
-                        client['criadoEm'] = existing_client.get('criadoEm', datetime.now().isoformat())
-                        print(f"✅ [SERVICE] CriadoEm recuperado: {client['criadoEm']}")
+                    # Buscar diretamente da planilha sem conversão completa
+                    range_to_read = f"Clientes!A{row_index}:FP{row_index}"
+                    result = self.service.spreadsheets().values().get(
+                        spreadsheetId=self.spreadsheet_id,
+                        range=range_to_read
+                    ).execute()
+                    
+                    if 'values' in result and result['values']:
+                        existing_row = result['values'][0]
+                        # Posição 152 = DATA DE CRIAÇÃO (CORRIGIDO)
+                        existing_criado_em = existing_row[152] if len(existing_row) > 152 else ''
+                        
+                        if existing_criado_em:
+                            client['criadoEm'] = existing_criado_em
+                            print(f"✅ [SERVICE] CriadoEm recuperado da planilha: {client['criadoEm']}")
+                        else:
+                            # Primeira vez sendo criado nesta atualização - usar timestamp atual
+                            client['criadoEm'] = datetime.now().isoformat()
+                            print(f"🆕 [SERVICE] CriadoEm definido pela primeira vez: {client['criadoEm']}")
                     else:
                         client['criadoEm'] = datetime.now().isoformat()
-                        print(f"⚠️ [SERVICE] CriadoEm não encontrado, usando atual")
+                        print(f"⚠️ [SERVICE] Linha não encontrada, usando timestamp atual")
+                        
                 except Exception as e:
                     print(f"⚠️ [SERVICE] Erro ao recuperar criadoEm: {e}")
                     client['criadoEm'] = datetime.now().isoformat()
@@ -1329,22 +1383,23 @@ class GoogleSheetsServiceAccountService:
             'SIM' if client.get('procCaixa') else 'NÃO',      # 90. PROCURAÇÃO CAIXA
             client.get('dataProcCaixa', ''),                  # 91. DATA PROCURAÇÃO CAIXA
             'SIM' if client.get('procEmpWeb') else 'NÃO',     # 92. PROCURAÇÃO EMP WEB
-            client.get('dataProcEmpWeb', ''),                 # 93. DATA PROCURAÇÃO EMP WEB
+            client.get('dataProcEmpWeb', ''),                 # 93. DATA PROCURAÇÃO EMP WEB (posição real: 146)
             'SIM' if client.get('procDet') else 'NÃO',        # 94. PROCURAÇÃO DET
             client.get('dataProcDet', ''),                    # 95. DATA PROCURAÇÃO DET
-            client.get('outrasProc', ''),                     # 96. OUTRAS PROCURAÇÕES
-            client.get('obsProcuracoes', ''),                 # 97. OBSERVAÇÕES PROCURAÇÕES
+            client.get('outrasProc', ''),                     # 145. OUTRAS PROCURAÇÕES
+            client.get('observacoes', ''),                    # 147. OBSERVAÇÕES GERAIS (posição real: 147 - CORRIGIDO)
+            client.get('obsProcuracoes', ''),                 # 148. OBSERVAÇÕES PROCURAÇÕES
 
-            # Bloco 7: Observações e Dados Adicionais (apenas campos mantidos)
-            client.get('observacoes', ''),                    # 98. OBSERVAÇÕES
-            client.get('statusCliente', 'ativo'),             # 99. STATUS DO CLIENTE
-            client.get('ultimaAtualizacao', ''),              # 100. ÚLTIMA ATUALIZAÇÃO
+            # Bloco 7: Observações e Dados Adicionais (posições corretas)
+            client.get('statusCliente', 'ativo'),             # 148. STATUS DO CLIENTE
+            client.get('ultimaAtualizacao', ''),              # 149. ÚLTIMA ATUALIZAÇÃO
 
             # Campos internos do sistema
-            client.get('donoResp', ''),                       # 101. DONO/RESPONSÁVEL
-            'SIM' if client.get('ativo', True) else 'NÃO',    # 102. CLIENTE ATIVO
-            client.get('criadoEm', ''),                       # 103. DATA DE CRIAÇÃO
-            client.get('id', ''),                             # 104. ID
+            client.get('donoResp', ''),                       # 150. DONO/RESPONSÁVEL
+            # REMOVIDO: campos específicos agora são mapeados por header abaixo
+            # 'SIM' if client.get('ativo', True) else 'NÃO',    # CLIENTE ATIVO - mapeado por header
+            # client.get('criadoEm', ''),                       # DATA DE CRIAÇÃO - mapeado por header  
+            # client.get('id', ''),                             # ID - mapeado por header
             client.get('domestica', ''),                      # 105. DOMÉSTICA
             client.get('geraArquivoSped', ''),                # 106. GERA ARQUIVO DO SPED
             # --- CAMPOS NOVOS AO FINAL ---
@@ -1374,6 +1429,12 @@ class GoogleSheetsServiceAccountService:
         # ID
         if 'ID' in hidx:
             row_data[hidx['ID']] = client.get('id', '')
+        # OBSERVAÇÕES
+        if 'OBSERVAÇÕES' in hidx:
+            row_data[hidx['OBSERVAÇÕES']] = client.get('observacoes', '')
+        # ÚLTIMA ATUALIZAÇÃO
+        if 'ÚLTIMA ATUALIZAÇÃO' in hidx:
+            row_data[hidx['ÚLTIMA ATUALIZAÇÃO']] = client.get('ultimaAtualizacao', '')
 
     # Novos campos no final (não alteram índices anteriores), respeitando cabeçalhos
         try:
@@ -1675,40 +1736,40 @@ class GoogleSheetsServiceAccountService:
             'procDet': bool_from_text(safe_get(row, 147)),        # 147. PROCURAÇÃO DET
             'dataProcDet': safe_get(row, 148),                    # 148. DATA PROCURAÇÃO DET
             'outrasProc': safe_get(row, 149),                     # 149. OUTRAS PROCURAÇÕES
-            'obsProcuracoes': safe_get(row, 150),                 # 150. OBSERVAÇÕES PROCURAÇÕES
 
-            # Bloco 7: Observações e Dados Adicionais (posições reais na planilha)
-            'observacoes': safe_get(row, 151, ''),                # 151. OBSERVAÇÕES
-            'statusCliente': safe_get(row, 152, 'ativo').lower(), # 152. STATUS DO CLIENTE
-            'ultimaAtualizacao': safe_get(row, 153),              # 153. ÚLTIMA ATUALIZAÇÃO
+            # Bloco 7: Observações e Dados Adicionais (posições corretas conforme dados reais)
+            'observacoes': safe_get(row, 147, ''),                # 147. OBSERVAÇÕES GERAIS (posição real: 147 - CORRIGIDO)
+            'obsProcuracoes': safe_get(row, 147),                 # 148. OBSERVAÇÕES PROCURAÇÕES (posição 147) 
+            'statusCliente': safe_get(row, 148, 'ativo').lower(),  # 148. STATUS DO CLIENTE
+            'ultimaAtualizacao': safe_get(row, 149),              # 149. ÚLTIMA ATUALIZAÇÃO
 
-            # Campos internos do sistema (posições reais na planilha)
+            # Campos internos do sistema (posições corretas na planilha)
             'id': id_resolvido,
-            'donoResp': safe_get(row, 154),                       # 154. DONO/RESPONSÁVEL
+            'donoResp': safe_get(row, 150),                       # 150. DONO/RESPONSÁVEL
             
             # Campo ativo derivado do statusCliente - CORREÇÃO PRINCIPAL
-            'criadoEm': safe_get(row, 156, datetime.now().isoformat()), # 156. DATA DE CRIAÇÃO
-            'domestica': safe_get(row, 158),                      # 158. DOMÉSTICA
-            'geraArquivoSped': safe_get(row, 159),                # 159. GERA ARQUIVO DO SPED
+            'criadoEm': safe_get(row, 152, ''), # 152. DATA DE CRIAÇÃO (posição correta) - CORRIGIDO DE 151 PARA 152
+            'domestica': safe_get(row, 104),                      # 105. DOMÉSTICA
+            'geraArquivoSped': safe_get(row, 105),                # 106. GERA ARQUIVO DO SPED
             
             # --- CAMPOS NOVOS DE SENHA - usando posições corretas dos cabeçalhos ---
-            'cnpjAcessoSn': safe_get(row, 160),       # 161. CNPJ ACESSO SIMPLES NACIONAL
-            'cpfRepLegal': safe_get(row, 161),        # 162. CPF DO REPRESENTANTE LEGAL  
-            'codigoAcessoSn': safe_get(row, 162),     # 163. CÓDIGO ACESSO SN
-            'senhaIss': safe_get(row, 163),           # 164. SENHA ISS
-            'senhaSefin': safe_get(row, 164),         # 165. SENHA SEFIN
-            'senhaSeuma': safe_get(row, 165),         # 166. SENHA SEUMA
-            'anvisaEmpresa': safe_get(row, 166),      # 167. LOGIN ANVISA EMPRESA
-            'senhaAnvisaEmpresa': safe_get(row, 167), # 168. SENHA ANVISA EMPRESA
-            'anvisaGestor': safe_get(row, 168),       # 169. LOGIN ANVISA GESTOR
-            'senhaAnvisaGestor': safe_get(row, 169),  # 170. SENHA ANVISA GESTOR
-            'senhaFapInss': safe_get(row, 170),       # 171. SENHA FAP/INSS
-            'acessoEmpWeb': safe_get(row, 171),       # 172. ACESSO EMP WEB
-            'senhaEmpWeb': safe_get(row, 172),        # 173. SENHA EMP WEB
-            'acessoCrf': safe_get(row, 173),          # 174. ACESSO CRF
-            'senhaCrf': safe_get(row, 174),           # 175. SENHA CRF
-            'emailSefin': safe_get(row, 175),         # 176. EMAIL SEFIN
-            'emailEmpweb': safe_get(row, 176),        # 177. EMAIL EMPWEB
+            'cnpjAcessoSn': safe_get(row, 106),       # 107. CNPJ ACESSO SIMPLES NACIONAL
+            'cpfRepLegal': safe_get(row, 107),        # 108. CPF DO REPRESENTANTE LEGAL  
+            'codigoAcessoSn': safe_get(row, 108),     # 109. CÓDIGO ACESSO SN
+            'senhaIss': safe_get(row, 109),           # 110. SENHA ISS (remapeado de SENHA SEFIN)
+            'senhaSefin': safe_get(row, 109),         # 110. SENHA SEFIN
+            'senhaSeuma': safe_get(row, 110),         # 111. SENHA SEUMA
+            'anvisaEmpresa': safe_get(row, 111),      # 112. LOGIN ANVISA EMPRESA
+            'senhaAnvisaEmpresa': safe_get(row, 112), # 113. SENHA ANVISA EMPRESA
+            'anvisaGestor': safe_get(row, 113),       # 114. LOGIN ANVISA GESTOR
+            'senhaAnvisaGestor': safe_get(row, 114),  # 115. SENHA ANVISA GESTOR
+            'senhaFapInss': safe_get(row, 115),       # 116. SENHA FAP/INSS
+            'acessoEmpWeb': safe_get(row, 116),       # 117. ACESSO EMP WEB
+            'senhaEmpWeb': safe_get(row, 117),        # 118. SENHA EMP WEB
+            'acessoCrf': safe_get(row, 118),          # 119. ACESSO CRF
+            'senhaCrf': safe_get(row, 119),           # 120. SENHA CRF
+            'emailSefin': safe_get(row, 120),         # 121. EMAIL SEFIN
+            'emailEmpweb': safe_get(row, 121),        # 122. EMAIL EMPWEB
         }
 
         # CORREÇÃO CRÍTICA: Derivar campo 'ativo' a partir do statusCliente
