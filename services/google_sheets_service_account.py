@@ -100,6 +100,41 @@ class GoogleSheetsServiceAccountService:
             print(f"❌ Traceback completo: {traceback.format_exc()}")
             raise
     
+    def get_next_numeric_id(self) -> str:
+        """Gera o próximo ID numérico sequencial disponível"""
+        try:
+            print("🔢 [SERVICE] Gerando próximo ID numérico...")
+            
+            # Buscar todos os clientes para determinar o maior ID numérico
+            clients = self.get_clients()
+            max_id = 0
+            
+            for client in clients:
+                client_id = client.get('id', '')
+                if client_id:
+                    try:
+                        # Tentar converter para inteiro
+                        id_num = int(str(client_id))
+                        if id_num > max_id:
+                            max_id = id_num
+                    except (ValueError, TypeError):
+                        # ID não numérico (timestamp ou outro formato), ignorar
+                        continue
+            
+            next_id = max_id + 1
+            print(f"🔢 [SERVICE] Próximo ID numérico: {next_id}")
+            return str(next_id)
+            
+        except Exception as e:
+            print(f"❌ [SERVICE] Erro ao gerar ID numérico: {e}")
+            # Fallback para ID baseado em timestamp (compatibilidade)
+            import random
+            timestamp = int(datetime.now().timestamp())
+            random_suffix = random.randint(100, 999)
+            fallback_id = f"{timestamp}{random_suffix}"
+            print(f"⚠️ [SERVICE] Usando fallback ID: {fallback_id}")
+            return fallback_id
+    
     def save_client(self, client: Dict) -> bool:
         """Salva ou atualiza cliente no Google Sheets - CORRIGIDO PARA EVITAR DUPLICAÇÃO"""
         try:
@@ -117,14 +152,17 @@ class GoogleSheetsServiceAccountService:
                 return self.update_client(client)
             else:
                 print("🔍 [SERVICE] ===== OPERAÇÃO: NOVO CLIENTE =====")
-                # Gerar ID único baseado em timestamp + random
-                import random
-                timestamp = int(datetime.now().timestamp())
-                random_suffix = random.randint(100, 999)
-                client['id'] = f"{timestamp}{random_suffix}"
+                # Gerar ID único numérico sequencial
+                client_id = self.get_next_numeric_id()
+                client['id'] = client_id
                 client['criadoEm'] = datetime.now().isoformat()
-                print(f"🔍 [SERVICE] ID gerado: {client['id']}")
-                return self.add_new_client(client)
+                print(f"🔍 [SERVICE] ID numérico gerado: {client_id}")
+                
+                result = self.add_new_client(client)
+                if result:
+                    return {'success': True, 'client_id': client_id}
+                else:
+                    return {'success': False, 'message': 'Erro ao adicionar cliente'}
                 
         except Exception as e:
             print(f"❌ [SERVICE] Erro ao processar cliente: {e}")
@@ -197,17 +235,33 @@ class GoogleSheetsServiceAccountService:
                 print("❌ [SERVICE] ABORTAR atualização para evitar duplicação")
                 return False
             
-            # Manter dados originais importantes
+            # Manter dados originais importantes - recuperar criadoEm diretamente da planilha
             if not client.get('criadoEm'):
-                print("🔍 [SERVICE] Recuperando criadoEm original...")
+                print("🔍 [SERVICE] Recuperando criadoEm original diretamente da planilha...")
                 try:
-                    existing_client = self.get_client(client_id)
-                    if existing_client:
-                        client['criadoEm'] = existing_client.get('criadoEm', datetime.now().isoformat())
-                        print(f"✅ [SERVICE] CriadoEm recuperado: {client['criadoEm']}")
+                    # Buscar diretamente da planilha sem conversão completa
+                    range_to_read = f"Clientes!A{row_index}:FP{row_index}"
+                    result = self.service.spreadsheets().values().get(
+                        spreadsheetId=self.spreadsheet_id,
+                        range=range_to_read
+                    ).execute()
+                    
+                    if 'values' in result and result['values']:
+                        existing_row = result['values'][0]
+                        # Posição 152 = DATA DE CRIAÇÃO (CORRIGIDO)
+                        existing_criado_em = existing_row[152] if len(existing_row) > 152 else ''
+                        
+                        if existing_criado_em:
+                            client['criadoEm'] = existing_criado_em
+                            print(f"✅ [SERVICE] CriadoEm recuperado da planilha: {client['criadoEm']}")
+                        else:
+                            # Primeira vez sendo criado nesta atualização - usar timestamp atual
+                            client['criadoEm'] = datetime.now().isoformat()
+                            print(f"🆕 [SERVICE] CriadoEm definido pela primeira vez: {client['criadoEm']}")
                     else:
                         client['criadoEm'] = datetime.now().isoformat()
-                        print(f"⚠️ [SERVICE] CriadoEm não encontrado, usando atual")
+                        print(f"⚠️ [SERVICE] Linha não encontrada, usando timestamp atual")
+                        
                 except Exception as e:
                     print(f"⚠️ [SERVICE] Erro ao recuperar criadoEm: {e}")
                     client['criadoEm'] = datetime.now().isoformat()
@@ -1342,9 +1396,10 @@ class GoogleSheetsServiceAccountService:
 
             # Campos internos do sistema
             client.get('donoResp', ''),                       # 150. DONO/RESPONSÁVEL
-            'SIM' if client.get('ativo', True) else 'NÃO',    # 102. CLIENTE ATIVO
-            client.get('criadoEm', ''),                       # 103. DATA DE CRIAÇÃO
-            client.get('id', ''),                             # 104. ID
+            # REMOVIDO: campos específicos agora são mapeados por header abaixo
+            # 'SIM' if client.get('ativo', True) else 'NÃO',    # CLIENTE ATIVO - mapeado por header
+            # client.get('criadoEm', ''),                       # DATA DE CRIAÇÃO - mapeado por header  
+            # client.get('id', ''),                             # ID - mapeado por header
             client.get('domestica', ''),                      # 105. DOMÉSTICA
             client.get('geraArquivoSped', ''),                # 106. GERA ARQUIVO DO SPED
             # --- CAMPOS NOVOS AO FINAL ---
@@ -1693,7 +1748,7 @@ class GoogleSheetsServiceAccountService:
             'donoResp': safe_get(row, 150),                       # 150. DONO/RESPONSÁVEL
             
             # Campo ativo derivado do statusCliente - CORREÇÃO PRINCIPAL
-            'criadoEm': safe_get(row, 102, datetime.now().isoformat()), # 103. DATA DE CRIAÇÃO
+            'criadoEm': safe_get(row, 152, ''), # 152. DATA DE CRIAÇÃO (posição correta) - CORRIGIDO DE 151 PARA 152
             'domestica': safe_get(row, 104),                      # 105. DOMÉSTICA
             'geraArquivoSped': safe_get(row, 105),                # 106. GERA ARQUIVO DO SPED
             
