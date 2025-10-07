@@ -2111,11 +2111,21 @@ def index():
     
     # Se está logado, continuar com a lógica original
     print(f"🏠 INDEX: Usuário autenticado (ID: {session['user_id']}) - Carregando dashboard")
-    print("🔍 === ROTA INDEX CHAMADA (ULTRA-MEMORY OPTIMIZED) ===")
+    print("🔍 === ROTA INDEX CHAMADA (COM PAGINAÇÃO INTELIGENTE) ===")
     
-    # Obter filtro de status da URL (padrão: apenas ativos)
+    # Obter parâmetros da URL
     status_filter = request.args.get('status', 'ativo')
-    print(f"🔍 Filtro de status aplicado: {status_filter}")
+    search_query = request.args.get('search', '').strip()
+    page = int(request.args.get('page', 1))
+    per_page = int(request.args.get('per_page', 100))  # 100 clientes por página por padrão
+    
+    print(f"🔍 Parâmetros: status={status_filter}, search='{search_query}', page={page}, per_page={per_page}")
+    
+    # Validações
+    if page < 1:
+        page = 1
+    if per_page < 5 or per_page > 100:
+        per_page = 20
     
     try:
         print("📊 Carregando clientes com lazy loading EXTREMO...")
@@ -2143,7 +2153,7 @@ def index():
         except ImportError:
             clients = storage.get_clients()
         
-        # Aplicar filtro de status ANTES da limitação de memória
+        # Aplicar filtro de status ANTES da busca e paginação
         original_count = len(clients)
         if status_filter == 'ativo':
             clients = [c for c in clients if c.get('ativo', True) and c.get('statusCliente', 'ativo').lower() == 'ativo']
@@ -2153,6 +2163,40 @@ def index():
             print(f"🔍 Filtro INATIVO aplicado: {len(clients)} de {original_count} clientes")
         elif status_filter == 'todos':
             print(f"🔍 Filtro TODOS aplicado: {len(clients)} clientes (sem filtro)")
+        
+        # Aplicar busca global (em todos os registros, não apenas a página atual)
+        if search_query:
+            search_lower = search_query.lower()
+            filtered_clients = []
+            
+            for client in clients:
+                # Buscar em campos principais
+                search_fields = [
+                    client.get('nomeEmpresa', ''),
+                    client.get('nomeFantasiaReceita', ''),
+                    client.get('razaoSocialReceita', ''),
+                    client.get('cnpj', ''),
+                    client.get('inscEst', ''),
+                    client.get('inscMun', ''),
+                    client.get('id', ''),
+                    client.get('cidade', ''),
+                    client.get('estado', ''),
+                    client.get('regimeFederal', ''),
+                    client.get('segmento', ''),
+                    client.get('atividade', ''),
+                    client.get('perfilCliente', ''),
+                    client.get('perfil', ''),
+                ]
+                
+                # Verificar se algum campo contém o termo de busca
+                if any(search_lower in str(field).lower() for field in search_fields if field):
+                    filtered_clients.append(client)
+            
+            clients = filtered_clients
+            print(f"🔍 Busca por '{search_query}' aplicada: {len(clients)} resultados encontrados")
+        
+        # Guardar total de clientes filtrados para paginação
+        total_clients = len(clients)
         
         # Ordenar clientes alfabeticamente por nome da empresa (A-Z)
         try:
@@ -2170,34 +2214,45 @@ def index():
             print(f"⚠️ Erro ao ordenar clientes: {sort_error}")
             # Em caso de erro, manter a lista original
         
-        # Limite baseado na memória disponível (ajustado para desenvolvimento)
-        max_clients = ULTRA_MEMORY_SETTINGS.get('MAX_ROWS_PER_REQUEST', 100) if MEMORY_OPTIMIZER_AVAILABLE else 100
+        # Implementar paginação
+        start_index = (page - 1) * per_page
+        end_index = start_index + per_page
+        clients_page = clients[start_index:end_index]
         
-        # Para produção, usar limite razoável mas não extremo
-        if os.environ.get('FLASK_ENV') == 'production':
-            max_clients = min(max_clients, 50)  # Máximo 50 clientes em produção (mais razoável)
-        else:
-            # Em desenvolvimento, permitir mais clientes para testes
-            max_clients = 1000  # Limite alto para desenvolvimento
-            
-        if len(clients) > max_clients:
-            clients = clients[:max_clients]
-            print(f"🧠 Lista limitada a {max_clients} clientes para otimização de memória")
+        # Calcular informações de paginação
+        total_pages = (total_clients + per_page - 1) // per_page  # Ceiling division
+        has_prev = page > 1
+        has_next = page < total_pages
         
-        print(f"✅ {len(clients)} clientes carregados")
+        pagination_info = {
+            'page': page,
+            'per_page': per_page,
+            'total': total_clients,
+            'total_pages': total_pages,
+            'has_prev': has_prev,
+            'has_next': has_next,
+            'prev_num': page - 1 if has_prev else None,
+            'next_num': page + 1 if has_next else None,
+            'start_index': start_index + 1 if total_clients > 0 else 0,
+            'end_index': min(end_index, total_clients)
+        }
+        
+        print(f"📄 Paginação: página {page}/{total_pages}, mostrando {len(clients_page)} de {total_clients} clientes")
+        
+        print(f"✅ {len(clients_page)} clientes carregados (página {page} de {total_pages})")
         print(f"💾 Memória atual: {UltraMemoryOptimizer.get_memory_usage() if MEMORY_OPTIMIZER_AVAILABLE else 'N/A'}")
         
-        # OTIMIZAÇÃO MEMÓRIA: Stats calculadas corretamente
+        # OTIMIZAÇÃO MEMÓRIA: Stats calculadas com base nos dados filtrados (antes da paginação)
         try:
-            # Calcular estatísticas reais mantendo otimização de memória
+            # Usar todos os clientes filtrados para stats, não apenas a página atual
             stats = calculate_dashboard_stats_optimized(clients)
             print(f"📈 Estatísticas calculadas: {stats['total_clientes']} total, {stats['empresas']} empresas, {stats['domesticas']} domésticas, {stats['mei']} MEI, {stats['simples_nacional']} SN, {stats['lucro_presumido']} LP, {stats['lucro_real']} LR")
         except Exception as stats_error:
             print(f"⚠️ Erro ao calcular stats: {stats_error}")
             stats = {
-                'total_clientes': len(clients), 
-                'clientes_ativos': len(clients),  # Simplificado
-                'empresas': len(clients), 'domesticas': 0, 'mei': 0, 'simples_nacional': 0,
+                'total_clientes': total_clients, 
+                'clientes_ativos': total_clients,  # Simplificado
+                'empresas': total_clients, 'domesticas': 0, 'mei': 0, 'simples_nacional': 0,
                 'lucro_presumido': 0, 'lucro_real': 0,
                 'ct': 0, 'fs': 0, 'dp': 0, 'bpo': 0
             }
@@ -2209,7 +2264,12 @@ def index():
                 gc.collect()
             print(f"💾 Memória pós-GC-EXTREMO: {MemoryOptimizer.get_memory_usage() if MEMORY_OPTIMIZER_AVAILABLE else 'N/A'}")
         
-        return render_template('index_modern.html', clients=clients, stats=stats, status_filter=status_filter)
+        return render_template('index_modern.html', 
+                             clients=clients_page, 
+                             stats=stats, 
+                             status_filter=status_filter,
+                             search_query=search_query,
+                             pagination=pagination_info)
         
     except Exception as e:
         print(f"❌ ERRO na rota index: {str(e)}")
