@@ -121,25 +121,41 @@
                             </div>
                         </td>
                         <td>
-                            <button type="button" 
-                                    class="btn btn-outline-primary btn-sm view-meeting-btn" 
-                                    data-bs-toggle="modal" 
-                                    data-bs-target="#meetingDetailsModal"
-                                    data-meeting-id="{{ meeting.id }}"
-                                    data-meeting-date="{{ meeting.date or '' }}"
-                                    data-meeting-time="{{ meeting.time or '' }}"
-                                    data-meeting-participants="{{ meeting.participants or '' }}"
-                                    data-meeting-topics="{{ meeting.topics or '' }}"
-                                    data-meeting-topics-formatted="{{ meeting.topics_formatted or meeting.topics or '' }}"
-                                    data-meeting-created-date="{{ meeting.created_date or '' }}"
-                                    data-meeting-created-time="{{ meeting.created_time or '' }}"
-                                    data-meeting-created-by="{{ meeting.created_by or '' }}"
-                                    data-meeting-updated-date="{{ meeting.updated_date or '' }}"
-                                    data-meeting-updated-time="{{ meeting.updated_time or '' }}"
-                                    data-meeting-updated-by="{{ meeting.updated_by or '' }}"
-                                    title="Ver detalhes completos">
-                                <i class="bi bi-eye"></i>
-                            </button>
+                            <div class="d-flex gap-1">
+                                <button type="button" 
+                                        class="btn btn-outline-primary btn-sm view-meeting-btn" 
+                                        data-bs-toggle="modal" 
+                                        data-bs-target="#meetingDetailsModal"
+                                        data-meeting-id="{{ meeting.id }}"
+                                        data-meeting-date="{{ meeting.date or '' }}"
+                                        data-meeting-time="{{ meeting.time or '' }}"
+                                        data-meeting-participants="{{ meeting.participants or '' }}"
+                                        data-meeting-topics="{{ meeting.topics or '' }}"
+                                        data-meeting-topics-formatted="{{ meeting.topics_formatted or meeting.topics or '' }}"
+                                        data-meeting-created-date="{{ meeting.created_date or '' }}"
+                                        data-meeting-created-time="{{ meeting.created_time or '' }}"
+                                        data-meeting-created-by="{{ meeting.created_by or '' }}"
+                                        data-meeting-updated-date="{{ meeting.updated_date or '' }}"
+                                        data-meeting-updated-time="{{ meeting.updated_time or '' }}"
+                                        data-meeting-updated-by="{{ meeting.updated_by or '' }}"
+                                        title="Ver detalhes completos">
+                                    <i class="bi bi-eye"></i>
+                                </button>
+                                {% if session.user_perfil and session.user_perfil.lower() == 'administrador' %}
+                                <button type="button" 
+                                        class="btn btn-outline-warning btn-sm" 
+                                        onclick="editClientMeeting('{{ meeting.id }}', '{{ client.id }}')"
+                                        title="Editar ata">
+                                    <i class="bi bi-pencil"></i>
+                                </button>
+                                <button type="button" 
+                                        class="btn btn-outline-danger btn-sm" 
+                                        onclick="deleteClientMeeting('{{ meeting.id }}', '{{ client.nomeEmpresa or client.nomeFantasiaReceita }}')"
+                                        title="Excluir ata">
+                                    <i class="bi bi-trash"></i>
+                                </button>
+                                {% endif %}
+                            </div>
                         </td>
                     </tr>
                     {% endfor %}
@@ -287,6 +303,39 @@ function viewMeetingDetails(meetingData) {
         updatedInfo.style.display = 'block';
     } else {
         updatedInfo.style.display = 'none';
+    }
+}
+
+// Função para editar ata do cliente
+function editClientMeeting(meetingId, clientId) {
+    // Redireciona para uma página de edição (a ser criada)
+    window.location.href = `/client/${clientId}/meeting/${meetingId}/edit`;
+}
+
+// Função para excluir ata do cliente
+function deleteClientMeeting(meetingId, clientName) {
+    if (confirm(`Tem certeza que deseja excluir esta ata de reunião do cliente "${clientName}"?\n\nEsta ação não pode ser desfeita.`)) {
+        // Envia requisição de exclusão
+        fetch(`/meeting/${meetingId}/delete`, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'X-Requested-With': 'XMLHttpRequest'
+            }
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                // Recarrega a página para atualizar a lista
+                location.reload();
+            } else {
+                alert('Erro ao excluir ata: ' + (data.message || 'Erro desconhecido'));
+            }
+        })
+        .catch(error => {
+            console.error('Erro:', error);
+            alert('Erro ao excluir ata. Tente novamente.');
+        });
     }
 }
 </script>

@@ -3136,13 +3136,36 @@ def save_meeting(client_id):
         meeting_date_input = request.form.get('meeting_date')
         meeting_date_formatted = meeting_date_input  # Mantém no formato brasileiro
         
+        # Validação de campos obrigatórios
+        meeting_date_input = request.form.get('meeting_date')
+        meeting_time_input = request.form.get('meeting_time')
+        participants_input = request.form.get('participants')
+        topics_input = request.form.get('topics')
+        
+        # Verificar se os campos obrigatórios estão preenchidos
+        if not meeting_date_input or not meeting_date_input.strip():
+            flash('❌ A data da reunião é obrigatória.', 'error')
+            return redirect(url_for('register_meeting', client_id=client_id))
+            
+        if not meeting_time_input or not meeting_time_input.strip():
+            flash('❌ O horário da reunião é obrigatório.', 'error')
+            return redirect(url_for('register_meeting', client_id=client_id))
+            
+        if not participants_input or not participants_input.strip():
+            flash('❌ Os participantes da reunião são obrigatórios.', 'error')
+            return redirect(url_for('register_meeting', client_id=client_id))
+            
+        if not topics_input or not topics_input.strip():
+            flash('❌ O conteúdo da reunião é obrigatório.', 'error')
+            return redirect(url_for('register_meeting', client_id=client_id))
+
         meeting_data = {
             'client_id': client_id,
             'client_name': client_name,
             'date': meeting_date_formatted,
-            'time': request.form.get('meeting_time'),
-            'participants': request.form.get('participants'),
-            'topics': request.form.get('topics'),
+            'time': meeting_time_input.strip(),
+            'participants': participants_input.strip(),
+            'topics': topics_input.strip(),
             'decisions': request.form.get('decisions', ''),  # Campo opcional
             'next_steps': request.form.get('next_steps', '')  # Campo opcional
         }
@@ -3214,6 +3237,135 @@ def all_meetings():
     except Exception as e:
         flash(f'Erro ao carregar atas: {str(e)}', 'error')
         return redirect(url_for('index'))
+
+@app.route('/meeting/<meeting_id>/delete', methods=['POST'])
+@login_required
+def delete_meeting(meeting_id):
+    """Excluir ata de reunião"""
+    try:
+        # Verificar permissão de administrador
+        if not session.get('user_perfil') or session.get('user_perfil').lower() != 'administrador':
+            return jsonify({'success': False, 'message': 'Acesso negado. Apenas administradores podem excluir atas.'}), 403
+        
+        current_meeting_service = get_meeting_service()
+        if current_meeting_service:
+            success = current_meeting_service.delete_meeting(meeting_id)
+            if success:
+                return jsonify({'success': True, 'message': 'Ata excluída com sucesso!'})
+            else:
+                return jsonify({'success': False, 'message': 'Erro ao excluir ata. Ata não encontrada.'})
+        else:
+            return jsonify({'success': False, 'message': 'Serviço de atas não disponível.'})
+            
+    except Exception as e:
+        print(f"❌ Erro ao excluir ata {meeting_id}: {e}")
+        return jsonify({'success': False, 'message': f'Erro interno: {str(e)}'}), 500
+
+@app.route('/client/<client_id>/meeting/<meeting_id>/edit')
+@login_required
+def edit_meeting(client_id, meeting_id):
+    """Editar ata de reunião"""
+    try:
+        # Verificar permissão de administrador
+        if not session.get('user_perfil') or session.get('user_perfil').lower() != 'administrador':
+            flash('Acesso negado. Apenas administradores podem editar atas.', 'error')
+            return redirect(url_for('view_client_meetings', client_id=client_id))
+        
+        # Buscar dados do cliente
+        storage = get_storage_service()
+        client = storage.get_client(client_id) if storage else None
+        if not client:
+            flash('Cliente não encontrado', 'error')
+            return redirect(url_for('index'))
+        
+        # Buscar dados da ata
+        current_meeting_service = get_meeting_service()
+        if current_meeting_service:
+            meeting = current_meeting_service.get_meeting(meeting_id)
+            if not meeting:
+                flash('Ata de reunião não encontrada', 'error')
+                return redirect(url_for('view_client_meetings', client_id=client_id))
+            
+            return render_template('edit_meeting_form.html', client=client, meeting=meeting)
+        else:
+            flash('Serviço de atas não disponível', 'error')
+            return redirect(url_for('view_client_meetings', client_id=client_id))
+            
+    except Exception as e:
+        flash(f'Erro ao carregar ata para edição: {str(e)}', 'error')
+        return redirect(url_for('view_client_meetings', client_id=client_id))
+
+@app.route('/client/<client_id>/meeting/<meeting_id>/edit', methods=['POST'])
+@login_required
+def update_meeting(client_id, meeting_id):
+    """Atualizar ata de reunião"""
+    try:
+        # Verificar permissão de administrador
+        if not session.get('user_perfil') or session.get('user_perfil').lower() != 'administrador':
+            flash('Acesso negado. Apenas administradores podem editar atas.', 'error')
+            return redirect(url_for('view_client_meetings', client_id=client_id))
+        
+        # Validação de campos obrigatórios
+        meeting_date_input = request.form.get('meeting_date')
+        meeting_time_input = request.form.get('meeting_time')
+        participants_input = request.form.get('participants')
+        topics_input = request.form.get('topics')
+        
+        if not meeting_date_input or not meeting_date_input.strip():
+            flash('❌ A data da reunião é obrigatória.', 'error')
+            return redirect(url_for('edit_meeting', client_id=client_id, meeting_id=meeting_id))
+            
+        if not meeting_time_input or not meeting_time_input.strip():
+            flash('❌ O horário da reunião é obrigatório.', 'error')
+            return redirect(url_for('edit_meeting', client_id=client_id, meeting_id=meeting_id))
+            
+        if not participants_input or not participants_input.strip():
+            flash('❌ Os participantes da reunião são obrigatórios.', 'error')
+            return redirect(url_for('edit_meeting', client_id=client_id, meeting_id=meeting_id))
+            
+        if not topics_input or not topics_input.strip():
+            flash('❌ O conteúdo da reunião é obrigatório.', 'error')
+            return redirect(url_for('edit_meeting', client_id=client_id, meeting_id=meeting_id))
+
+        # Busca o nome do cliente
+        storage = get_storage_service()
+        client = storage.get_client(client_id) if storage else None
+        client_name = client.get('nomeFantasiaReceita') or client.get('nomeEmpresa') if client else 'Cliente'
+
+        meeting_data = {
+            'id': meeting_id,
+            'client_id': client_id,
+            'client_name': client_name,
+            'date': meeting_date_input.strip(),
+            'time': meeting_time_input.strip(),
+            'participants': participants_input.strip(),
+            'topics': topics_input.strip(),
+            'decisions': request.form.get('decisions', ''),
+            'next_steps': request.form.get('next_steps', '')
+        }
+        
+        current_meeting_service = get_meeting_service()
+        if current_meeting_service:
+            user_info = {
+                'name': session.get('user_name', 'Usuário'),
+                'id': session.get('user_id', 'N/A')
+            }
+            
+            success = current_meeting_service.update_meeting(meeting_data, user_info)
+            if success:
+                flash(f'✅ Ata de reunião atualizada com sucesso para {client_name}!', 'success')
+            else:
+                flash('❌ Erro ao atualizar ata de reunião', 'error')
+        else:
+            flash('❌ Serviço de atas não disponível', 'error')
+        
+    except Exception as e:
+        flash(f'❌ Erro ao atualizar ata de reunião: {str(e)}', 'error')
+        print(f"❌ Erro detalhado: {e}")
+        import traceback
+        traceback.print_exc()
+    
+    return redirect(url_for('view_client_meetings', client_id=client_id))
 
 @app.route('/debug-render')
 def debug_render():
