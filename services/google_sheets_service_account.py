@@ -1328,8 +1328,9 @@ class GoogleSheetsServiceAccountService:
             client.get('contato_1_cargo', ''),                # 95. CONTATO_1_CARGO (POSIÇÃO CORRETA)
             client.get('contato_1_telefone', ''),             # 96. CONTATO_1_TELEFONE (POSIÇÃO CORRETA)
             client.get('contato_1_email', ''),                # 97. CONTATO_1_EMAIL (POSIÇÃO CORRETA)
-            client.get('contato_2_nome', ''),                 # 98. CONTATO_2_NOME (POSIÇÃO CORRETA)
-            client.get('contato_2_cargo', ''),                # 99. CONTATO_2_CARGO (POSIÇÃO CORRETA)
+            client.get('observacoes', ''),                    # 98. OBSERVAÇÕES (POSIÇÃO CORRETA)
+            client.get('statusCliente', 'ativo'),             # 99. STATUS DO CLIENTE (POSIÇÃO CORRETA)
+            client.get('ultimaAtualizacao', ''),              # 100. ÚLTIMA ATUALIZAÇÃO (POSIÇÃO CORRETA)
             client.get('contato_2_telefone', ''),             # 100. CONTATO_2_TELEFONE (POSIÇÃO CORRETA)
             client.get('contato_2_email', ''),                # 101. CONTATO_2_EMAIL (POSIÇÃO CORRETA)
             client.get('contato_3_nome', ''),                 # 102. CONTATO_3_NOME (POSIÇÃO CORRETA)
@@ -1387,12 +1388,7 @@ class GoogleSheetsServiceAccountService:
             'SIM' if client.get('procDet') else 'NÃO',        # 94. PROCURAÇÃO DET
             client.get('dataProcDet', ''),                    # 95. DATA PROCURAÇÃO DET
             client.get('outrasProc', ''),                     # 145. OUTRAS PROCURAÇÕES
-            client.get('observacoes', ''),                    # 147. OBSERVAÇÕES GERAIS (posição real: 147 - CORRIGIDO)
-            client.get('obsProcuracoes', ''),                 # 148. OBSERVAÇÕES PROCURAÇÕES
-
-            # Bloco 7: Observações e Dados Adicionais (posições corretas)
-            client.get('statusCliente', 'ativo'),             # 148. STATUS DO CLIENTE
-            client.get('ultimaAtualizacao', ''),              # 149. ÚLTIMA ATUALIZAÇÃO
+            client.get('obsProcuracoes', ''),                 # OBSERVAÇÕES PROCURAÇÕES (movido para posição correta)
 
             # Campos internos do sistema
             client.get('donoResp', ''),                       # 150. DONO/RESPONSÁVEL
@@ -1737,11 +1733,11 @@ class GoogleSheetsServiceAccountService:
             'dataProcDet': safe_get(row, 148),                    # 148. DATA PROCURAÇÃO DET
             'outrasProc': safe_get(row, 149),                     # 149. OUTRAS PROCURAÇÕES
 
-            # Bloco 7: Observações e Dados Adicionais (posições corretas conforme dados reais)
-            'observacoes': safe_get(row, 147, ''),                # 147. OBSERVAÇÕES GERAIS (posição real: 147 - CORRIGIDO)
-            'obsProcuracoes': safe_get(row, 147),                 # 148. OBSERVAÇÕES PROCURAÇÕES (posição 147) 
-            'statusCliente': safe_get(row, 148, 'ativo').lower(),  # 148. STATUS DO CLIENTE
-            'ultimaAtualizacao': safe_get(row, 149),              # 149. ÚLTIMA ATUALIZAÇÃO
+            # Bloco 7: Observações e Dados Adicionais (posições corretas conforme cabeçalho)
+            'observacoes': safe_get(row, 97, ''),                 # 98. OBSERVAÇÕES (posição correta)
+            'statusCliente': safe_get(row, 98, 'ativo').lower(),  # 99. STATUS DO CLIENTE (posição correta)
+            'ultimaAtualizacao': safe_get(row, 99, ''),           # 100. ÚLTIMA ATUALIZAÇÃO (posição correta)
+            'obsProcuracoes': safe_get(row, 147, ''),             # OBSERVAÇÕES PROCURAÇÕES (posição posterior)
 
             # Campos internos do sistema (posições corretas na planilha)
             'id': id_resolvido,
