@@ -1,6 +1,6 @@
-﻿{% extends "base.html" %}
+{% extends "base.html" %}
 
-{% block title %}Registrar Ata de Reunião - {{ client.nomeEmpresa }} - SIGEC{% endblock %}
+{% block title %}Editar Ata de Reunião - {{ client.nomeEmpresa }} - SIGEC{% endblock %}
 
 {% block content %}
 <!-- Header da página -->
@@ -8,8 +8,8 @@
     <div class="row align-items-center">
         <div class="col-md-8">
             <h1>
-                <i class="bi bi-file-earmark-text text-success"></i>
-                Registrar Ata de Reunião
+                <i class="bi bi-pencil-square text-warning"></i>
+                Editar Ata de Reunião
             </h1>
             <p class="mb-0">
                 Cliente: <strong>{{ client.nomeFantasiaReceita or client.nomeEmpresa }}</strong>
@@ -29,7 +29,7 @@
     </div>
 </div>
 
-<form method="POST" action="{{ url_for('save_meeting', client_id=client.id) }}" class="needs-validation" novalidate>
+<form method="POST" action="{{ url_for('update_meeting', client_id=client.id, meeting_id=meeting.id) }}" class="needs-validation" novalidate>
     <input type="hidden" name="client_name" value="{{ client.nomeFantasiaReceita or client.nomeEmpresa }}">
     
     <!-- Informações da Reunião -->
@@ -44,11 +44,11 @@
             <div class="row">
                 <div class="col-md-4 mb-3">
                     <label for="meeting_date" class="form-label">
-                        <i class="bi bi-calendar me-1"></i>data da reunião *
+                        <i class="bi bi-calendar me-1"></i>Data da Reunião *
                     </label>
                     <div class="input-group position-relative">
                         <input type="text" class="form-control" id="meeting_date" name="meeting_date" 
-                               placeholder="DD/MM/AAAA" maxlength="10" required>
+                               placeholder="DD/MM/AAAA" maxlength="10" required value="{{ meeting.date or '' }}">
                         <button class="btn btn-outline-secondary" type="button" id="calendar-btn" 
                                 data-bs-toggle="tooltip" title="Selecionar data">
                             <i class="bi bi-calendar-date"></i>
@@ -64,7 +64,7 @@
                     <label for="meeting_time" class="form-label">
                         <i class="bi bi-clock me-1"></i>Horário *
                     </label>
-                    <input type="time" class="form-control" id="meeting_time" name="meeting_time" required>
+                    <input type="time" class="form-control" id="meeting_time" name="meeting_time" required value="{{ meeting.time or '' }}">
                     <div class="form-text">Horário que foi realizada a reunião</div>
                     <div class="invalid-feedback">
                         Por favor, informe o horário da reunião.
@@ -73,10 +73,10 @@
                 
                 <div class="col-md-4 mb-3">
                     <label for="participants" class="form-label">
-                        <i class="bi bi-people me-1"></i>participantes *
+                        <i class="bi bi-people me-1"></i>Participantes *
                     </label>
                     <textarea class="form-control" id="participants" name="participants" rows="2" 
-                              placeholder="Liste todos os participantes da reunião..." required></textarea>
+                              placeholder="Liste todos os participantes da reunião..." required>{{ meeting.participants or '' }}</textarea>
                     <div class="invalid-feedback">
                         Por favor, informe os participantes da reunião.
                     </div>
@@ -148,13 +148,23 @@
                 <div id="editor" contenteditable="true" 
                      class="form-control border-top-0 rounded-bottom" 
                      style="min-height: 300px; max-height: 500px; overflow-y: auto;"
-                     placeholder="Descreva os principais tópicos e assuntos discutidos na reunião...">
-                </div>
+                     placeholder="Descreva os principais tópicos e assuntos discutidos na reunião..."></div>
                 
-                <!-- Campo oculto para armazenar o conteúdo -->
-                <input type="hidden" id="topics" name="topics" required>
+                <!-- Campo oculto para armazenar o conteúdo formatado -->
+                <textarea id="topics" name="topics" style="display: none;" required></textarea>
                 
-                <div class="invalid-feedback" id="topics-feedback">
+                <!-- Script JSON com conteúdo formatado -->
+                <script type="application/json" id="meeting-formatted-content">
+                  {% if meeting.topics_formatted -%}
+                  {{ meeting.topics_formatted|tojson|safe }}
+                  {%- elif meeting.topics -%}
+                  {{ meeting.topics|tojson|safe }}
+                  {%- else -%}
+                  ""
+                  {%- endif %}
+                </script>
+                
+                <div id="topics-feedback" class="invalid-feedback">
                     Por favor, descreva o conteúdo da reunião.
                 </div>
             </div>
@@ -162,28 +172,30 @@
     </div>
 
     <!-- Botões de ação -->
-    <div class="d-flex justify-content-between align-items-center mt-4 p-3 border rounded bg-light">
-        <div>
-            <small class="text-muted">
-                <i class="bi bi-info-circle me-1"></i>
-                * Campos obrigatórios
-            </small>
-        </div>
-        <div>
-            <button type="button" class="btn btn-outline-danger me-2" onclick="window.history.back()">
-                <i class="bi bi-x-lg me-1"></i>
-                Cancelar
-            </button>
-            <button type="submit" class="btn btn-success">
-                <i class="bi bi-check-lg me-1"></i>
-                Registrar Ata
-            </button>
+    <div class="card">
+        <div class="card-body">
+            <div class="d-flex justify-content-between">
+                <div>
+                    <small class="text-muted">
+                        <i class="bi bi-info-circle me-1"></i>
+                        Todos os campos marcados com (*) são obrigatórios
+                    </small>
+                </div>
+                <div>
+                    <a href="{{ url_for('view_client_meetings', client_id=client.id) }}" class="btn btn-outline-secondary me-2">
+                        <i class="bi bi-x-circle me-1"></i>Cancelar
+                    </a>
+                    <button type="submit" class="btn btn-warning">
+                        <i class="bi bi-check-circle me-1"></i>Atualizar Ata
+                    </button>
+                </div>
+            </div>
         </div>
     </div>
 </form>
 
 <script>
-// Funções de formatação do editor
+// Funções de formatação de texto
 function formatText(command) {
     document.execCommand(command, false, null);
     document.getElementById('editor').focus();
@@ -201,114 +213,81 @@ function updateHiddenField() {
     document.getElementById('topics').value = editorContent;
 }
 
-// Atualizar campo oculto sempre que o conteúdo mudar
-document.getElementById('editor').addEventListener('input', updateHiddenField);
-document.getElementById('editor').addEventListener('paste', function() {
-    setTimeout(updateHiddenField, 100);
-});
+// Função para formatar data para formato brasileiro
+function formatDateToBR(dateString) {
+    if (!dateString) return '';
+    const date = new Date(dateString + 'T00:00:00');
+    const day = String(date.getDate()).padStart(2, '0');
+    const month = String(date.getMonth() + 1).padStart(2, '0');
+    const year = date.getFullYear();
+    return `${day}/${month}/${year}`;
+}
 
-// Placeholder functionality
-document.getElementById('editor').addEventListener('focus', function() {
-    if (this.innerHTML === '' || this.innerHTML === '<br>') {
-        this.innerHTML = '';
+// Função para converter data BR para formato ISO
+function formatDateToISO(dateString) {
+    if (!dateString) return '';
+    const parts = dateString.split('/');
+    if (parts.length === 3) {
+        return `${parts[2]}-${parts[1]}-${parts[0]}`;
     }
-});
+    return '';
+}
 
-document.getElementById('editor').addEventListener('blur', function() {
-    if (this.innerHTML === '' || this.innerHTML === '<br>') {
-        this.innerHTML = '';
-    }
-});
-
-// CSS para placeholder
-const style = document.createElement('style');
-style.textContent = `
-    #editor:empty::before {
-        content: attr(placeholder);
-        color: #6c757d;
-        font-style: italic;
-    }
-    #editor:focus:empty::before {
-        content: '';
-    }
-`;
-document.head.appendChild(style);
-
-// Validação do formulário
-(function() {
-    'use strict';
+document.addEventListener('DOMContentLoaded', function() {
+    // Configurar editor
+    const editor = document.getElementById('editor');
+    const topicsField = document.getElementById('topics');
     
-    // Função para converter data AAAA-MM-DD para DD/MM/AAAA
-    function formatDateToBR(dateStr) {
-        if (!dateStr) return '';
-        const [year, month, day] = dateStr.split('-');
-        return `${day}/${month}/${year}`;
-    }
-    
-    // Função para converter data DD/MM/AAAA para AAAA-MM-DD
-    function formatDateToISO(dateStr) {
-        if (!dateStr || dateStr.length !== 10) return '';
-        const [day, month, year] = dateStr.split('/');
-        return `${year}-${month.padStart(2, '0')}-${day.padStart(2, '0')}`;
-    }
-    
-    // Máscara para data DD/MM/AAAA
-    document.getElementById('meeting_date').addEventListener('input', function(e) {
-        let value = e.target.value.replace(/\D/g, '');
-        
-        if (value.length >= 2) {
-            value = value.substring(0, 2) + '/' + value.substring(2);
-        }
-        if (value.length >= 5) {
-            value = value.substring(0, 5) + '/' + value.substring(5, 9);
-        }
-        
-        e.target.value = value;
-    });
-    
-    // Funcionalidade do botão de calendário
-    document.getElementById('calendar-btn').addEventListener('click', function() {
-        const datePicker = document.getElementById('date-picker');
-        const textInput = document.getElementById('meeting_date');
-        const calendarBtn = this;
-        
-        // Se há uma data válida no campo texto, define no date picker
-        if (textInput.value && textInput.value.length === 10) {
-            const isoDate = formatDateToISO(textInput.value);
-            if (isoDate) {
-                datePicker.value = isoDate;
+    // Carregar conteúdo formatado no editor
+    const contentScript = document.getElementById('meeting-formatted-content');
+    if (contentScript) {
+        try {
+            console.log('🔍 Script JSON encontrado');
+            console.log('📝 Conteúdo bruto do script:', contentScript.textContent.substring(0, 200) + '...');
+            
+            const formattedContent = JSON.parse(contentScript.textContent);
+            console.log('📋 Conteúdo após JSON.parse:', formattedContent ? formattedContent.substring(0, 200) + '...' : 'VAZIO');
+            
+            if (formattedContent && formattedContent.trim() !== '') {
+                editor.innerHTML = formattedContent;
+                topicsField.value = formattedContent;
+                console.log('✅ Conteúdo formatado carregado no editor');
+                console.log('📏 Tamanho do conteúdo:', formattedContent.length, 'caracteres');
+            } else {
+                console.warn('⚠️ Conteúdo formatado está vazio');
             }
+        } catch (e) {
+            console.error('❌ Erro ao carregar conteúdo formatado:', e);
+            console.error('📝 Conteúdo que causou erro:', contentScript.textContent);
+        }
+    } else {
+        console.error('❌ Script JSON não encontrado');
+    }
+    
+    // Atualizar campo oculto quando o editor perde o foco
+    editor.addEventListener('blur', updateHiddenField);
+    editor.addEventListener('input', updateHiddenField);
+    
+    // Botão do calendário
+    document.getElementById('calendar-btn').addEventListener('click', function() {
+        const textInput = document.getElementById('meeting_date');
+        const dateInput = document.getElementById('date-picker');
+        
+        // Converter data atual para formato ISO se existir
+        const currentDate = textInput.value;
+        if (currentDate) {
+            dateInput.value = formatDateToISO(currentDate);
         }
         
-        // Posiciona o date picker abaixo do botão
-        const btnRect = calendarBtn.getBoundingClientRect();
-        const inputGroupRect = calendarBtn.parentElement.getBoundingClientRect();
-        
-        datePicker.style.position = 'absolute';
-        datePicker.style.top = '100%';
-        datePicker.style.right = '0';
-        datePicker.style.zIndex = '1050';
-        datePicker.style.opacity = '0';
-        datePicker.style.pointerEvents = 'auto';
-        
-        // Abre o seletor de data
-        datePicker.focus();
-        datePicker.showPicker();
+        dateInput.click();
     });
-    
-    // Quando uma data é selecionada no date picker
+
+    // Quando uma data é selecionada no picker
     document.getElementById('date-picker').addEventListener('change', function() {
         const textInput = document.getElementById('meeting_date');
         textInput.value = formatDateToBR(this.value);
         textInput.focus();
     });
-    
-    // Set data atual como padrão no formato DD/MM/AAAA
-    const today = new Date();
-    const day = String(today.getDate()).padStart(2, '0');
-    const month = String(today.getMonth() + 1).padStart(2, '0');
-    const year = today.getFullYear();
-    document.getElementById('meeting_date').value = `${day}/${month}/${year}`;
     
     // Inicializar tooltips do Bootstrap
     var tooltipTriggerList = [].slice.call(document.querySelectorAll('[data-bs-toggle="tooltip"]'));
@@ -373,7 +352,9 @@ document.head.appendChild(style);
             form.classList.add('was-validated');
         }, false);
     });
-})();
+});
 </script>
+
+
 
 {% endblock %}

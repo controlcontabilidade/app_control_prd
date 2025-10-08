@@ -271,3 +271,148 @@ class MeetingService:
         except Exception as e:
             print(f"❌ Erro ao buscar todas as atas: {e}")
             return []
+    
+    def get_meeting(self, meeting_id):
+        """Busca uma ata específica pelo ID"""
+        try:
+            worksheet = self.gs_service.get_worksheet(self.worksheet_name)
+            all_data = worksheet.get_all_values()
+            
+            if not all_data or len(all_data) <= 1:
+                return None
+            
+            headers = all_data[0]
+            rows = all_data[1:]
+            
+            for row in rows:
+                if len(row) >= 1 and row[0] == meeting_id:
+                    return {
+                        'id': row[0],
+                        'client_id': row[1],
+                        'client_name': row[2],
+                        'date': row[3],
+                        'time': row[4],
+                        'participants': row[5],
+                        'topics': row[6],  # Conteúdo limpo (para compatibilidade)
+                        'topics_formatted': row[7] if len(row) > 7 else row[6],  # Conteúdo formatado (HTML)
+                        'decisions': row[8] if len(row) > 8 else '',
+                        'next_steps': row[9] if len(row) > 9 else '',
+                        'created_date': row[10] if len(row) > 10 else '',
+                        'created_time': row[11] if len(row) > 11 else '',
+                        'created_by': row[12] if len(row) > 12 else ''
+                    }
+            
+            return None
+            
+        except Exception as e:
+            print(f"❌ Erro ao buscar ata {meeting_id}: {e}")
+            return None
+    
+    def delete_meeting(self, meeting_id):
+        """Exclui uma ata específica pelo ID"""
+        try:
+            worksheet = self.gs_service.get_worksheet(self.worksheet_name)
+            all_data = worksheet.get_all_values()
+            
+            if not all_data or len(all_data) <= 1:
+                return False
+            
+            # Encontra a linha da ata a ser excluída
+            row_to_delete = None
+            for i, row in enumerate(all_data[1:], start=2):  # Começa na linha 2 (pula cabeçalho)
+                if len(row) >= 1 and row[0] == meeting_id:
+                    row_to_delete = i
+                    break
+            
+            if row_to_delete:
+                # Exclui a linha
+                worksheet.delete_rows(row_to_delete)
+                print(f"✅ Ata {meeting_id} excluída com sucesso da linha {row_to_delete}")
+                return True
+            else:
+                print(f"❌ Ata {meeting_id} não encontrada para exclusão")
+                return False
+            
+        except Exception as e:
+            print(f"❌ Erro ao excluir ata {meeting_id}: {e}")
+            return False
+    
+    def update_meeting(self, meeting_data, user_info=None):
+        """Atualiza uma ata de reunião existente"""
+        try:
+            meeting_id = meeting_data.get('id')
+            print(f"💾 Atualizando ata de reunião {meeting_id}")
+            
+            worksheet = self.gs_service.get_worksheet(self.worksheet_name)
+            all_data = worksheet.get_all_values()
+            
+            if not all_data or len(all_data) <= 1:
+                return False
+            
+            # Encontra a linha da ata a ser atualizada
+            row_to_update = None
+            for i, row in enumerate(all_data[1:], start=2):  # Começa na linha 2 (pula cabeçalho)
+                if len(row) >= 1 and row[0] == meeting_id:
+                    row_to_update = i
+                    break
+            
+            if not row_to_update:
+                print(f"❌ Ata {meeting_id} não encontrada para atualização")
+                return False
+            
+            # Informações de auditoria
+            now = datetime.now()
+            current_date = now.strftime('%d/%m/%Y')  # Formato brasileiro
+            current_time = now.strftime('%H:%M:%S')
+            current_user = user_info.get('name', 'Sistema') if user_info else 'Sistema'
+            
+            # Obter conteúdo HTML formatado original (do formulário)
+            topics_formatted = meeting_data.get('topics', '')
+            
+            # Limpar conteúdo HTML para busca/texto simples
+            topics_clean = self._clean_html_content(topics_formatted)
+            
+            # Prepara os dados atualizados (mantém dados de criação originais)
+            current_row = all_data[row_to_update - 1]  # -1 porque all_data inclui cabeçalho
+            
+            updated_row = [
+                meeting_id,                           # ID_Ata (mantém)
+                meeting_data.get('client_id', ''),    # ID_Cliente
+                meeting_data.get('client_name', ''),  # Nome_Cliente
+                meeting_data.get('date', ''),         # Data_Reuniao
+                meeting_data.get('time', ''),         # Horario
+                meeting_data.get('participants', ''), # Participantes
+                topics_clean,                         # Topicos_Discutidos (HTML limpo)
+                topics_formatted,                     # Topicos_Formatados (HTML original)
+                meeting_data.get('decisions', ''),    # Decisoes_Tomadas
+                meeting_data.get('next_steps', ''),   # Proximos_Passos
+                current_row[10] if len(current_row) > 10 else '',  # Data_Criacao (mantém original)
+                current_row[11] if len(current_row) > 11 else '',  # Hora_Criacao (mantém original)
+                current_row[12] if len(current_row) > 12 else '',  # Usuario_Criacao (mantém original)
+                current_date,                         # Data_Atualizacao (nova)
+                current_time,                         # Hora_Atualizacao (nova)
+                current_user                          # Usuario_Atualizacao (nova)
+            ]
+            
+            # Atualiza a linha na planilha usando o método correto
+            range_name = f"{self.worksheet_name}!A{row_to_update}:P{row_to_update}"  # 16 colunas (A-P)
+            body = {'values': [updated_row]}
+            
+            result = self.gs_service.service.spreadsheets().values().update(
+                spreadsheetId=self.gs_service.spreadsheet_id,
+                range=range_name,
+                valueInputOption='USER_ENTERED',
+                body=body
+            ).execute()
+            
+            updated_rows = result.get('updatedRows', 0)
+            if updated_rows == 0:
+                print(f"⚠️ Nenhuma linha foi atualizada para a ata {meeting_id}")
+                return False
+            
+            print(f"✅ Ata {meeting_id} atualizada com sucesso na linha {row_to_update}")
+            return True
+            
+        except Exception as e:
+            print(f"❌ Erro ao atualizar ata {meeting_data.get('id', 'N/A')}: {e}")
+            return False
