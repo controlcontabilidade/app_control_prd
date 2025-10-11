@@ -1328,9 +1328,8 @@ class GoogleSheetsServiceAccountService:
             client.get('contato_1_cargo', ''),                # 95. CONTATO_1_CARGO (POSIÇÃO CORRETA)
             client.get('contato_1_telefone', ''),             # 96. CONTATO_1_TELEFONE (POSIÇÃO CORRETA)
             client.get('contato_1_email', ''),                # 97. CONTATO_1_EMAIL (POSIÇÃO CORRETA)
-            client.get('observacoes', ''),                    # 98. OBSERVAÇÕES (POSIÇÃO CORRETA)
-            client.get('statusCliente', 'ativo'),             # 99. STATUS DO CLIENTE (POSIÇÃO CORRETA)
-            client.get('ultimaAtualizacao', ''),              # 100. ÚLTIMA ATUALIZAÇÃO (POSIÇÃO CORRETA)
+            client.get('contato_2_nome', ''),                 # 98. CONTATO_2_NOME (POSIÇÃO CORRETA)
+            client.get('contato_2_cargo', ''),                # 99. CONTATO_2_CARGO (POSIÇÃO CORRETA)
             client.get('contato_2_telefone', ''),             # 100. CONTATO_2_TELEFONE (POSIÇÃO CORRETA)
             client.get('contato_2_email', ''),                # 101. CONTATO_2_EMAIL (POSIÇÃO CORRETA)
             client.get('contato_3_nome', ''),                 # 102. CONTATO_3_NOME (POSIÇÃO CORRETA)
@@ -1428,6 +1427,9 @@ class GoogleSheetsServiceAccountService:
         # OBSERVAÇÕES
         if 'OBSERVAÇÕES' in hidx:
             row_data[hidx['OBSERVAÇÕES']] = client.get('observacoes', '')
+        # STATUS DO CLIENTE  
+        if 'STATUS DO CLIENTE' in hidx:
+            row_data[hidx['STATUS DO CLIENTE']] = client.get('statusCliente', 'ATIVO')
         # ÚLTIMA ATUALIZAÇÃO
         if 'ÚLTIMA ATUALIZAÇÃO' in hidx:
             row_data[hidx['ÚLTIMA ATUALIZAÇÃO']] = client.get('ultimaAtualizacao', '')
@@ -1734,10 +1736,10 @@ class GoogleSheetsServiceAccountService:
             'outrasProc': safe_get(row, 149),                     # 149. OUTRAS PROCURAÇÕES
 
             # Bloco 7: Observações e Dados Adicionais (posições corretas conforme cabeçalho)
-            'observacoes': safe_get(row, 97, ''),                 # 98. OBSERVAÇÕES (posição correta)
-            'statusCliente': safe_get(row, 98, 'ativo').lower(),  # 99. STATUS DO CLIENTE (posição correta)
-            'ultimaAtualizacao': safe_get(row, 99, ''),           # 100. ÚLTIMA ATUALIZAÇÃO (posição correta)
-            'obsProcuracoes': safe_get(row, 147, ''),             # OBSERVAÇÕES PROCURAÇÕES (posição posterior)
+            'observacoes': safe_get(row, hidx.get('OBSERVAÇÕES', 146), ''),                      # OBSERVAÇÕES (posição dinâmica, fallback 146)
+            'statusCliente': safe_get(row, hidx.get('STATUS DO CLIENTE', 148), 'ativo').lower(), # STATUS DO CLIENTE (posição dinâmica, fallback 148)
+            'ultimaAtualizacao': safe_get(row, hidx.get('ÚLTIMA ATUALIZAÇÃO', 149), ''),         # ÚLTIMA ATUALIZAÇÃO (posição dinâmica, fallback 149)
+            'obsProcuracoes': safe_get(row, 147, ''),                                             # OBSERVAÇÕES PROCURAÇÕES
 
             # Campos internos do sistema (posições corretas na planilha)
             'id': id_resolvido,
