@@ -149,7 +149,11 @@ class GoogleSheetsServiceAccountService:
             if client_id and str(client_id).strip() and str(client_id) != 'None':
                 print("🔍 [SERVICE] ===== OPERAÇÃO: ATUALIZAÇÃO =====")
                 # Deixe update_client decidir: usa _row_number se disponível, senão busca por ID
-                return self.update_client(client)
+                result = self.update_client(client)
+                if result:
+                    return client_id  # Retorna o ID como string
+                else:
+                    return False
             else:
                 print("🔍 [SERVICE] ===== OPERAÇÃO: NOVO CLIENTE =====")
                 # Gerar ID único numérico sequencial
@@ -160,9 +164,9 @@ class GoogleSheetsServiceAccountService:
                 
                 result = self.add_new_client(client)
                 if result:
-                    return {'success': True, 'client_id': client_id}
+                    return client_id  # Retorna o ID como string
                 else:
-                    return {'success': False, 'message': 'Erro ao adicionar cliente'}
+                    return False
                 
         except Exception as e:
             print(f"❌ [SERVICE] Erro ao processar cliente: {e}")
@@ -1395,8 +1399,8 @@ class GoogleSheetsServiceAccountService:
             # 'SIM' if client.get('ativo', True) else 'NÃO',    # CLIENTE ATIVO - mapeado por header
             # client.get('criadoEm', ''),                       # DATA DE CRIAÇÃO - mapeado por header  
             # client.get('id', ''),                             # ID - mapeado por header
-            client.get('domestica', ''),                      # 105. DOMÉSTICA
-            client.get('geraArquivoSped', ''),                # 106. GERA ARQUIVO DO SPED
+            # client.get('domestica', ''),                    # 105. DOMÉSTICA - REMOVIDO: mapeado por header
+            # client.get('geraArquivoSped', ''),              # 106. GERA ARQUIVO DO SPED - REMOVIDO: mapeado por header
             # --- CAMPOS NOVOS AO FINAL ---
             client.get('cnpjAcessoSn', ''),                   # 107. CNPJ ACESSO SIMPLES NACIONAL
             client.get('cpfRepLegal', ''),                    # 108. CPF DO REPRESENTANTE LEGAL
@@ -1747,8 +1751,8 @@ class GoogleSheetsServiceAccountService:
             
             # Campo ativo derivado do statusCliente - CORREÇÃO PRINCIPAL
             'criadoEm': safe_get(row, 152, ''), # 152. DATA DE CRIAÇÃO (posição correta) - CORRIGIDO DE 151 PARA 152
-            'domestica': safe_get(row, 104),                      # 105. DOMÉSTICA
-            'geraArquivoSped': safe_get(row, 105),                # 106. GERA ARQUIVO DO SPED
+            'domestica': safe_get(row, hidx.get('DOMÉSTICA', 104)),  # DOMÉSTICA - USA HIDX
+            'geraArquivoSped': safe_get(row, hidx.get('GERA ARQUIVO DO SPED', 105)),  # GERA ARQUIVO DO SPED - USA HIDX
             
             # --- CAMPOS NOVOS DE SENHA - usando posições corretas dos cabeçalhos ---
             'cnpjAcessoSn': safe_get(row, 106),       # 107. CNPJ ACESSO SIMPLES NACIONAL
@@ -2012,6 +2016,41 @@ class GoogleSheetsServiceAccountService:
                     return True
                 except Exception as e:
                     print(f"❌ Erro ao atualizar célula {row},{col} da aba '{self.worksheet_name}': {e}")
+                    return False
+            
+            def delete_rows(self, start_index, end_index=None):
+                """Simula gspread.delete_rows()"""
+                try:
+                    if end_index is None:
+                        end_index = start_index
+                    
+                    # Google Sheets API usa índices baseados em 0, gspread usa 1
+                    # start_index e end_index do gspread são 1-based
+                    sheet_id = self._get_sheet_id()
+                    
+                    requests = [{
+                        'deleteDimension': {
+                            'range': {
+                                'sheetId': sheet_id,
+                                'dimension': 'ROWS',
+                                'startIndex': start_index - 1,  # Converter para 0-based
+                                'endIndex': end_index  # endIndex é exclusive no API
+                            }
+                        }
+                    }]
+                    
+                    body = {'requests': requests}
+                    result = self.service.spreadsheets().batchUpdate(
+                        spreadsheetId=self.spreadsheet_id,
+                        body=body
+                    ).execute()
+                    
+                    print(f"✅ Linha(s) {start_index} a {end_index} excluída(s) com sucesso da aba '{self.worksheet_name}'")
+                    return True
+                except Exception as e:
+                    print(f"❌ Erro ao excluir linha(s) {start_index}-{end_index} da aba '{self.worksheet_name}': {e}")
+                    import traceback
+                    traceback.print_exc()
                     return False
 
             def _get_sheet_id(self):
