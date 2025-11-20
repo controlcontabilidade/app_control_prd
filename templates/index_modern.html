@@ -1,9 +1,9 @@
 {% extends "base.html" %}
 
-{% block title %}SIGEC - SISTEMA DE GESTÃO DE EMPRESAS CONTROL{% endblock %}
+{% block title %}SiGEC – Sistema de Gestão de Empresas Control{% endblock %}
 
 {% block content %}
-<!-- Alerta de Status do Sistema (se necessário) -->
+<!-- Alerta de Status do Sistema -->
 <div id="system-status-alert" class="d-none">
     <div class="alert alert-warning alert-dismissible fade show mb-4" role="alert">
         <div class="d-flex align-items-center">
@@ -11,9 +11,8 @@
             <div>
                 <h6 class="alert-heading mb-1">🔧 Sistema em Modo de Manutenção</h6>
                 <p class="mb-0">
-                    O sistema está temporariamente usando dados locais devido a problemas de conectividade. 
-                    Os dados podem não estar totalmente atualizados.
-                    <a href="/api/auth-status" target="_blank" class="alert-link">Verificar Status Técnico</a>
+                    O sistema está temporariamente usando dados locais devido a problemas de conectividade.
+                    <a href="/api/auth-status" target="_blank" class="alert-link">Verificar Status</a>
                 </p>
             </div>
         </div>
@@ -21,10 +20,10 @@
     </div>
 </div>
 
-<!-- Header da página com estatísticas -->
+<!-- Dashboard -->
 <div class="page-header">
     <div class="row align-items-center">
-        <div class="col-md-8">
+        <div class="col-12">
             <h1>
                 <i class="bi bi-graph-up text-primary"></i>
                 SIGEC - Sistema de Gestão de Empresas da Control
@@ -35,28 +34,20 @@
                 </span>
             </h1>
         </div>
-        <div class="col-md-4 text-end">
-            {% if can_create() %}
-            <a href="{{ url_for('new_client') }}" class="btn btn-primary">
-                <i class="bi bi-plus-lg"></i>
-                NOVO CLIENTE
-            </a>
-            {% endif %}
-        </div>
     </div>
     
-    <!-- Dashboard de Indicadores Compacto e Moderno -->
+    <!-- Indicadores -->
     <div class="row mt-4 mb-4">
         <div class="col-12">
             <div class="card border-0 shadow-sm">
                 <div class="card-header bg-white border-0 pb-0">
-                    <h5 class="mb-0 text-muted">
+                    <h6 class="mb-0 text-muted fw-normal">
                         <i class="bi bi-speedometer2 me-2"></i>
                         INDICADORES DO SISTEMA
-                    </h5>
+                    </h6>
                 </div>
                 <div class="card-body pt-3">
-                    <!-- Indicadores Principais - Linha única -->
+                    <!-- Indicadores Principais -->
                     <div class="row g-3 mb-4">
                         <div class="col-lg-3 col-md-6">
                             <div class="d-flex align-items-center p-2 rounded-3" style="background: rgba(59, 130, 246, 0.1); border-left: 4px solid #3b82f6;">
@@ -112,11 +103,11 @@
                         </div>
                     </div>
                     
-                    <!-- Seções lado a lado: Serviços e Regime - DENTRO DO MESMO CARD -->
+                    <!-- Serviços e Regime -->
                     <div class="row g-3 mt-3">
-                        <!-- Coluna Esquerda: SERVIÇOS PRESTADOS -->
+                        <!-- SERVIÇOS PRESTADOS -->
                         <div class="col-lg-6">
-                            <h6 class="text-muted mb-3">
+                            <h6 class="text-muted mb-3 fw-normal">
                                 <i class="bi bi-briefcase me-2"></i>
                                 SERVIÇOS PRESTADOS
                             </h6>
@@ -176,9 +167,9 @@
                             </div>
                         </div>
                         
-                        <!-- Coluna Direita: REGIME TRIBUTÁRIO -->
+                        <!-- REGIME TRIBUTÁRIO -->
                         <div class="col-lg-6">
-                            <h6 class="text-muted mb-3">
+                            <h6 class="text-muted mb-3 fw-normal">
                                 <i class="bi bi-percent me-2"></i>
                                 REGIME TRIBUTÁRIO
                             </h6>
@@ -242,480 +233,32 @@
             </div>
         </div>
     </div>
-
-<!-- Barra de Busca e Controles - SEMPRE VISÍVEL -->
-<div class="card mt-3">
-    <div class="card-header bg-white border-0 pb-3">
-        <div class="d-flex justify-content-between align-items-center mb-3">
-            <h5 class="mb-0">
-                <i class="bi bi-search me-2"></i>
-                BUSCA E FILTROS
-            </h5>
-            <small class="text-muted" id="resultsCounter">
-                {% if pagination %}
-                    Mostrando {{ pagination.start_index }}-{{ pagination.end_index }} de {{ pagination.total }} clientes
-                    {% if search_query %}(filtrados de "{{ search_query }}"){% endif %}
-                {% elif clients %}
-                    {{ clients|length }} CLIENTES
-                {% else %}
-                    0 CLIENTES
-                {% endif %}
-            </small>
-        </div>
-        
-        <!-- Barra de Busca Inteligente - Campos Alinhados -->
-        <div class="row g-3">
-            <div class="col-md-6">
-                <label for="globalSearch" class="form-label small text-muted mb-1">
-                    <i class="bi bi-search me-1"></i>BUSCA GLOBAL
-                </label>
-                <div class="input-group">
-                    <input type="text" 
-                           class="form-control" 
-                           id="globalSearch" 
-                           placeholder="Buscar por nome, CNPJ, cidade, regime..." 
-                           value="{{ search_query or '' }}"
-                           autocomplete="off">
-                    <button type="button" class="btn btn-outline-secondary" id="clearSearch" title="Limpar busca">
-                        <i class="bi bi-x"></i>
-                    </button>
-                </div>
-                <div class="form-text">A busca é realizada em todos os registros, não apenas na página atual.</div>
-            </div>
-            <div class="col-md-3">
-                <label for="perPageSelect" class="form-label small text-muted mb-1">
-                    <i class="bi bi-list-ul me-1"></i>ITENS POR PÁGINA
-                </label>
-                <select class="form-select" id="perPageSelect">
-                    <option value="10" {{ 'selected' if pagination and pagination.per_page == 10 else '' }}>10</option>
-                    <option value="20" {{ 'selected' if pagination and pagination.per_page == 20 else '' }}>20</option>
-                    <option value="50" {{ 'selected' if pagination and pagination.per_page == 50 else '' }}>50</option>
-                    <option value="100" {{ 'selected' if pagination and pagination.per_page == 100 else '' }}>100</option>
-                </select>
-            </div>
-            <div class="col-md-3">
-                <label for="statusFilter" class="form-label small text-muted mb-1">
-                    <i class="bi bi-funnel me-1"></i>FILTRO DE STATUS
-                </label>
-                <select class="form-select" id="statusFilter">
-                    <option value="ativo" {{ 'selected' if status_filter == 'ativo' else '' }}>Apenas Ativos</option>
-                    <option value="inativo" {{ 'selected' if status_filter == 'inativo' else '' }}>Apenas Inativos</option>
-                    <option value="todos" {{ 'selected' if status_filter == 'todos' else '' }}>Todos</option>
-                </select>
-            </div>
-        </div>
-    </div>
 </div>
-
-{% if clients %}
-<!-- Tabela de clientes -->
-<div class="card mt-3">
-    <div class="card-header bg-white border-0 pb-3">
-        <div class="d-flex justify-content-between align-items-center mb-3">
-            <h5 class="mb-0">
-                <i class="bi bi-table me-2"></i>
-                LISTA DE CLIENTES
-            </h5>
-        </div>
-    </div>
-    <div class="card-body p-0">
-        <div class="table-responsive">
-            <table class="table table-hover mb-0" id="clientsTable">
-                <thead>
-                    <tr>
-                        <th style="min-width: 180px;"><i class="bi bi-building me-1"></i>NOME DA EMPRESA</th>
-                        <th style="min-width: 120px;"><i class="bi bi-file-text me-1"></i>CNPJ</th>
-                        <th style="min-width: 90px;"><i class="bi bi-card-list me-1"></i>IE</th>
-                        <th style="min-width: 90px;"><i class="bi bi-geo me-1"></i>IM</th>
-                        <th style="min-width: 130px;"><i class="bi bi-percent me-1"></i>REGIME FEDERAL</th>
-                        <th style="min-width: 110px;"><i class="bi bi-briefcase me-1"></i>SERVIÇOS</th>
-                        <th style="min-width: 70px;"><i class="bi bi-person-badge me-1"></i>PERFIL</th>
-                        <th style="min-width: 140px;"><i class="bi bi-gear me-1"></i>AÇÕES</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    {% for client in clients %}
-                    <tr>
-                        <td>
-                            <div>
-                                <strong class="text-primary">{{ client['nomeEmpresa'] or client['nomeFantasiaReceita'] or '-' }}</strong>
-                            </div>
-                        </td>
-                        <td>
-                            {% if client['cnpj'] %}
-                                <code class="text-muted">{{ client['cnpj'] }}</code>
-                            {% else %}
-                                <span class="text-muted">-</span>
-                            {% endif %}
-                        </td>
-                        <td>
-                            {% if client['inscEst'] %}
-                                <small class="text-muted">{{ client['inscEst'] }}</small>
-                            {% else %}
-                                <span class="text-muted">-</span>
-                            {% endif %}
-                        </td>
-                        <td>
-                            {% if client['inscMun'] %}
-                                <small class="text-muted">{{ client['inscMun'] }}</small>
-                            {% else %}
-                                <span class="text-muted">-</span>
-                            {% endif %}
-                        </td>
-                        <td>
-                            <span class="badge {% if client['regimeFederal'] == 'SIMPLES_NACIONAL' or client['regimeFederal'] == 'SIMPLES' %}bg-success{% elif client['regimeFederal'] == 'LUCRO_PRESUMIDO' %}bg-warning{% elif client['regimeFederal'] == 'LUCRO_REAL' %}bg-danger{% elif client['regimeFederal'] == 'MEI' %}bg-info{% else %}bg-secondary{% endif %}">
-                                {% if client['regimeFederal'] == 'SIMPLES_NACIONAL' or client['regimeFederal'] == 'SIMPLES' %}
-                                    SIMPLES NACIONAL
-                                {% else %}
-                                    {{ client['regimeFederal'] or 'N/D' }}
-                                {% endif %}
-                            </span>
-                        </td>
-                        <td>
-                            <div class="d-flex gap-1 flex-wrap">
-                                {% if client['ct'] %}
-                                    <span class="badge bg-primary" title="Contábil">CT</span>
-                                {% endif %}
-                                {% if client['fs'] %}
-                                    <span class="badge bg-secondary" title="Fiscal">FS</span>
-                                {% endif %}
-                                {% if client['dp'] %}
-                                    <span class="badge bg-success" title="Pessoal">DP</span>
-                                {% endif %}
-                                {% if client['bpoFinanceiro'] %}
-                                    <span class="badge bg-info" title="BPO Financeiro">BPO</span>
-                                {% endif %}
-                                {% if not client['ct'] and not client['fs'] and not client['dp'] and not client['bpoFinanceiro'] %}
-                                    <span class="text-muted">-</span>
-                                {% endif %}
-                            </div>
-                        </td>
-                        <td class="text-center">
-                            <span class="badge {% if client['perfilCliente'] == 'A' %}bg-success{% elif client['perfilCliente'] == 'B' %}bg-info{% elif client['perfilCliente'] == 'C' %}bg-warning{% elif client['perfilCliente'] == 'D' %}bg-danger{% else %}bg-secondary{% endif %}">
-                                {{ client['perfilCliente'] or client['perfil'] or 'N/D' }}
-                            </span>
-                        </td>
-                        <td>
-                            <div class="d-flex gap-1 flex-wrap">
-                                <a href="{{ url_for('view_client', client_id=client['id']) }}" 
-                                   class="btn btn-outline-primary btn-sm" 
-                                   title="Ver detalhes">
-                                    <i class="bi bi-eye"></i>
-                                </a>
-                                {% if can_edit() %}
-                                <a href="{{ url_for('edit_client', client_id=client['id']) }}" 
-                                   class="btn btn-outline-secondary btn-sm" 
-                                   title="Editar">
-                                    <i class="bi bi-pencil"></i>
-                                </a>
-                                {% endif %}
-                                <a href="{{ url_for('view_client_meetings', client_id=client['id']) }}" 
-                                   class="btn btn-outline-success btn-sm" 
-                                   title="Ver Atas de Reuniões">
-                                    <i class="bi bi-file-earmark-text"></i>
-                                </a>
-                                {% if can_delete() %}
-                                <button type="button" 
-                                        class="btn btn-outline-danger btn-sm" 
-                                        onclick="confirmDelete('{{ client['id'] }}', '{{ (client['nomeEmpresa'] or client['nomeFantasiaReceita'] or 'Cliente') | replace("'", "\\'") }}')"
-                                        title="Excluir Cliente">
-                                    <i class="bi bi-trash"></i>
-                                </button>
-                                {% endif %}
-                            </div>
-                        </td>
-                    </tr>
-                    {% endfor %}
-                </tbody>
-            </table>
-        </div>
-        
-        <!-- Controles de Paginação -->
-        {% if pagination and pagination.total_pages > 1 %}
-        <div class="card-footer bg-light border-0 py-3">
-            <div class="row align-items-center">
-                <div class="col-md-6">
-                    <div class="d-flex align-items-center">
-                        <small class="text-muted me-3">
-                            Página {{ pagination.page }} de {{ pagination.total_pages }}
-                        </small>
-                        <div class="btn-group" role="group">
-                            {% if pagination.has_prev %}
-                                <a href="{{ url_for('index', page=1, per_page=pagination.per_page, status=status_filter, search=search_query) }}" 
-                                   class="btn btn-outline-secondary btn-sm" title="Primeira página">
-                                    <i class="bi bi-chevron-double-left"></i>
-                                </a>
-                                <a href="{{ url_for('index', page=pagination.prev_num, per_page=pagination.per_page, status=status_filter, search=search_query) }}" 
-                                   class="btn btn-outline-secondary btn-sm" title="Página anterior">
-                                    <i class="bi bi-chevron-left"></i>
-                                </a>
-                            {% else %}
-                                <button class="btn btn-outline-secondary btn-sm" disabled>
-                                    <i class="bi bi-chevron-double-left"></i>
-                                </button>
-                                <button class="btn btn-outline-secondary btn-sm" disabled>
-                                    <i class="bi bi-chevron-left"></i>
-                                </button>
-                            {% endif %}
-                            
-                            {% if pagination.has_next %}
-                                <a href="{{ url_for('index', page=pagination.next_num, per_page=pagination.per_page, status=status_filter, search=search_query) }}" 
-                                   class="btn btn-outline-secondary btn-sm" title="Próxima página">
-                                    <i class="bi bi-chevron-right"></i>
-                                </a>
-                                <a href="{{ url_for('index', page=pagination.total_pages, per_page=pagination.per_page, status=status_filter, search=search_query) }}" 
-                                   class="btn btn-outline-secondary btn-sm" title="Última página">
-                                    <i class="bi bi-chevron-double-right"></i>
-                                </a>
-                            {% else %}
-                                <button class="btn btn-outline-secondary btn-sm" disabled>
-                                    <i class="bi bi-chevron-right"></i>
-                                </button>
-                                <button class="btn btn-outline-secondary btn-sm" disabled>
-                                    <i class="bi bi-chevron-double-right"></i>
-                                </button>
-                            {% endif %}
-                        </div>
-                    </div>
-                </div>
-                <div class="col-md-6 text-end">
-                    <!-- Navegação rápida por páginas -->
-                    <div class="d-flex align-items-center justify-content-end">
-                        <small class="text-muted me-2">Ir para página:</small>
-                        <div class="input-group" style="width: 120px;">
-                            <input type="number" 
-                                   class="form-control form-control-sm" 
-                                   id="pageJump" 
-                                   min="1" 
-                                   max="{{ pagination.total_pages }}" 
-                                   value="{{ pagination.page }}"
-                                   placeholder="{{ pagination.page }}">
-                            <button type="button" class="btn btn-outline-secondary btn-sm" id="goToPage">
-                                <i class="bi bi-arrow-right"></i>
-                            </button>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        </div>
-        {% endif %}
-    </div>
-</div>
-
-{% else %}
-<!-- Estado vazio -->
-<div class="card mt-3">
-    <div class="card-body text-center py-5">
-        <i class="bi bi-search display-1 text-muted mb-3"></i>
-        <h4 class="text-muted">Nenhum cliente encontrado</h4>
-        <p class="text-muted mb-4">
-            {% if search_query %}
-                Não foram encontrados clientes que correspondam à busca "<strong>{{ search_query }}</strong>".
-                <br>
-                <small>Tente usar termos mais gerais ou verifique a ortografia.</small>
-            {% else %}
-                Não há clientes cadastrados no sistema ainda.
-            {% endif %}
-        </p>
-        {% if search_query %}
-            <button type="button" class="btn btn-outline-secondary me-2" onclick="clearSearchAndReload()">
-                <i class="bi bi-arrow-clockwise"></i>
-                LIMPAR BUSCA E VER TODOS
-            </button>
-        {% endif %}
-        {% if can_create() %}
-        <a href="{{ url_for('new_client') }}" class="btn btn-primary">
-            <i class="bi bi-plus-lg"></i>
-            {% if search_query %}
-                CADASTRAR NOVO CLIENTE
-            {% else %}
-                CADASTRAR PRIMEIRO CLIENTE
-            {% endif %}
-        </a>
-        {% endif %}
-    </div>
-</div>
-{% endif %}
 
 <script>
-// Sistema de Paginação e Busca Inteligente
 document.addEventListener('DOMContentLoaded', function() {
-    console.log('🔍 Inicializando sistema de paginação inteligente...');
-    
-    // Elementos principais
-    const globalSearch = document.getElementById('globalSearch');
-    const statusFilter = document.getElementById('statusFilter');
-    const perPageSelect = document.getElementById('perPageSelect');
-    const clearSearchBtn = document.getElementById('clearSearch');
-    const goToPageBtn = document.getElementById('goToPage');
-    const pageJumpInput = document.getElementById('pageJump');
-    
-    // Debounce para busca (evita muitas requisições)
-    let searchTimeout;
-    
-    // Event Listeners para busca global
-    if (globalSearch) {
-        globalSearch.addEventListener('input', function() {
-            clearTimeout(searchTimeout);
-            searchTimeout = setTimeout(performGlobalSearch, 500); // 500ms delay
-        });
-        
-        globalSearch.addEventListener('keypress', function(e) {
-            if (e.key === 'Enter') {
-                clearTimeout(searchTimeout);
-                performGlobalSearch();
-            }
-        });
-    }
-    
-    // Event Listener para limpar busca
-    if (clearSearchBtn) {
-        clearSearchBtn.addEventListener('click', function() {
-            globalSearch.value = '';
-            performGlobalSearch();
-        });
-    }
-    
-    // Event Listener para filtro de status
-    if (statusFilter) {
-        statusFilter.addEventListener('change', performGlobalSearch);
-    }
-    
-    // Event Listener para itens por página
-    if (perPageSelect) {
-        perPageSelect.addEventListener('change', performGlobalSearch);
-    }
-    
-    // Event Listener para ir para página específica
-    if (goToPageBtn) {
-        goToPageBtn.addEventListener('click', function() {
-            const page = parseInt(pageJumpInput.value);
-            if (page && page > 0) {
-                updateUrl({ page: page });
-            }
-        });
-    }
-    
-    if (pageJumpInput) {
-        pageJumpInput.addEventListener('keypress', function(e) {
-            if (e.key === 'Enter') {
-                const page = parseInt(this.value);
-                if (page && page > 0) {
-                    updateUrl({ page: page });
-                }
-            }
-        });
-    }
-    
-    // Função principal para realizar busca global
-    function performGlobalSearch() {
-        const searchQuery = globalSearch ? globalSearch.value.trim() : '';
-        const status = statusFilter ? statusFilter.value : 'ativo';
-        const perPage = perPageSelect ? perPageSelect.value : '100';
-        
-        console.log('🔍 Executando busca global:', { searchQuery, status, perPage });
-        
-        // Sempre voltar para página 1 ao fazer nova busca
-        updateUrl({
-            search: searchQuery,
-            status: status,
-            per_page: perPage,
-            page: 1
-        });
-    }
-    
-    // Função para atualizar URL e recarregar página
-    function updateUrl(params) {
-        const url = new URL(window.location);
-        
-        // Limpar parâmetros existentes
-        url.searchParams.delete('search');
-        url.searchParams.delete('status');
-        url.searchParams.delete('per_page');
-        url.searchParams.delete('page');
-        
-        // Adicionar novos parâmetros
-        if (params.search && params.search.trim()) {
-            url.searchParams.set('search', params.search.trim());
-        }
-        if (params.status) {
-            url.searchParams.set('status', params.status);
-        }
-        if (params.per_page) {
-            url.searchParams.set('per_page', params.per_page);
-        }
-        if (params.page) {
-            url.searchParams.set('page', params.page);
-        }
-        
-        console.log('📄 Redirecionando para:', url.toString());
-        window.location.href = url.toString();
-    }
-    
-    // Função para limpar busca e recarregar todos os clientes
-    window.clearSearchAndReload = function() {
-        const url = new URL(window.location);
-        url.searchParams.delete('search');
-        url.searchParams.set('page', '1');
-        console.log('🔄 Limpando busca e redirecionando para:', url.toString());
-        window.location.href = url.toString();
-    };
-
-    // Função para confirmar exclusão
-    window.confirmDelete = function(clientId, clientName) {
-        if (confirm(`Tem certeza que deseja excluir o cliente "${clientName}"?\n\nEsta ação não pode ser desfeita.`)) {
-            // Criar formulário temporário para DELETE
-            const form = document.createElement('form');
-            form.method = 'POST';
-            form.action = `/client/${clientId}/delete`;
-            
-            // Adicionar token CSRF se necessário
-            const csrfToken = document.querySelector('meta[name="csrf-token"]');
-            if (csrfToken) {
-                const csrfInput = document.createElement('input');
-                csrfInput.type = 'hidden';
-                csrfInput.name = 'csrf_token';
-                csrfInput.value = csrfToken.getAttribute('content');
-                form.appendChild(csrfInput);
-            }
-            
-            document.body.appendChild(form);
-            form.submit();
-        }
-    };
-    
-    // Verificar status do sistema automaticamente
+    console.log('✅ Dashboard carregado');
     checkSystemStatus();
-    
-    console.log('✅ Sistema de paginação inteligente inicializado');
 });
 
-// Função para verificar status do sistema
 async function checkSystemStatus() {
     try {
         const response = await fetch('/api/auth-status');
         if (response.ok) {
             const data = await response.json();
-            
-            // Verificar se está usando fallback
             if (data.storage_service && data.storage_service.is_fallback) {
                 const alert = document.getElementById('system-status-alert');
                 const indicator = document.getElementById('fallback-indicator');
-                
                 if (alert) alert.classList.remove('d-none');
                 if (indicator) indicator.classList.remove('d-none');
-                
-                console.warn('🚨 Sistema em modo fallback:', data);
             }
-            
-            console.log('📊 Status de autenticação:', data);
         }
     } catch (error) {
-        console.error('❌ Erro ao verificar status do sistema:', error);
+        console.error('❌ Erro ao verificar status:', error);
     }
 }
 
-// Verificar status a cada 5 minutos
 setInterval(checkSystemStatus, 5 * 60 * 1000);
 </script>
+
 {% endblock %}

@@ -4,7 +4,7 @@ import json
 import os
 import re  # Para processamento de strings e CPF
 import gc  # Para otimização de memória
-from datetime import datetime
+from datetime import datetime, timedelta
 from functools import wraps
 
 # Importar otimizador de memória LITE para Render
@@ -59,6 +59,12 @@ from werkzeug.utils import secure_filename
 
 app = Flask(__name__)
 app.secret_key = os.environ.get('SECRET_KEY', 'your-secret-key-here-change-in-production')
+
+# Configuração de sessão com timeout de 12 horas
+app.config['PERMANENT_SESSION_LIFETIME'] = timedelta(hours=12)
+app.config['SESSION_COOKIE_SECURE'] = False  # True em produção com HTTPS
+app.config['SESSION_COOKIE_HTTPONLY'] = True
+app.config['SESSION_COOKIE_SAMESITE'] = 'Lax'
 
 # Aplicar otimizações de memória RENDER-OTIMIZADAS se disponível
 if MEMORY_OPTIMIZER_AVAILABLE:
@@ -608,8 +614,8 @@ def login():
                 session.permanent = True
                 print(f"🔐 LOGIN: Sessão criada - user_id: {session['user_id']}, perfil: {session['user_perfil']}, permissões: {session['user_permissions_sigec']}")
                 flash(f'Bem-vindo(a), {user["nome"]}!', 'success')
-                print("🔐 LOGIN: Redirecionando para seleção de sistemas...")
-                return redirect(url_for('system_selection'))
+                print("🔐 LOGIN: Redirecionando para Dashboard SIGEC...")
+                return redirect(url_for('index'))
             else:
                 print("❌ LOGIN: Falha na autenticação")
                 flash('Usuário ou senha incorretos.', 'error')
@@ -621,120 +627,7 @@ def login():
     
     return render_template('login.html')
 
-@app.route('/system-selection')
-@login_required
-def system_selection():
-    """Tela de seleção de sistemas após o login"""
-    print(f"🎯 SYSTEM_SELECTION: Usuário {session.get('user_name')} acessando seleção de sistemas")
-    return render_template('system_selection.html')
-
-@app.route('/get-user-systems')
-@login_required
-def get_user_systems():
-    """Retorna os sistemas disponíveis para o usuário baseado em suas permissões"""
-    try:
-        user_id = session.get('user_id')
-        print(f"🎯 GET_USER_SYSTEMS: Buscando sistemas para usuário {user_id}")
-        
-        # Buscar dados do usuário para verificar permissões
-        current_user_service = get_user_service()
-        if current_user_service:
-            user_data = current_user_service.get_user_by_id(user_id)
-            if user_data:
-                # Sistemas disponíveis baseado nas permissões do usuário
-                available_systems = []
-                
-                # SIGEC sempre disponível (mínimo)
-                available_systems.append('sigec')
-                
-                # Verificar se é administrador - tem acesso a tudo
-                user_perfil = user_data.get('perfil', '').lower()
-                if user_perfil == 'administrador':
-                    # Administradores têm acesso a todos os sistemas
-                    available_systems = ['sigec', 'operacao-fiscal', 'gestao-operacional', 'gestao-financeira']
-                    print(f"🔑 GET_USER_SYSTEMS: Usuário administrador - todos os sistemas disponíveis")
-                    
-                    return {
-                        'success': True,
-                        'systems': available_systems,
-                        'user_permissions': 'TOTAL_CADASTROS'  # Administradores têm permissão total
-                    }
-                
-                # Para usuários não-administradores, verificar permissões específicas
-                user_systems = user_data.get('sistemas_acesso', 'sigec')
-                if isinstance(user_systems, str):
-                    user_systems = [s.strip() for s in user_systems.split(',') if s.strip()]
-                
-                for system in user_systems:
-                    system_lower = system.lower().strip()
-                    if system_lower == 'operacao-fiscal':
-                        available_systems.append('operacao-fiscal')
-                    elif system_lower == 'gestao-operacional':
-                        available_systems.append('gestao-operacional')
-                    elif system_lower == 'gestao-financeira':
-                        available_systems.append('gestao-financeira')
-                
-                # Remover duplicatas mantendo ordem
-                available_systems = list(dict.fromkeys(available_systems))
-                
-                print(f"🎯 GET_USER_SYSTEMS: Sistemas disponíveis: {available_systems}")
-                
-                return {
-                    'success': True,
-                    'systems': available_systems,
-                    'user_permissions': user_data.get('permissoes_sigec', 'VISUALIZADOR')
-                }
-            else:
-                print("❌ GET_USER_SYSTEMS: Usuário não encontrado")
-                return {'success': False, 'message': 'Usuário não encontrado'}, 404
-        else:
-            print("❌ GET_USER_SYSTEMS: Serviço de usuário indisponível")
-            # Fallback: retornar apenas SIGEC
-            return {
-                'success': True,
-                'systems': ['sigec'],
-                'user_permissions': 'VISUALIZADOR'
-            }
-            
-    except Exception as e:
-        print(f"❌ GET_USER_SYSTEMS: Erro: {str(e)}")
-        return {'success': False, 'message': 'Erro interno do servidor'}, 500
-
-@app.route('/select-system', methods=['POST'])
-@login_required
-def select_system():
-    """Processa a seleção do sistema e redireciona para o sistema escolhido"""
-    try:
-        data = request.get_json()
-        system_type = data.get('system')
-        
-        print(f"🎯 SELECT_SYSTEM: Usuário {session.get('user_name')} selecionou sistema: {system_type}")
-        
-        # Armazenar o sistema selecionado na sessão
-        session['selected_system'] = system_type
-        
-        # Definir URLs de redirecionamento baseado no sistema
-        redirect_urls = {
-            'sigec': url_for('index'),  # Dashboard principal atual
-            'operacao-fiscal': '/operacao-fiscal',  # Sistema fiscal (placeholder)
-            'gestao-operacional': 'https://app.powerbi.com/reportEmbed?reportId=8165cd63-42f4-44c1-8e4a-cad1a32d0e5b&autoAuth=true&ctid=0b754a09-0568-48fd-a100-8621a0bbd7ab',  # Power BI Gestão Operacional
-            'gestao-financeira': 'https://app.powerbi.com/reportEmbed?reportId=ef9c9663-7cec-4c9a-8b57-c1a6c895057a&autoAuth=true&ctid=0b754a09-0568-48fd-a100-8621a0bbd7ab'  # Power BI Gestão Financeira
-        }
-        
-        redirect_url = redirect_urls.get(system_type, url_for('index'))
-        
-        return {
-            'success': True,
-            'redirect_url': redirect_url,
-            'message': f'Sistema {system_type} selecionado com sucesso!'
-        }
-        
-    except Exception as e:
-        print(f"❌ SELECT_SYSTEM: Erro ao processar seleção: {str(e)}")
-        return {
-            'success': False,
-            'message': 'Erro interno do servidor'
-        }, 500
+# Rotas de seleção de sistema removidas - login redireciona direto para Dashboard SIGEC
 
 @app.route('/logout')
 def logout():
@@ -1367,11 +1260,8 @@ def edit_user():
         ativo = request.form['ativo']
         nova_senha = request.form.get('nova_senha', '').strip()
         
-        # Novos campos para sistemas e permissões
-        sistemas_acesso = request.form.getlist('sistemas_acesso')
-        if not sistemas_acesso:
-            sistemas_acesso = ['sigec']  # SIGEC sempre disponível
-        sistemas_str = ','.join(sistemas_acesso)
+        # SIGEC sempre disponível (único sistema)
+        sistemas_str = 'sigec'
         
         permissoes_sigec = request.form.get('permissoes_sigec', 'VISUALIZADOR')
         
@@ -2264,12 +2154,13 @@ def index():
                 gc.collect()
             print(f"💾 Memória pós-GC-EXTREMO: {MemoryOptimizer.get_memory_usage() if MEMORY_OPTIMIZER_AVAILABLE else 'N/A'}")
         
+        # Dashboard apenas - sem lista de empresas
         return render_template('index_modern.html', 
-                             clients=clients_page, 
+                             clients=[], 
                              stats=stats, 
-                             status_filter=status_filter,
-                             search_query=search_query,
-                             pagination=pagination_info)
+                             status_filter='ativo',
+                             search_query='',
+                             pagination=None)
         
     except Exception as e:
         print(f"❌ ERRO na rota index: {str(e)}")
@@ -2291,6 +2182,102 @@ def index():
                 gc.collect()
         
         return render_template('index_modern.html', clients=[], stats=stats, status_filter=status_filter)
+
+@app.route('/clients')
+@login_required
+def clients():
+    """Rota para listagem de empresas/clientes com busca e paginação"""
+    print("📋 CLIENTS: Carregando lista de empresas...")
+    
+    # Obter parâmetros da URL
+    status_filter = request.args.get('status', 'ativo')
+    search_query = request.args.get('search', '').strip()
+    page = int(request.args.get('page', 1))
+    per_page = int(request.args.get('per_page', 100))
+    
+    print(f"📋 Parâmetros: status={status_filter}, search='{search_query}', page={page}, per_page={per_page}")
+    
+    # Validações
+    if page < 1:
+        page = 1
+    if per_page < 5 or per_page > 100:
+        per_page = 20
+    
+    try:
+        storage = get_storage_service()
+        clients_list = storage.get_clients()
+        
+        # Aplicar filtro de status
+        original_count = len(clients_list)
+        if status_filter == 'ativo':
+            clients_list = [c for c in clients_list if c.get('ativo', True) and c.get('statusCliente', 'ativo').lower() == 'ativo']
+        elif status_filter == 'inativo':
+            clients_list = [c for c in clients_list if not c.get('ativo', True) or c.get('statusCliente', 'ativo').lower() == 'inativo']
+        
+        # Aplicar busca
+        if search_query:
+            search_lower = search_query.lower()
+            filtered_clients = []
+            for client in clients_list:
+                search_fields = [
+                    client.get('nomeEmpresa', ''),
+                    client.get('nomeFantasiaReceita', ''),
+                    client.get('razaoSocialReceita', ''),
+                    client.get('cnpj', ''),
+                    client.get('inscEst', ''),
+                    client.get('inscMun', ''),
+                    client.get('id', ''),
+                    client.get('cidade', ''),
+                    client.get('estado', ''),
+                ]
+                if any(search_lower in str(field).lower() for field in search_fields if field):
+                    filtered_clients.append(client)
+            clients_list = filtered_clients
+        
+        # Ordenar alfabeticamente
+        def get_client_name_for_sorting(client):
+            name = client.get('nomeEmpresa') or client.get('nomeFantasiaReceita') or ''
+            if not name or name.strip() == '':
+                return f"zzz_{client.get('id', '')}"
+            return name.strip().lower()
+        
+        clients_list = sorted(clients_list, key=get_client_name_for_sorting)
+        
+        # Paginação
+        total_clients = len(clients_list)
+        start_index = (page - 1) * per_page
+        end_index = start_index + per_page
+        clients_page = clients_list[start_index:end_index]
+        
+        total_pages = (total_clients + per_page - 1) // per_page
+        has_prev = page > 1
+        has_next = page < total_pages
+        
+        pagination_info = {
+            'page': page,
+            'per_page': per_page,
+            'total': total_clients,
+            'total_pages': total_pages,
+            'has_prev': has_prev,
+            'has_next': has_next,
+            'prev_num': page - 1 if has_prev else None,
+            'next_num': page + 1 if has_next else None,
+            'start_index': start_index + 1 if total_clients > 0 else 0,
+            'end_index': min(end_index, total_clients)
+        }
+        
+        print(f"✅ {len(clients_page)} empresas carregadas (página {page} de {total_pages})")
+        
+        return render_template('clients_list.html', 
+                             clients=clients_page, 
+                             status_filter=status_filter,
+                             search_query=search_query,
+                             pagination=pagination_info)
+        
+    except Exception as e:
+        print(f"❌ ERRO na rota clients: {str(e)}")
+        flash(f'Erro ao carregar empresas: {str(e)}', 'error')
+        return render_template('clients_list.html', clients=[], status_filter=status_filter, search_query=search_query, pagination=None)
 
 @app.route('/test')
 @login_required

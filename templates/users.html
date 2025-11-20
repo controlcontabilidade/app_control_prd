@@ -1,6 +1,6 @@
 ﻿{% extends "base.html" %}
 
-{% block title %}Gerenciar usuários - SIGEC{% endblock %}
+{% block title %}Gerenciar Usuários – SiGEC{% endblock %}
 
 {% block content %}
 <div class="d-flex justify-content-between align-items-center mb-4">
@@ -170,7 +170,7 @@
         <div class="modal-content">
             <div class="modal-header">
                 <h5 class="modal-title">
-                    <i class="bi bi-person-plus me-2"></i>Novo usuário
+                    <i class="bi bi-person-plus me-2"></i>Novo Usuário
                 </h5>
                 <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
             </div>
@@ -192,45 +192,19 @@
                         <div class="col-md-6">
                             <label for="perfil" class="form-label">PERFIL</label>
                             <select class="form-select" id="perfil" name="perfil" required>
-                                <option value="Usuario">USUÁRIO</option>
+                                <option value="Usuario">Usuário</option>
                                 <option value="Administrador">Administrador</option>
                             </select>
                         </div>
                         <div class="col-12">
                             <label for="senha" class="form-label">SENHA</label>
-                            <input type="password" class="form-control" id="senha" name="senha" required minlength="6">
-                            <div class="form-text">Mínimo 6 caracteres</div>
-                        </div>
-                        
-                        <!-- Novos campos para sistemas e permissões -->
-                        <div class="col-12">
-                            <label class="form-label">SISTEMAS DE ACESSO</label>
-                            <div class="border rounded p-3 bg-light">
-                                <div class="form-check">
-                                    <input class="form-check-input" type="checkbox" value="sigec" id="sistema_sigec" name="sistemas_acesso" checked disabled>
-                                    <label class="form-check-label" for="sistema_sigec">
-                                        <strong>SIGEC</strong> - Sistema Integrado de Gestão Empresarial Contábil (sempre disponível)
-                                    </label>
-                                </div>
-                                <div class="form-check">
-                                    <input class="form-check-input" type="checkbox" value="operacao-fiscal" id="sistema_fiscal" name="sistemas_acesso">
-                                    <label class="form-check-label" for="sistema_fiscal">
-                                        <strong>Operação Fiscal</strong> - Sistema de controle fiscal e tributário
-                                    </label>
-                                </div>
-                                <div class="form-check">
-                                    <input class="form-check-input" type="checkbox" value="gestao-operacional" id="sistema_operacional" name="sistemas_acesso">
-                                    <label class="form-check-label" for="sistema_operacional">
-                                        <strong>Gestão Operacional</strong> - Dashboard operacional
-                                    </label>
-                                </div>
-                                <div class="form-check">
-                                    <input class="form-check-input" type="checkbox" value="gestao-financeira" id="sistema_financeira" name="sistemas_acesso">
-                                    <label class="form-check-label" for="sistema_financeira">
-                                        <strong>Gestão Financeira</strong> - Dashboard financeiro
-                                    </label>
-                                </div>
+                            <div class="input-group">
+                                <input type="password" class="form-control" id="senha" name="senha" required minlength="6">
+                                <button class="btn btn-outline-secondary" type="button" id="toggleNewPassword">
+                                    <i class="bi bi-eye" id="toggleNewPasswordIcon"></i>
+                                </button>
                             </div>
+                            <div class="form-text">Mínimo 6 caracteres</div>
                         </div>
                         
                         <div class="col-12">
@@ -248,7 +222,7 @@
                 <div class="modal-footer">
                     <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
                     <button type="submit" class="btn btn-primary">
-                        <i class="bi bi-save me-2"></i>criar usuário
+                        <i class="bi bi-save me-2"></i>Criar Usuário
                     </button>
                 </div>
             </form>
@@ -262,7 +236,7 @@
         <div class="modal-content">
             <div class="modal-header">
                 <h5 class="modal-title">
-                    <i class="bi bi-pencil me-2"></i>editar usuário
+                    <i class="bi bi-pencil me-2"></i>Editar Usuário
                 </h5>
                 <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
             </div>
@@ -285,7 +259,7 @@
                         <div class="col-md-6">
                             <label for="edit_perfil" class="form-label">PERFIL</label>
                             <select class="form-select" id="edit_perfil" name="perfil" required>
-                                <option value="Usuario">USUÁRIO</option>
+                                <option value="Usuario">Usuário</option>
                                 <option value="Administrador">Administrador</option>
                             </select>
                         </div>
@@ -298,39 +272,13 @@
                         </div>
                         <div class="col-md-6">
                             <label for="edit_nova_senha" class="form-label">NOVA SENHA</label>
-                            <input type="password" class="form-control" id="edit_nova_senha" name="nova_senha" minlength="6">
-                            <div class="form-text">Deixe em branco para manter a senha atual</div>
-                        </div>
-                        
-                        <!-- Novos campos para edição de sistemas e permissões -->
-                        <div class="col-12">
-                            <label class="form-label">SISTEMAS DE ACESSO</label>
-                            <div class="border rounded p-3 bg-light">
-                                <div class="form-check">
-                                    <input class="form-check-input" type="checkbox" value="sigec" id="edit_sistema_sigec" name="sistemas_acesso" checked disabled>
-                                    <label class="form-check-label" for="edit_sistema_sigec">
-                                        <strong>SIGEC</strong> - Sistema Integrado de Gestão Empresarial Contábil (sempre disponível)
-                                    </label>
-                                </div>
-                                <div class="form-check">
-                                    <input class="form-check-input" type="checkbox" value="operacao-fiscal" id="edit_sistema_fiscal" name="sistemas_acesso">
-                                    <label class="form-check-label" for="edit_sistema_fiscal">
-                                        <strong>Operação Fiscal</strong> - Sistema de controle fiscal e tributário
-                                    </label>
-                                </div>
-                                <div class="form-check">
-                                    <input class="form-check-input" type="checkbox" value="gestao-operacional" id="edit_sistema_operacional" name="sistemas_acesso">
-                                    <label class="form-check-label" for="edit_sistema_operacional">
-                                        <strong>Gestão Operacional</strong> - Dashboard operacional
-                                    </label>
-                                </div>
-                                <div class="form-check">
-                                    <input class="form-check-input" type="checkbox" value="gestao-financeira" id="edit_sistema_financeira" name="sistemas_acesso">
-                                    <label class="form-check-label" for="edit_sistema_financeira">
-                                        <strong>Gestão Financeira</strong> - Dashboard financeiro
-                                    </label>
-                                </div>
+                            <div class="input-group">
+                                <input type="password" class="form-control" id="edit_nova_senha" name="nova_senha" minlength="6">
+                                <button class="btn btn-outline-secondary" type="button" id="toggleEditPassword">
+                                    <i class="bi bi-eye" id="toggleEditPasswordIcon"></i>
+                                </button>
                             </div>
+                            <div class="form-text">Deixe em branco para manter a senha atual</div>
                         </div>
                         
                         <div class="col-12">
@@ -440,12 +388,6 @@ function editUser(id, nome, email, usuario, perfil, ativo, sistemas_acesso, perm
     const statusValue = ativo.toLowerCase() === 'sim' ? 'Sim' : 'Nao';
     document.getElementById('edit_ativo').value = statusValue;
     
-    // Popula sistemas de acesso
-    const sistemas = sistemas_acesso ? sistemas_acesso.split(',') : ['sigec'];
-    document.getElementById('edit_sistema_fiscal').checked = sistemas.includes('operacao-fiscal');
-    document.getElementById('edit_sistema_operacional').checked = sistemas.includes('gestao-operacional');
-    document.getElementById('edit_sistema_financeira').checked = sistemas.includes('gestao-financeira');
-    
     // Popula permissões SIGEC
     document.getElementById('edit_permissoes_sigec').value = permissoes_sigec || 'VISUALIZADOR';
     
@@ -456,6 +398,38 @@ function editUser(id, nome, email, usuario, perfil, ativo, sistemas_acesso, perm
     var editModal = new bootstrap.Modal(document.getElementById('editUserModal'));
     editModal.show();
 }
+
+// Toggle mostrar/ocultar senha no campo de novo usuário
+document.getElementById('toggleNewPassword').addEventListener('click', function() {
+    const passwordInput = document.getElementById('senha');
+    const icon = document.getElementById('toggleNewPasswordIcon');
+    
+    if (passwordInput.type === 'password') {
+        passwordInput.type = 'text';
+        icon.classList.remove('bi-eye');
+        icon.classList.add('bi-eye-slash');
+    } else {
+        passwordInput.type = 'password';
+        icon.classList.remove('bi-eye-slash');
+        icon.classList.add('bi-eye');
+    }
+});
+
+// Toggle mostrar/ocultar senha no campo de edição
+document.getElementById('toggleEditPassword').addEventListener('click', function() {
+    const passwordInput = document.getElementById('edit_nova_senha');
+    const icon = document.getElementById('toggleEditPasswordIcon');
+    
+    if (passwordInput.type === 'password') {
+        passwordInput.type = 'text';
+        icon.classList.remove('bi-eye');
+        icon.classList.add('bi-eye-slash');
+    } else {
+        passwordInput.type = 'password';
+        icon.classList.remove('bi-eye-slash');
+        icon.classList.add('bi-eye');
+    }
+});
 
 function deleteUser(id, nome) {
     // Não permite excluir o usuário admin
