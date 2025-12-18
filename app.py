@@ -463,14 +463,16 @@ def utility_processor():
     """Adiciona funções úteis para os templates"""
     def can_delete():
         """Verifica se o usuário atual pode excluir clientes"""
-        user_perfil = session.get('user_perfil', '').lower()
-        user_permissions = session.get('user_permissions_sigec', '')
+        user_perfil = session.get('user_perfil', '')
+        user_perfil_lower = user_perfil.lower().strip()
+        user_permissions = session.get('user_permissions_sigec', '').strip()
         
-        return (
-            user_perfil == 'administrador' or 
-            user_permissions == 'TOTAL_CADASTROS' or 
-            'EXCLUIR' in user_permissions
+        result = (
+            user_perfil_lower == 'administrador' or 
+            user_permissions == 'TOTAL_CADASTROS'
         )
+        
+        return result
     
     def can_edit():
         """Verifica se o usuário atual pode editar clientes"""
@@ -3057,13 +3059,12 @@ def save_client():
 def delete_client(client_id):
     try:
         # Verificar se o usuário tem permissão para excluir
-        user_perfil = session.get('user_perfil', '').lower()
-        user_permissions = session.get('user_permissions_sigec', '')
+        user_perfil = session.get('user_perfil', '').lower().strip()
+        user_permissions = session.get('user_permissions_sigec', '').strip()
         
         can_delete = (
             user_perfil == 'administrador' or 
-            user_permissions == 'TOTAL_CADASTROS' or 
-            'EXCLUIR' in user_permissions
+            user_permissions == 'TOTAL_CADASTROS'
         )
         
         if not can_delete:
