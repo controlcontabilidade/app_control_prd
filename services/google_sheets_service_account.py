@@ -1461,6 +1461,7 @@ class GoogleSheetsServiceAccountService:
             row_data[hidx['GERA ARQUIVO DO SPED']] = gera_sped_val if gera_sped_val in ['SIM', 'NÃO'] else ''
 
         # NOVOS CAMPOS DE SENHA - mapeamento baseado em cabeçalhos
+        # IMPORTANTE: Adicionar aspas simples no início para forçar tratamento como texto e preservar zeros à esquerda
         senha_fields = {
             'CNPJ ACESSO SIMPLES NACIONAL': client.get('cnpjAcessoSn', ''),
             'CPF DO REPRESENTANTE LEGAL': client.get('cpfRepLegal', ''),
@@ -1483,8 +1484,10 @@ class GoogleSheetsServiceAccountService:
         
         for header_name, value in senha_fields.items():
             if header_name in hidx:
-                row_data[hidx[header_name]] = value
-                print(f"🔐 [SERVICE] {header_name}: '{value}' -> posição {hidx[header_name]}")
+                # Adicionar aspas simples no início para preservar zeros à esquerda
+                formatted_value = f"'{value}" if value and str(value).strip() else value
+                row_data[hidx[header_name]] = formatted_value
+                print(f"🔐 [SERVICE] {header_name}: '{formatted_value}' -> posição {hidx[header_name]}")
 
         # DEBUG: Verificar se o ID foi colocado corretamente
         if 'ID' in hidx:
@@ -1508,6 +1511,12 @@ class GoogleSheetsServiceAccountService:
             if isinstance(text, str):
                 return text.upper() in ['SIM', 'TRUE', '1', 'VERDADEIRO', 'S', 'YES']
             return default
+        
+        def clean_text_field(text):
+            """Remove aspas simples do início que são usadas para forçar formatação de texto no Sheets"""
+            if isinstance(text, str) and text.startswith("'"):
+                return text[1:]  # Remove apenas a primeira aspas
+            return text
 
         # Mapear índices de cabeçalhos
         headers = self.get_headers()
@@ -1755,23 +1764,24 @@ class GoogleSheetsServiceAccountService:
             'geraArquivoSped': safe_get(row, hidx.get('GERA ARQUIVO DO SPED', 105)),  # GERA ARQUIVO DO SPED - USA HIDX
             
             # --- CAMPOS NOVOS DE SENHA - usando cabeçalhos dinâmicos (hidx) ---
-            'cnpjAcessoSn': safe_get(row, hidx.get('CNPJ ACESSO SIMPLES NACIONAL', 106)),
-            'cpfRepLegal': safe_get(row, hidx.get('CPF DO REPRESENTANTE LEGAL', 107)),
-            'codigoAcessoSn': safe_get(row, hidx.get('CÓDIGO ACESSO SN', 108)),
-            'senhaIss': safe_get(row, hidx.get('SENHA ISS', 109)),
-            'senhaSefin': safe_get(row, hidx.get('SENHA SEFIN', 110)),
-            'senhaSeuma': safe_get(row, hidx.get('SENHA SEUMA', 111)),
-            'anvisaEmpresa': safe_get(row, hidx.get('LOGIN ANVISA EMPRESA', 112)),
-            'senhaAnvisaEmpresa': safe_get(row, hidx.get('SENHA ANVISA EMPRESA', 113)),
-            'anvisaGestor': safe_get(row, hidx.get('LOGIN ANVISA GESTOR', 114)),
-            'senhaAnvisaGestor': safe_get(row, hidx.get('SENHA ANVISA GESTOR', 115)),
-            'senhaFapInss': safe_get(row, hidx.get('SENHA FAP/INSS', 116)),
-            'acessoEmpWeb': safe_get(row, hidx.get('ACESSO EMP WEB', 117)),
-            'senhaEmpWeb': safe_get(row, hidx.get('SENHA EMP WEB', 118)),
-            'acessoCrf': safe_get(row, hidx.get('ACESSO CRF', 119)),
-            'senhaCrf': safe_get(row, hidx.get('SENHA CRF', 120)),
-            'emailSefin': safe_get(row, hidx.get('EMAIL SEFIN', 121)),
-            'emailEmpweb': safe_get(row, hidx.get('EMAIL EMPWEB', 122)),
+            # Aplicar clean_text_field para remover aspas simples de formatação
+            'cnpjAcessoSn': clean_text_field(safe_get(row, hidx.get('CNPJ ACESSO SIMPLES NACIONAL', 106))),
+            'cpfRepLegal': clean_text_field(safe_get(row, hidx.get('CPF DO REPRESENTANTE LEGAL', 107))),
+            'codigoAcessoSn': clean_text_field(safe_get(row, hidx.get('CÓDIGO ACESSO SN', 108))),
+            'senhaIss': clean_text_field(safe_get(row, hidx.get('SENHA ISS', 109))),
+            'senhaSefin': clean_text_field(safe_get(row, hidx.get('SENHA SEFIN', 110))),
+            'senhaSeuma': clean_text_field(safe_get(row, hidx.get('SENHA SEUMA', 111))),
+            'anvisaEmpresa': clean_text_field(safe_get(row, hidx.get('LOGIN ANVISA EMPRESA', 112))),
+            'senhaAnvisaEmpresa': clean_text_field(safe_get(row, hidx.get('SENHA ANVISA EMPRESA', 113))),
+            'anvisaGestor': clean_text_field(safe_get(row, hidx.get('LOGIN ANVISA GESTOR', 114))),
+            'senhaAnvisaGestor': clean_text_field(safe_get(row, hidx.get('SENHA ANVISA GESTOR', 115))),
+            'senhaFapInss': clean_text_field(safe_get(row, hidx.get('SENHA FAP/INSS', 116))),
+            'acessoEmpWeb': clean_text_field(safe_get(row, hidx.get('ACESSO EMP WEB', 117))),
+            'senhaEmpWeb': clean_text_field(safe_get(row, hidx.get('SENHA EMP WEB', 118))),
+            'acessoCrf': clean_text_field(safe_get(row, hidx.get('ACESSO CRF', 119))),
+            'senhaCrf': clean_text_field(safe_get(row, hidx.get('SENHA CRF', 120))),
+            'emailSefin': clean_text_field(safe_get(row, hidx.get('EMAIL SEFIN', 121))),
+            'emailEmpweb': clean_text_field(safe_get(row, hidx.get('EMAIL EMPWEB', 122))),
         }
 
         # CORREÇÃO CRÍTICA: Derivar campo 'ativo' a partir do statusCliente
