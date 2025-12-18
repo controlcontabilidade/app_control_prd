@@ -1487,7 +1487,16 @@ class GoogleSheetsServiceAccountService:
                 # Adicionar aspas simples no início para preservar zeros à esquerda
                 formatted_value = f"'{value}" if value and str(value).strip() else value
                 row_data[hidx[header_name]] = formatted_value
-                print(f"🔐 [SERVICE] {header_name}: '{formatted_value}' -> posição {hidx[header_name]}")
+                
+                # Debug especial para os 4 campos problemáticos
+                if header_name in ['SENHA ISS', 'SENHA CRF', 'EMAIL SEFIN', 'EMAIL EMPWEB']:
+                    print(f"🔴 [DEBUG ESPECIAL] {header_name}:")
+                    print(f"   Valor recebido: '{value}' (tipo: {type(value)})")
+                    print(f"   Valor formatado: '{formatted_value}'")
+                    print(f"   Posição no hidx: {hidx[header_name]}")
+                    print(f"   Cabeçalho existe? {header_name in hidx}")
+                else:
+                    print(f"🔐 [SERVICE] {header_name}: '{formatted_value}' -> posição {hidx[header_name]}")
 
         # DEBUG: Verificar se o ID foi colocado corretamente
         if 'ID' in hidx:
