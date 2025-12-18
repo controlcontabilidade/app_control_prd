@@ -165,6 +165,13 @@
                                    title="Ver Atas">
                                     <i class="bi bi-file-earmark-text"></i>
                                 </a>
+                                <!-- Botão Excluir - DEBUG: sempre visível -->
+                                <button type="button" 
+                                   class="btn btn-outline-danger btn-sm" 
+                                   title="Excluir (DEBUG: Perfil={{ session.get('user_perfil', 'N/A') }}, Perm={{ session.get('user_permissions_sigec', 'N/A') }}, can_delete={{ can_delete() }})"
+                                   onclick="confirmDelete('{{ client['id'] }}', '{{ client['nomeEmpresa'] or client['nomeFantasiaReceita'] }}')">
+                                    <i class="bi bi-trash"></i>
+                                </button>
                             </div>
                         </td>
                     </tr>
@@ -360,5 +367,17 @@ document.addEventListener('DOMContentLoaded', function() {
         window.location.href = url.toString();
     };
 });
+
+// Função para confirmar exclusão de cliente
+function confirmDelete(clientId, clientName) {
+    if (confirm(`Tem certeza que deseja excluir o cliente "${clientName}"?\n\nEsta ação não pode ser desfeita!`)) {
+        // Criar formulário e submeter
+        const form = document.createElement('form');
+        form.method = 'POST';
+        form.action = `/client/${clientId}/delete`;
+        document.body.appendChild(form);
+        form.submit();
+    }
+}
 </script>
 {% endblock %}
