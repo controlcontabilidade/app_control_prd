@@ -463,19 +463,14 @@ def utility_processor():
     """Adiciona funções úteis para os templates"""
     def can_delete():
         """Verifica se o usuário atual pode excluir clientes"""
-        user_perfil = session.get('user_perfil', '')
-        user_perfil_lower = user_perfil.lower().strip()
-        user_permissions = session.get('user_permissions_sigec', '').strip()
+        user_perfil = session.get('user_perfil', '').lower()
+        user_permissions = session.get('user_permissions_sigec', '')
         
-        result = (
-            user_perfil_lower == 'administrador' or 
-            user_permissions == 'TOTAL_CADASTROS'
+        return (
+            user_perfil == 'administrador' or 
+            user_permissions == 'TOTAL_CADASTROS' or 
+            'EXCLUIR' in user_permissions
         )
-        
-        # Debug temporário
-        print(f"🔍 DEBUG can_delete(): perfil='{user_perfil}', perfil_lower='{user_perfil_lower}', permissions='{user_permissions}', result={result}")
-        
-        return result
     
     def can_edit():
         """Verifica se o usuário atual pode editar clientes"""
@@ -3067,7 +3062,8 @@ def delete_client(client_id):
         
         can_delete = (
             user_perfil == 'administrador' or 
-            user_permissions == 'TOTAL_CADASTROS'
+            user_permissions == 'TOTAL_CADASTROS' or 
+            'EXCLUIR' in user_permissions
         )
         
         if not can_delete:
@@ -3357,37 +3353,6 @@ def update_meeting(client_id, meeting_id):
         traceback.print_exc()
     
     return redirect(url_for('view_client_meetings', client_id=client_id))
-
-@app.route('/debug-permissions')
-@login_required
-def debug_permissions():
-    """Rota de debug para verificar permissões do usuário"""
-    from flask import jsonify
-    
-    user_perfil = session.get('user_perfil', '')
-    user_permissions = session.get('user_permissions_sigec', '')
-    
-    can_delete_result = (
-        user_perfil.lower() == 'administrador' or 
-        user_permissions == 'TOTAL_CADASTROS'
-    )
-    
-    debug_data = {
-        'session_data': {
-            'user_id': session.get('user_id'),
-            'user_name': session.get('user_name'),
-            'user_perfil': user_perfil,
-            'user_perfil_lower': user_perfil.lower(),
-            'user_permissions_sigec': user_permissions,
-        },
-        'permission_checks': {
-            'can_delete': can_delete_result,
-            'is_admin': user_perfil.lower() == 'administrador',
-            'has_total_cadastros': user_permissions == 'TOTAL_CADASTROS',
-        }
-    }
-    
-    return jsonify(debug_data)
 
 @app.route('/debug-render')
 def debug_render():

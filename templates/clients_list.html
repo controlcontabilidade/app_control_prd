@@ -165,14 +165,6 @@
                                    title="Ver Atas">
                                     <i class="bi bi-file-earmark-text"></i>
                                 </a>
-                                {% if can_delete() %}
-                                <button type="button" 
-                                   class="btn btn-outline-danger btn-sm" 
-                                   title="Excluir"
-                                   onclick="confirmDelete('{{ client['id'] }}', '{{ client['nomeEmpresa'] or client['nomeFantasiaReceita'] }}')">
-                                    <i class="bi bi-trash"></i>
-                                </button>
-                                {% endif %}
                             </div>
                         </td>
                     </tr>
@@ -366,18 +358,6 @@ document.addEventListener('DOMContentLoaded', function() {
         url.searchParams.delete('search');
         url.searchParams.set('page', '1');
         window.location.href = url.toString();
-    };
-    
-    // Função para confirmar exclusão de cliente
-    window.confirmDelete = function(clientId, clientName) {
-        if (confirm(`Tem certeza que deseja excluir o cliente "${clientName}"?\n\nEsta ação não pode ser desfeita!`)) {
-            // Criar formulário e submeter
-            const form = document.createElement('form');
-            form.method = 'POST';
-            form.action = `/client/${clientId}/delete`;
-            document.body.appendChild(form);
-            form.submit();
-        }
     };
 });
 </script>

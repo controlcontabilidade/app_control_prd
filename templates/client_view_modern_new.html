@@ -561,22 +561,22 @@
                 </h5>
             </div>
             <div class="card-body">
-                <div class="d-flex flex-column gap-2">
+                <div class="d-grid gap-2">
                     <!-- 1. Ver Reuniões -->
-                    <a href="/client/{{ client.id }}/meetings" class="btn btn-outline-info w-100">
+                    <a href="/client/{{ client.id }}/meetings" class="btn btn-outline-info">
                         <i class="fas fa-calendar-alt me-2"></i>
                         Ver Reuniões
                     </a>
                     
                     <!-- 2. Registrar Reuniões -->
-                    <a href="/client/{{ client.id }}/meeting" class="btn btn-info w-100">
+                    <a href="/client/{{ client.id }}/meeting" class="btn btn-info">
                         <i class="fas fa-calendar-plus me-2"></i>
                         Registrar Reunião
                     </a>
                     
                     <!-- 3. Editar Cliente -->
                     {% if can_edit() %}
-                    <a href="/client/{{ client.id }}/edit" class="btn btn-primary w-100">
+                    <a href="/client/{{ client.id }}/edit" class="btn btn-primary">
                         <i class="fas fa-edit me-2"></i>
                         Editar Cliente
                     </a>
@@ -584,10 +584,10 @@
                     
                     <!-- 4. Excluir Cliente -->
                     {% if can_delete() %}
-                    <button type="button" class="btn btn-outline-danger w-100" data-bs-toggle="modal" data-bs-target="#deleteModal">
-                        <i class="fas fa-trash me-2"></i>
-                        Excluir Cliente
-                    </button>
+                        <button type="button" class="btn btn-outline-danger" data-bs-toggle="modal" data-bs-target="#deleteModal">
+                            <i class="fas fa-trash me-2"></i>
+                            Excluir Cliente
+                        </button>
                     {% endif %}
                 </div>
             </div>
