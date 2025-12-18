@@ -1754,24 +1754,24 @@ class GoogleSheetsServiceAccountService:
             'domestica': safe_get(row, hidx.get('DOMÉSTICA', 104)),  # DOMÉSTICA - USA HIDX
             'geraArquivoSped': safe_get(row, hidx.get('GERA ARQUIVO DO SPED', 105)),  # GERA ARQUIVO DO SPED - USA HIDX
             
-            # --- CAMPOS NOVOS DE SENHA - usando posições corretas dos cabeçalhos ---
-            'cnpjAcessoSn': safe_get(row, 106),       # 107. CNPJ ACESSO SIMPLES NACIONAL
-            'cpfRepLegal': safe_get(row, 107),        # 108. CPF DO REPRESENTANTE LEGAL  
-            'codigoAcessoSn': safe_get(row, 108),     # 109. CÓDIGO ACESSO SN
-            'senhaIss': safe_get(row, 109),           # 110. SENHA ISS (remapeado de SENHA SEFIN)
-            'senhaSefin': safe_get(row, 109),         # 110. SENHA SEFIN
-            'senhaSeuma': safe_get(row, 110),         # 111. SENHA SEUMA
-            'anvisaEmpresa': safe_get(row, 111),      # 112. LOGIN ANVISA EMPRESA
-            'senhaAnvisaEmpresa': safe_get(row, 112), # 113. SENHA ANVISA EMPRESA
-            'anvisaGestor': safe_get(row, 113),       # 114. LOGIN ANVISA GESTOR
-            'senhaAnvisaGestor': safe_get(row, 114),  # 115. SENHA ANVISA GESTOR
-            'senhaFapInss': safe_get(row, 115),       # 116. SENHA FAP/INSS
-            'acessoEmpWeb': safe_get(row, 116),       # 117. ACESSO EMP WEB
-            'senhaEmpWeb': safe_get(row, 117),        # 118. SENHA EMP WEB
-            'acessoCrf': safe_get(row, 118),          # 119. ACESSO CRF
-            'senhaCrf': safe_get(row, 119),           # 120. SENHA CRF
-            'emailSefin': safe_get(row, 120),         # 121. EMAIL SEFIN
-            'emailEmpweb': safe_get(row, 121),        # 122. EMAIL EMPWEB
+            # --- CAMPOS NOVOS DE SENHA - usando cabeçalhos dinâmicos (hidx) ---
+            'cnpjAcessoSn': safe_get(row, hidx.get('CNPJ ACESSO SIMPLES NACIONAL', 106)),
+            'cpfRepLegal': safe_get(row, hidx.get('CPF DO REPRESENTANTE LEGAL', 107)),
+            'codigoAcessoSn': safe_get(row, hidx.get('CÓDIGO ACESSO SN', 108)),
+            'senhaIss': safe_get(row, hidx.get('SENHA ISS', 109)),
+            'senhaSefin': safe_get(row, hidx.get('SENHA SEFIN', 110)),
+            'senhaSeuma': safe_get(row, hidx.get('SENHA SEUMA', 111)),
+            'anvisaEmpresa': safe_get(row, hidx.get('LOGIN ANVISA EMPRESA', 112)),
+            'senhaAnvisaEmpresa': safe_get(row, hidx.get('SENHA ANVISA EMPRESA', 113)),
+            'anvisaGestor': safe_get(row, hidx.get('LOGIN ANVISA GESTOR', 114)),
+            'senhaAnvisaGestor': safe_get(row, hidx.get('SENHA ANVISA GESTOR', 115)),
+            'senhaFapInss': safe_get(row, hidx.get('SENHA FAP/INSS', 116)),
+            'acessoEmpWeb': safe_get(row, hidx.get('ACESSO EMP WEB', 117)),
+            'senhaEmpWeb': safe_get(row, hidx.get('SENHA EMP WEB', 118)),
+            'acessoCrf': safe_get(row, hidx.get('ACESSO CRF', 119)),
+            'senhaCrf': safe_get(row, hidx.get('SENHA CRF', 120)),
+            'emailSefin': safe_get(row, hidx.get('EMAIL SEFIN', 121)),
+            'emailEmpweb': safe_get(row, hidx.get('EMAIL EMPWEB', 122)),
         }
 
         # CORREÇÃO CRÍTICA: Derivar campo 'ativo' a partir do statusCliente
