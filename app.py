@@ -2853,6 +2853,9 @@ def save_client():
             'senhaAnvisaGestor': request.form.get('senhaAnvisaGestor', ''),
             'acessoCrf': request.form.get('acessoCrf', ''),
             'senhaFapInss': request.form.get('senhaFapInss', ''),
+            'senhaCrf': request.form.get('senhaCrf', ''),
+            'emailSefin': request.form.get('emailSefin', ''),
+            'emailEmpweb': request.form.get('emailEmpweb', ''),
         }
         for key, value in senhas_credenciais.items():
             if value:  # Só mostrar se tiver valor
@@ -2909,6 +2912,11 @@ def save_client():
             # Linha 4: Acesso CRF, Senha FAP/INSS
             'acessoCrf': request.form.get('acessoCrf', ''),
             'senhaFapInss': request.form.get('senhaFapInss', ''),
+            
+            # Linha 5: Senha CRF, E-mail SEFIN, E-mail EmpWeb (FALTAVAM)
+            'senhaCrf': request.form.get('senhaCrf', ''),
+            'emailSefin': request.form.get('emailSefin', ''),
+            'emailEmpweb': request.form.get('emailEmpweb', ''),
             
             # Bloco 6: Procurações (CORRIGIDO - alinhado com formulário)
             'procReceita': request.form.get('procReceita') == 'on',
