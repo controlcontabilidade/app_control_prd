@@ -746,7 +746,7 @@ def save_sistemas_list(sistemas):
     except Exception as e:
         print(f"❌ Erro ao salvar sistemas: {e}")
         return False
-#
+
 # === ROTAS PARA CADASTRO DE SEGMENTOS E ATIVIDADES ===
 @app.route('/segmentos')
 @login_required
