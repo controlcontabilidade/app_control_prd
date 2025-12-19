@@ -2838,11 +2838,22 @@ def save_client():
         
         # Debug específico para senhas e credenciais
         print("🔍 === DEBUG SENHAS E CREDENCIAIS ===")
+        
+        # DEBUG CRÍTICO PARA SENHA ISS
+        senha_iss_raw = request.form.get('senhaIss', '')
+        print(f"🚨🚨🚨 ===== DEBUG SENHA ISS ===== 🚨🚨🚨")
+        print(f"🚨 SENHA ISS - Valor RAW do form: '{senha_iss_raw}'")
+        print(f"🚨 SENHA ISS - Tipo: {type(senha_iss_raw)}")
+        print(f"🚨 SENHA ISS - Tamanho: {len(senha_iss_raw) if senha_iss_raw else 0}")
+        print(f"🚨 SENHA ISS - Repr: {repr(senha_iss_raw)}")
+        print(f"🚨 SENHA ISS - Todos os campos form: {dict(request.form)}")
+        print(f"🚨🚨🚨 ================================= 🚨🚨🚨")
+        
         senhas_credenciais = {
             'cnpjAcessoSn': request.form.get('cnpjAcessoSn', ''),
             'cpfRepLegal': request.form.get('cpfRepLegal', ''),
             'codigoAcessoSn': request.form.get('codigoAcessoSn', ''),
-            'senhaIss': request.form.get('senhaIss', ''),
+            'senhaIss': senha_iss_raw,
             'senhaSefin': request.form.get('senhaSefin', ''),
             'senhaSeuma': request.form.get('senhaSeuma', ''),
             'acessoEmpWeb': request.form.get('acessoEmpWeb', ''),
