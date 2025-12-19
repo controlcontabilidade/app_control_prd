@@ -963,19 +963,20 @@ class GoogleSheetsServiceAccountService:
             'CNPJ ACESSO SIMPLES NACIONAL',       # 107. CNPJ para Simples Nacional
             'CPF DO REPRESENTANTE LEGAL',         # 108. CPF do representante legal
             'CÓDIGO ACESSO SN',                   # 109. Código de acesso SN
-            'SENHA SEFIN',                        # 110. Senha SEFIN
-            'SENHA SEUMA',                        # 111. Senha SEUMA
-            'LOGIN ANVISA EMPRESA',               # 112. Login ANVISA Empresa
-            'SENHA ANVISA EMPRESA',               # 113. Senha ANVISA Empresa
-            'LOGIN ANVISA GESTOR',                # 114. Login ANVISA Gestor
-            'SENHA ANVISA GESTOR',                # 115. Senha ANVISA Gestor
-            'SENHA FAP/INSS',                     # 116. Senha FAP/INSS
-            'ACESSO EMP WEB',                     # 117. Acesso Emp Web
-            'SENHA EMP WEB',                      # 118. Senha Emp Web
-            'ACESSO CRF',                         # 119. Acesso CRF
-            'SENHA CRF',                          # 120. Senha CRF
-            'EMAIL SEFIN',                        # 121. E-mail SEFIN
-            'EMAIL EMPWEB',                       # 122. E-mail EmpWeb
+            'SENHA ISS',                          # 110. Senha ISS ⭐ ADICIONADO
+            'SENHA SEFIN',                        # 111. Senha SEFIN
+            'SENHA SEUMA',                        # 112. Senha SEUMA
+            'LOGIN ANVISA EMPRESA',               # 113. Login ANVISA Empresa
+            'SENHA ANVISA EMPRESA',               # 114. Senha ANVISA Empresa
+            'LOGIN ANVISA GESTOR',                # 115. Login ANVISA Gestor
+            'SENHA ANVISA GESTOR',                # 116. Senha ANVISA Gestor
+            'SENHA FAP/INSS',                     # 117. Senha FAP/INSS
+            'ACESSO EMP WEB',                     # 118. Acesso Emp Web
+            'SENHA EMP WEB',                      # 119. Senha Emp Web
+            'ACESSO CRF',                         # 120. Acesso CRF
+            'SENHA CRF',                          # 121. Senha CRF
+            'EMAIL SEFIN',                        # 122. E-mail SEFIN
+            'EMAIL EMPWEB',                       # 123. E-mail EmpWeb
         ]
 
     def ensure_correct_headers(self):
@@ -1349,52 +1350,56 @@ class GoogleSheetsServiceAccountService:
             client.get('contato_5_telefone', ''),             # 113. CONTATO_5_TELEFONE
             client.get('contato_5_email', ''),                # 114. CONTATO_5_EMAIL
             
-            # Bloco 5: Senhas e Credenciais (POSIÇÕES CORRETAS)
-            client.get('cnpjAcessoSn', ''),                   # 114. CPF/CNPJ SN
-            client.get('codigoAcessoSn', ''),                 # 115. CÓDIGO ACESSO SN
-            client.get('acessoEmpWeb', ''),                   # 116. ACESSO EMPWEB
-            client.get('senhaEmpWeb', ''),                    # 117. SENHA EMPWEB
-            client.get('acessoIss', ''),                      # 118. ACESSO ISS
-            client.get('acessoSefin', ''),                    # 119. ACESSO SEFIN
-            client.get('acessoSeuma', ''),                    # 120. ACESSO SEUMA
-            client.get('acessoSemace', ''),                   # 121. ACESSO SEMACE
-            client.get('acessoIbama', ''),                    # 122. ACESSO IBAMA
-            client.get('acessoFapInss', ''),                  # 123. ACESSO FAP/INSS
-            client.get('acessoCrf', ''),                      # 124. ACESSO CRF
-            client.get('senhaSemace', ''),                    # 125. SENHA SEMACE
-            client.get('anvisaGestor', ''),                   # 126. ANVISA GESTOR
-            client.get('anvisaEmpresa', ''),                  # 127. ANVISA EMPRESA
+            # Bloco 5: Senhas e Credenciais (POSIÇÕES CORRETAS conforme headers)
+            # Importante: Estes campos serão preenchidos via hidx mais abaixo para garantir alinhamento
+            # Por ora, preencher sequencialmente conforme ordem antiga para não quebrar
+            client.get('cpfCnpjSn', ''),                      # 115. CPF/CNPJ SN
+            client.get('acessoIss', ''),                      # 116. ACESSO ISS
+            client.get('acessoSefin', ''),                    # 117. ACESSO SEFIN
+            client.get('acessoSeuma', ''),                    # 118. ACESSO SEUMA
+            client.get('acessoSemace', ''),                   # 119. ACESSO SEMACE
+            client.get('acessoIbama', ''),                    # 120. ACESSO IBAMA
+            client.get('acessoFapInss', ''),                  # 121. ACESSO FAP/INSS
+            client.get('senhaSemace', ''),                    # 122. SENHA SEMACE
+            client.get('anvisaGestor', ''),                   # 123. ANVISA GESTOR
+            client.get('anvisaEmpresa', ''),                  # 124. ANVISA EMPRESA
             
             # Senhas Específicas Adicionais (NOVOS CAMPOS)
-            client.get('senhaFgts', ''),                      # 128. SENHA FGTS
-            client.get('senhaSocial', ''),                    # 129. SENHA SOCIAL
-            client.get('senhaGiss', ''),                      # 130. SENHA GISS
-            client.get('senhaDetran', ''),                    # 131. SENHA DETRAN
-            client.get('senhaReceita', ''),                   # 132. SENHA RECEITA
-            client.get('senhaSintegra', ''),                  # 133. SENHA SINTEGRA
-            client.get('senhaJucesp', ''),                    # 134. SENHA JUCESP
-            client.get('senhaPortalEmpregador', ''),          # 135. SENHA PORTAL EMPREGADOR
-            client.get('senhaSimples', ''),                   # 136. SENHA SIMPLES
-            client.get('senhaGoverno', ''),                   # 137. SENHA GOVERNO
-            client.get('senhaViaSoft', ''),                   # 138. SENHA VIA SOFT
-            client.get('senhaSimei', ''),                     # 85. SENHA SIMEI
+            client.get('senhaFgts', ''),                      # 125. SENHA FGTS
+            client.get('senhaSocial', ''),                    # 126. SENHA SOCIAL
+            client.get('senhaGiss', ''),                      # 127. SENHA GISS
+            client.get('senhaDetran', ''),                    # 128. SENHA DETRAN
+            client.get('senhaReceita', ''),                   # 129. SENHA RECEITA
+            client.get('senhaSintegra', ''),                  # 130. SENHA SINTEGRA
+            client.get('senhaJucesp', ''),                    # 131. SENHA JUCESP
+            client.get('senhaPortalEmpregador', ''),          # 132. SENHA PORTAL EMPREGADOR
+            client.get('senhaSimples', ''),                   # 133. SENHA SIMPLES
+            client.get('senhaGoverno', ''),                   # 134. SENHA GOVERNO
+            client.get('senhaViaSoft', ''),                   # 135. SENHA VIA SOFT
+            client.get('senhaSimei', ''),                     # 136. SENHA SIMEI
 
             # Bloco 6: Procurações (CORRIGIDO - alinhado com formulário)
-            'SIM' if client.get('procReceita') else 'NÃO',    # 86. PROCURAÇÃO RECEITA
-            client.get('dataProcReceita', ''),                # 87. DATA PROCURAÇÃO RECEITA
-            'SIM' if client.get('procDte') else 'NÃO',        # 88. PROCURAÇÃO DTe
-            client.get('dataProcDte', ''),                    # 89. DATA PROCURAÇÃO DTe
-            'SIM' if client.get('procCaixa') else 'NÃO',      # 90. PROCURAÇÃO CAIXA
-            client.get('dataProcCaixa', ''),                  # 91. DATA PROCURAÇÃO CAIXA
-            'SIM' if client.get('procEmpWeb') else 'NÃO',     # 92. PROCURAÇÃO EMP WEB
-            client.get('dataProcEmpWeb', ''),                 # 93. DATA PROCURAÇÃO EMP WEB (posição real: 146)
-            'SIM' if client.get('procDet') else 'NÃO',        # 94. PROCURAÇÃO DET
-            client.get('dataProcDet', ''),                    # 95. DATA PROCURAÇÃO DET
-            client.get('outrasProc', ''),                     # 145. OUTRAS PROCURAÇÕES
-            client.get('obsProcuracoes', ''),                 # OBSERVAÇÕES PROCURAÇÕES (movido para posição correta)
+            'SIM' if client.get('procReceita') else 'NÃO',    # 137. PROCURAÇÃO RECEITA
+            client.get('dataProcReceita', ''),                # 138. DATA PROCURAÇÃO RECEITA
+            'SIM' if client.get('procDte') else 'NÃO',        # 139. PROCURAÇÃO DTe
+            client.get('dataProcDte', ''),                    # 140. DATA PROCURAÇÃO DTe
+            'SIM' if client.get('procCaixa') else 'NÃO',      # 141. PROCURAÇÃO CAIXA
+            client.get('dataProcCaixa', ''),                  # 142. DATA PROCURAÇÃO CAIXA
+            'SIM' if client.get('procEmpWeb') else 'NÃO',     # 143. PROCURAÇÃO EMP WEB
+            client.get('dataProcEmpWeb', ''),                 # 144. DATA PROCURAÇÃO EMP WEB
+            'SIM' if client.get('procDet') else 'NÃO',        # 145. PROCURAÇÃO DET
+            client.get('dataProcDet', ''),                    # 146. DATA PROCURAÇÃO DET
+            client.get('outrasProc', ''),                     # 147. OUTRAS PROCURAÇÕES
+            client.get('obsProcuracoes', ''),                 # 148. OBSERVAÇÕES PROCURAÇÕES
 
+            # Bloco 7: Observações e Dados Adicionais
+            # Estes campos serão preenchidos via hidx mais abaixo
+            '',  # 149. OBSERVAÇÕES (preenchido via hidx)
+            '',  # 150. STATUS DO CLIENTE (preenchido via hidx)
+            '',  # 151. ÚLTIMA ATUALIZAÇÃO (preenchido via hidx)
+            
             # Campos internos do sistema
-            client.get('donoResp', ''),                       # 150. DONO/RESPONSÁVEL
+            client.get('donoResp', ''),                       # 152. DONO/RESPONSÁVEL
             # REMOVIDO: campos específicos agora são mapeados por header abaixo
             # 'SIM' if client.get('ativo', True) else 'NÃO',    # CLIENTE ATIVO - mapeado por header
             # client.get('criadoEm', ''),                       # DATA DE CRIAÇÃO - mapeado por header  
@@ -1462,20 +1467,36 @@ class GoogleSheetsServiceAccountService:
 
         # NOVOS CAMPOS DE SENHA - mapeamento baseado em cabeçalhos
         # IMPORTANTE: Adicionar aspas simples no início para forçar tratamento como texto e preservar zeros à esquerda
+        
+        # DEBUG CRÍTICO SENHA ISS - antes de tudo
+        senha_iss_value = client.get('senhaIss', '')
+        print(f"🚨 [SERVICE] SENHA ISS - Valor recebido do client dict: '{senha_iss_value}'")
+        print(f"🚨 [SERVICE] SENHA ISS - Tipo: {type(senha_iss_value)}")
+        print(f"🚨 [SERVICE] SENHA ISS - Repr: {repr(senha_iss_value)}")
+        
+        # MAPEAMENTO COMPLETO VIA HIDX PARA GARANTIR ALINHAMENTO COM HEADERS
+        # Campos que serão sobrescritos nas posições corretas conforme cabeçalhos
         senha_fields = {
+            # Campos do formulário de senhas (linha 1 do bloco de senhas no HTML)
             'CNPJ ACESSO SIMPLES NACIONAL': client.get('cnpjAcessoSn', ''),
             'CPF DO REPRESENTANTE LEGAL': client.get('cpfRepLegal', ''),
             'CÓDIGO ACESSO SN': client.get('codigoAcessoSn', ''),
-            'SENHA ISS': client.get('senhaIss', ''),
+            'SENHA ISS': senha_iss_value,  # ⭐ CAMPO CORRIGIDO - Senha ISS
+            
+            # Campos do formulário de senhas (linha 2 do bloco de senhas no HTML)
             'SENHA SEFIN': client.get('senhaSefin', ''),
             'SENHA SEUMA': client.get('senhaSeuma', ''),
+            'ACESSO EMP WEB': client.get('acessoEmpWeb', ''),
+            'SENHA EMP WEB': client.get('senhaEmpWeb', ''),
+            
+            # Campos do formulário de senhas (linha 3 do bloco de senhas no HTML)
             'LOGIN ANVISA EMPRESA': client.get('anvisaEmpresa', ''),
             'SENHA ANVISA EMPRESA': client.get('senhaAnvisaEmpresa', ''),
             'LOGIN ANVISA GESTOR': client.get('anvisaGestor', ''),
             'SENHA ANVISA GESTOR': client.get('senhaAnvisaGestor', ''),
+            
+            # Campos do formulário de senhas (linha 4 do bloco de senhas no HTML)
             'SENHA FAP/INSS': client.get('senhaFapInss', ''),
-            'ACESSO EMP WEB': client.get('acessoEmpWeb', ''),
-            'SENHA EMP WEB': client.get('senhaEmpWeb', ''),
             'ACESSO CRF': client.get('acessoCrf', ''),
             'SENHA CRF': client.get('senhaCrf', ''),
             'EMAIL SEFIN': client.get('emailSefin', ''),
@@ -1711,24 +1732,8 @@ class GoogleSheetsServiceAccountService:
             'contato_5_telefone': safe_get(row, 112),             # 113-1 = 112 (CONTATO_5_TELEFONE)
             'contato_5_email': safe_get(row, 113),                # 114-1 = 113 (CONTATO_5_EMAIL)
 
-            # Bloco 5: Senhas e Credenciais (POSIÇÕES CORRIGIDAS)
-            'cnpjAcessoSn': safe_get(row, 105),      # 106-1 = 105 (CPF/CNPJ SN)
-            'cpfRepLegal': safe_get(row, 106),       # 107-1 = 106 (CÓDIGO ACESSO SN)
-            'codigoAcessoSn': safe_get(row, 107),    # 108-1 = 107 (ACESSO EMPWEB)
-            'senhaIss': safe_get(row, 108),          # 109-1 = 108 (SENHA EMPWEB)
-            
-            'senhaSefin': safe_get(row, 109),        # 110-1 = 109 (ACESSO ISS)
-            'senhaSeuma': safe_get(row, 110),        # 111-1 = 110 (ACESSO SEFIN)
-            'acessoEmpWeb': safe_get(row, 111),      # 112-1 = 111 (ACESSO SEUMA)
-            'senhaEmpWeb': safe_get(row, 120),       # 121-1 = 120 (ACESSO SEMACE)
-            
-            'anvisaEmpresa': safe_get(row, 121),     # 122-1 = 121 (ACESSO IBAMA)
-            'senhaAnvisaEmpresa': safe_get(row, 122), # 123-1 = 122 (ACESSO FAP/INSS)
-            'anvisaGestor': safe_get(row, 123),      # 124-1 = 123 (ACESSO CRF)
-            'senhaAnvisaGestor': safe_get(row, 124), # 125-1 = 124 (SENHA SEMACE)
-            
-            'acessoCrf': safe_get(row, 125),         # 126-1 = 125 (ANVISA GESTOR)
-            'senhaFapInss': safe_get(row, 126),      # 127-1 = 126 (ANVISA EMPRESA)
+            # Bloco 5: Senhas e Credenciais (POSIÇÕES REMOVIDAS - USANDO HIDX MAIS ABAIXO)
+            # NOTA: Campos de senha agora usam cabeçalhos dinâmicos (hidx) nas linhas 1780+
             
             # Senhas Específicas Adicionais (POSIÇÕES CORRIGIDAS)
             'senhaFgts': safe_get(row, 127),         # 128-1 = 127 (SENHA FGTS)
@@ -1773,24 +1778,25 @@ class GoogleSheetsServiceAccountService:
             'geraArquivoSped': safe_get(row, hidx.get('GERA ARQUIVO DO SPED', 105)),  # GERA ARQUIVO DO SPED - USA HIDX
             
             # --- CAMPOS NOVOS DE SENHA - usando cabeçalhos dinâmicos (hidx) ---
-            # Aplicar clean_text_field para remover aspas simples de formatação
-            'cnpjAcessoSn': clean_text_field(safe_get(row, hidx.get('CNPJ ACESSO SIMPLES NACIONAL', 106))),
-            'cpfRepLegal': clean_text_field(safe_get(row, hidx.get('CPF DO REPRESENTANTE LEGAL', 107))),
-            'codigoAcessoSn': clean_text_field(safe_get(row, hidx.get('CÓDIGO ACESSO SN', 108))),
-            'senhaIss': clean_text_field(safe_get(row, hidx.get('SENHA ISS', 109))),
-            'senhaSefin': clean_text_field(safe_get(row, hidx.get('SENHA SEFIN', 110))),
-            'senhaSeuma': clean_text_field(safe_get(row, hidx.get('SENHA SEUMA', 111))),
-            'anvisaEmpresa': clean_text_field(safe_get(row, hidx.get('LOGIN ANVISA EMPRESA', 112))),
-            'senhaAnvisaEmpresa': clean_text_field(safe_get(row, hidx.get('SENHA ANVISA EMPRESA', 113))),
-            'anvisaGestor': clean_text_field(safe_get(row, hidx.get('LOGIN ANVISA GESTOR', 114))),
-            'senhaAnvisaGestor': clean_text_field(safe_get(row, hidx.get('SENHA ANVISA GESTOR', 115))),
-            'senhaFapInss': clean_text_field(safe_get(row, hidx.get('SENHA FAP/INSS', 116))),
-            'acessoEmpWeb': clean_text_field(safe_get(row, hidx.get('ACESSO EMP WEB', 117))),
-            'senhaEmpWeb': clean_text_field(safe_get(row, hidx.get('SENHA EMP WEB', 118))),
-            'acessoCrf': clean_text_field(safe_get(row, hidx.get('ACESSO CRF', 119))),
-            'senhaCrf': clean_text_field(safe_get(row, hidx.get('SENHA CRF', 120))),
-            'emailSefin': clean_text_field(safe_get(row, hidx.get('EMAIL SEFIN', 121))),
-            'emailEmpweb': clean_text_field(safe_get(row, hidx.get('EMAIL EMPWEB', 122))),
+            # ⭐ MAPEAMENTO CORRIGIDO: Todos os campos de senha agora usam hidx para buscar a posição correta
+            # Aplicar clean_text_field para remover aspas simples de formatação do Google Sheets
+            'cnpjAcessoSn': clean_text_field(safe_get(row, hidx.get('CNPJ ACESSO SIMPLES NACIONAL', -1))),
+            'cpfRepLegal': clean_text_field(safe_get(row, hidx.get('CPF DO REPRESENTANTE LEGAL', -1))),
+            'codigoAcessoSn': clean_text_field(safe_get(row, hidx.get('CÓDIGO ACESSO SN', -1))),
+            'senhaIss': clean_text_field(safe_get(row, hidx.get('SENHA ISS', -1))),  # ⭐ CORRIGIDO
+            'senhaSefin': clean_text_field(safe_get(row, hidx.get('SENHA SEFIN', -1))),
+            'senhaSeuma': clean_text_field(safe_get(row, hidx.get('SENHA SEUMA', -1))),
+            'anvisaEmpresa': clean_text_field(safe_get(row, hidx.get('LOGIN ANVISA EMPRESA', -1))),
+            'senhaAnvisaEmpresa': clean_text_field(safe_get(row, hidx.get('SENHA ANVISA EMPRESA', -1))),
+            'anvisaGestor': clean_text_field(safe_get(row, hidx.get('LOGIN ANVISA GESTOR', -1))),
+            'senhaAnvisaGestor': clean_text_field(safe_get(row, hidx.get('SENHA ANVISA GESTOR', -1))),
+            'senhaFapInss': clean_text_field(safe_get(row, hidx.get('SENHA FAP/INSS', -1))),
+            'acessoEmpWeb': clean_text_field(safe_get(row, hidx.get('ACESSO EMP WEB', -1))),
+            'senhaEmpWeb': clean_text_field(safe_get(row, hidx.get('SENHA EMP WEB', -1))),
+            'acessoCrf': clean_text_field(safe_get(row, hidx.get('ACESSO CRF', -1))),
+            'senhaCrf': clean_text_field(safe_get(row, hidx.get('SENHA CRF', -1))),
+            'emailSefin': clean_text_field(safe_get(row, hidx.get('EMAIL SEFIN', -1))),
+            'emailEmpweb': clean_text_field(safe_get(row, hidx.get('EMAIL EMPWEB', -1))),
         }
 
         # CORREÇÃO CRÍTICA: Derivar campo 'ativo' a partir do statusCliente
